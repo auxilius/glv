@@ -1,6 +1,7 @@
 INSTALACIA:
 
 Je potrebne prodat do projektu kniznicu 'gldebugger.lib' a hlavickovy subor 'gldebugger.h'
+Taktiez treba umiestnit subor 'font_arial.glf' niekam, aby ho program pri spusteni nasiel.
 
 
 FUNKCIE:
