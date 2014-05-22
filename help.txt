@@ -1,0 +1,19 @@
+v0.9
+
+INSTALACIA:
+
+Je potrebne prodat do projektu kniznicu 'gldebugger.lib' a hlavickovy subor 'gldebugger.h'
+Taktiez treba umiestnit subor 'font_arial.glf' niekam, aby ho program pri spusteni nasiel.
+
+
+FUNKCIE:
+
+vid komentare v hlavickovom subore 'gldebugger.h'
+
+
+
+V PRIPADE NEFUNKCNOSTI:
+
+1) Skontrolujte ci mate nastaveny compilator na konfiguraciu debug
+
+2) Je mozne ze bude treba vypnut inkrementalne linkovanie vo vasom projekte ( Project_Properties > Configuration_Properties > Linker > General > Enable_Incremental_Linking : NO )
