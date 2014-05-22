@@ -21,10 +21,7 @@ void textPrint(int X, int Y, std::string string);
 void textPrintCentered(int X, int Y, std::string string);
 
 
-<<<<<<< HEAD
 void glColor(unsigned char r, unsigned char g, unsigned char b);
-=======
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 ////   GEOMETRY DRAWING
 void glVerticeSquare(Box border);
 void glVerticeSquare(int x, int y, int size);

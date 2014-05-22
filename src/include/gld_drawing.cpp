@@ -149,12 +149,8 @@ void drawSwitchIcon(int x, int y, int size) {
 	glDrawElements(GL_QUADS, 60, GL_UNSIGNED_BYTE, indices);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glPopMatrix();
-<<<<<<< HEAD
 };
 
 void glColor(unsigned char r, unsigned char g, unsigned char b) {
 	glColor3f((GLfloat)r / 255, (GLfloat)g / 255, (GLfloat)b / 255);
 };
-=======
-};
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0

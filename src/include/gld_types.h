@@ -7,21 +7,7 @@
 #include <gl/glew.h>
 #include <fstream>
 
-<<<<<<< HEAD
 
-=======
-#define VISUALIZE_NONE		0
-#define VISUALIZE_TEXTURE	1
-#define VISUALIZE_MESH		2
-#define VISUALIZE_VALUE		3
-
-static char * visualizationTypeCaption[4] = {
-	"<without setting>",
-	"Texture Field",
-	"Mesh Field",
-	"Value Field"
-};
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 
 struct Point {
 	int x, y;

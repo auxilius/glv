@@ -290,7 +290,6 @@ void gldStop() {
 	ShowWindow(controller.mainWindowHandle, SW_HIDE);
 };
 
-<<<<<<< HEAD
 bool gldAddTexture(std::string caption, const GLuint texture) {
 	controller.engine.addTexture(caption.c_str(), texture);
 	return true;
@@ -321,29 +320,6 @@ bool gldAddModel(std::string caption, const GLuint vbo, unsigned count) {
 
 bool gldAddModelData(std::string caption, float * data, float min, float max) {
 	controller.engine.addModelData(caption.c_str(), data, min, max);
-=======
-bool gldAddTexture(char * caption, const GLuint texture) {
-	controller.engine.addTexture(caption, texture);
-	return true;
-};
-
-bool gldAddLine(char * format, void * data) {
-	controller.engine.addValue(format, data);
-	return true;
-};
-bool gldAddLine(char * format, void * data[]) {
-	controller.engine.addValues(format, data);
-	return true;
-};
-
-bool gldAddModel(char * caption, const GLuint vbo, unsigned count) {
-	controller.engine.addModel(caption, vbo, count);
-	return true;
-};
-
-bool gldAddModelData(char * caption, float * data, float min, float max) {
-	controller.engine.addModelData(caption, data, min, max);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	return true;
 };
 

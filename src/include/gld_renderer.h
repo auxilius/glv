@@ -9,18 +9,11 @@ void setColorByValue(float value);
 class View {
 public:
 	View(){};
-<<<<<<< HEAD
 	Box border;
 	unsigned layer;
 	void drawBackground(float r, float g, float b);
 	void drawBorder(float r, float g, float b);
 	void setBorder(Box newBorder);
-=======
-	explicit View(Box cBorder) : border(cBorder) {};
-	Box border;
-	void drawBackground(float r, float g, float b);
-	void drawBorder(float r, float g, float b);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 };
 
 struct TextureListItem {
@@ -49,7 +42,6 @@ struct VariableWatchData {
 	std::string getString();
 };
 struct VariableWatchLine {
-<<<<<<< HEAD
 private:
 	std::vector<std::string> text;
 	std::vector<VariableWatchData> value;
@@ -71,42 +63,11 @@ class Model {
 private:
 	GLfloat scaleFactor, translateFactor[3];
 	bool isFactorCalculated;
-=======
-	std::vector<std::string> text;
-	std::vector<VariableWatchData> value;
-	char * getText();
-	void addData(std::string format, void* data[]);
-};
-class VariableWatchView : public View {
-public: 
-	VariableWatchView() {};
-	std::vector<VariableWatchLine> line;
-	void draw();
-};
-
-struct Model {
-	Model(){
-		caption	= "";
-		vboID = 0;
-		data	= NULL;
-		normalized	= true;
-		minValue = 0;
-		maxValue = 0;
-		verticeCount = 0;
-	};
-	Model(std::string C, GLuint ID, float* D, unsigned N) : caption(C), vboID(ID), data(D), verticeCount(N) {};
-	void setDataLimits(float min, float max) { 
-		minValue = min;
-		maxValue = max;
-		normalized = false;
-	};
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	std::string	caption;
 	GLuint vboID;
 	float* data;
 	bool normalized;
 	float minValue, maxValue;
-<<<<<<< HEAD
 
 	unsigned verticeCount;
 	float normalizeValue(float value);
@@ -122,27 +83,14 @@ public:
 class ModelView : public View {
 private:
 	Model * model;
-=======
-	unsigned verticeCount;
-};
-class ModelView : public View {
-private:
-	Model model;
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	bool wasSelected;
 	Point lastMousePos;
 	double hang, vang, dist;
 	float normalizeValue(float value);
 public:
-<<<<<<< HEAD
 	ModelView() { model = NULL; };
 	ModelView(Box cBorder) { border = cBorder; model = NULL; };
 	void showModel(Model * M);
-=======
-	ModelView() { };
-	ModelView(Box cBorder) { border = cBorder; };
-	void showModel(Model M);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	void draw();
 	void onMouseMove(int x, int y);
 	void onMouseDown(mouseButton button);
@@ -161,24 +109,17 @@ private:
 	std::vector<TextureListItem> textureList;
 	std::vector<TextureView> textureField;
 
-<<<<<<< HEAD
 	CheckPopupMenu popupVariableSelect;
 	std::vector<VariableWatchLine> lineList;
 	std::vector<VariableView> variableField;
-=======
-	VariableWatchView variableField;
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 
 	int selectedModelField;
 	bool selectModelFieldUnderMouse();
 	int selectedTextureField;
 	bool selectTextureFieldUnderMouse();
-<<<<<<< HEAD
 	int selectedVariableField;
 	bool selectVariableFieldUnderMouse();
 	unsigned selectFieldUnderMouse();
-=======
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 
 	void clearConfiguration();
 public:
@@ -193,19 +134,10 @@ public:
 	void mouseMove(int x, int y);
 	void mouseWheel(signed short direction);
 	
-<<<<<<< HEAD
 	bool addTexture(const char * caption, GLuint textureID);
 	bool addValues(const char * caption, const char * formatString, void* data[]);
 	bool addModel(const char * caption, GLuint vboid, unsigned count, float* data = NULL);
 	void addModelData(GLuint vboid, float* data, float minValue, float maxValue);
 	void addModelData(const char * caption, float* data, float minValue, float maxValue);
-=======
-	bool addTexture(char * caption, GLuint textureID);
-	bool addValues(std::string formatString, void* data[]);
-	bool addValues(std::string formatString, void* data);
-	bool addModel(char * caption, GLuint vboid, unsigned count, float* data = NULL);
-	void addModelData(GLuint vboid, float* data, float minValue, float maxValue);
-	void addModelData(char * caption, float* data, float minValue, float maxValue);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	
 };

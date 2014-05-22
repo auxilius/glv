@@ -11,15 +11,10 @@ void gldEngine::renderMenu() {
 	drawRect(GL_QUADS, menuBar);
 	glColor3f(0.6f, 0.6f, 0.6f);
 	glLineWidth(1.0f);
-<<<<<<< HEAD
 	//drawLine(0, canvas.bottom-30, canvas.right, canvas.bottom-30);
 
 	glColor3f(0.4f, 0.4f, 0.4f);
 	drawRect(GL_QUADS, switchButton);
-=======
-	drawLine(0, canvas.bottom-30, canvas.right, canvas.bottom-30);
-
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	if (configurator.numberOfField() == 0)
 		glColor4f(1.0f, 0.1f, 0.1f, 0.3f);
 	else if (switchButton.contains(input.mouse)) 
@@ -71,11 +66,7 @@ void gldEngine::init() {
 	glDisable(GL_DEPTH_TEST);
 	glShadeModel(GL_SMOOTH);
 
-<<<<<<< HEAD
 	switchButton.set(3, 3, 180, 27);
-=======
-	switchButton.set(5, 5, 180, 25);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	reloadProjection();
 	configurator.init();
 	visualizer.init();
@@ -134,7 +125,6 @@ void gldEngine::onMouseWheel(signed short direction) {
 		visualizer.mouseWheel(direction);
 };
 
-<<<<<<< HEAD
 void gldEngine::addTexture(const char * caption, const GLuint texture) {
 	visualizer.addTexture(caption, texture);
 }
@@ -145,21 +135,6 @@ void gldEngine::addModel(const char * caption, const GLuint vbo, const unsigned 
 	visualizer.addModel(caption, vbo, count);
 }
 void gldEngine::addModelData(const char * caption, float * data, float min, float max) {
-=======
-void gldEngine::addTexture(char * caption, const GLuint texture) {
-	visualizer.addTexture(caption, texture);
-}
-void gldEngine::addValue(char * caption, void * data) {
-	visualizer.addValues(caption, data);
-}
-void gldEngine::addValues(char * caption, void * data[]) {
-	visualizer.addValues(caption, data);
-}
-void gldEngine::addModel(char * caption, const GLuint vbo, const unsigned count) {
-	visualizer.addModel(caption, vbo, count);
-}
-void gldEngine::addModelData(char * caption, float * data, float min, float max) {
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	visualizer.addModelData(caption, data, min, max);
 }
 void gldEngine::addModelData(const GLuint vbo, float * data, float min, float max) {

@@ -107,17 +107,12 @@ void Button::setColor(ButtonColorRelation relation, GLfloat r, GLfloat g, GLfloa
 PopupMenu::PopupMenu() {
 	activeArea.set(-POPUP_ACTIVE_BORDER_SIZE, -POPUP_ACTIVE_BORDER_SIZE, POPUP_ACTIVE_BORDER_SIZE, POPUP_ACTIVE_BORDER_SIZE);
 };
-<<<<<<< HEAD
-=======
-
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 PopupMenu::PopupMenu(vector<string> data) {
 	PopupMenu();
 	for (unsigned i = 0; i < data.size(); i++) {
 		addItem(data[i].c_str());
 	}
 };
-<<<<<<< HEAD
 void PopupMenu::loadDefaultColors(Button * item) {
 	item->removeColor(BORDER_HOVERED);
 	item->removeColor(BACK_CLICKED);
@@ -127,8 +122,6 @@ void PopupMenu::loadDefaultColors(Button * item) {
 	item->setColor(TEXT_NORMAL, 1.0f, 1.0f, 1.0f);
 	item->setColor(TEXT_HOVERED, 0.2f, 0.15f, 0.05f);
 };
-=======
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 int PopupMenu::addItem(const char * caption) {
 	Button newItem;
 	newItem.setCaption(caption);
@@ -144,16 +137,7 @@ int PopupMenu::addItem(const char * caption) {
 	else
 		newItem.width = minItemWidth;
 	activeArea.height = activeArea.height + newItem.height;
-<<<<<<< HEAD
 	loadDefaultColors(&newItem);
-=======
-	newItem.removeColor(BORDER_HOVERED);
-	newItem.setColor(BACK_NORMAL,  0.2f, 0.2f, 0.2f, 1.0f);
-	newItem.setColor(BACK_HOVERED, 1.0f, 0.9f, 0.5f, 1.0f);
-	newItem.setColor(BORDER_NORMAL, 0.0f, 0.0f, 0.0f, 0.20f);
-	newItem.setColor(TEXT_NORMAL, 1.0f, 1.0f, 1.0f);
-	newItem.setColor(TEXT_HOVERED, 0.2f, 0.15f, 0.05f);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	item.push_back(newItem);
 	border.set(activeArea.left + POPUP_ACTIVE_BORDER_SIZE,
 		activeArea.top + POPUP_ACTIVE_BORDER_SIZE,
@@ -217,7 +201,6 @@ std::string PopupMenu::selectedItemText() {
 		return item[selectedNumber].caption;
 };
 
-<<<<<<< HEAD
 
 /************** CHECKABLE POPUP MENU CLASS **************/
 
@@ -260,5 +243,3 @@ int CheckPopupMenu::uncheckedItem() {
 	}
 	return -1;
 };
-=======
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0

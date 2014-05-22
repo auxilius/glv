@@ -58,7 +58,6 @@ bool gldRenderer::selectTextureFieldUnderMouse() {
 	selectedTextureField = -1;
 	return false;
 };
-<<<<<<< HEAD
 bool gldRenderer::selectVariableFieldUnderMouse() {
 	for (unsigned i = 0; i < variableField.size(); i++) {
 		if (variableField[i].border.contains(input.mouse)) {
@@ -96,8 +95,6 @@ unsigned gldRenderer::selectFieldUnderMouse() {
 	}
 	return result;
 };
-=======
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 void gldRenderer::render() {
 	glLoadIdentity();
 	// MODELS
@@ -107,21 +104,12 @@ void gldRenderer::render() {
 	for (unsigned i = 0; i < textureField.size(); i++)
 		textureField[i].draw();
 	// VARIABLES
-<<<<<<< HEAD
 	for (unsigned i = 0; i < variableField.size(); i++)
 		variableField[i].draw();
 	// menus
 	popupTextureSelect.draw();
 	popupModelSelect.draw();
 	popupVariableSelect.draw();
-=======
-	if (variableField.border.width > 0)
-		variableField.draw();
-	// menus
-	popupTextureSelect.draw();
-	popupModelSelect.draw();
-
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 };
 void gldRenderer::mouseDown(mouseButton button) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
@@ -131,7 +119,6 @@ void gldRenderer::mouseDown(mouseButton button) {
 		selectedTextureField = -1;
 	if (!popupModelSelect.isActive())
 		selectedModelField = -1;
-<<<<<<< HEAD
 	if (!popupVariableSelect.isActive())
 		selectedVariableField = -1;
 	if (button == mbRight) {
@@ -145,25 +132,13 @@ void gldRenderer::mouseDown(mouseButton button) {
 		if (selected == FIELD_TYPE_VALUE) {
 			popupVariableSelect.setCheckedOptions(&variableField[selectedVariableField].lineNumber);
 			popupVariableSelect.show(input.mouse.x, input.mouse.y);
-=======
-	if (button == mbRight) {
-		if (selectModelFieldUnderMouse()) {
-			popupModelSelect.show(input.mouse.x, input.mouse.y);
-		} else
-		if (selectTextureFieldUnderMouse()) {
-			popupTextureSelect.show(input.mouse.x, input.mouse.y);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 		}
 	}
 	if (button == mbLeft) {
 		if (popupModelSelect.isActive()) {
 			int selectedMenuItem = popupModelSelect.selectedItemNumber();
 			if (selectedMenuItem != -1) {
-<<<<<<< HEAD
 				modelField[selectedModelField].showModel(&modelList[selectedMenuItem]);
-=======
-				modelField[selectedModelField].showModel(modelList[selectedMenuItem]);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 				selectedModelField = -1;
 			}
 		}
@@ -175,7 +150,6 @@ void gldRenderer::mouseDown(mouseButton button) {
 				selectedTextureField = -1;
 			}
 		}
-<<<<<<< HEAD
 		else
 		if (popupVariableSelect.isActive()) {
 			int check = popupVariableSelect.checkedItem();
@@ -187,8 +161,6 @@ void gldRenderer::mouseDown(mouseButton button) {
 					variableField[selectedVariableField].setLine(uncheck, false);
 			}
 		}
-=======
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	}
 	requestRender();
 };
@@ -210,11 +182,7 @@ void gldRenderer::mouseWheel(signed short direction) {
 void gldRenderer::clearConfiguration() {
 	modelField.clear();
 	textureField.clear();
-<<<<<<< HEAD
 	variableField.clear();
-=======
-	variableField.border.set(0,0,0);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 };
 bool gldRenderer::loadConfiguration() {
 	clearConfiguration();
@@ -234,7 +202,6 @@ bool gldRenderer::loadConfiguration() {
 		stream >> fieldBorder.bottom;
 		stream >> fieldBorder.left;
 		stream >> visualizationType;
-<<<<<<< HEAD
 		if (visualizationType == FIELD_TYPE_MODEL) {
 			ModelView MV;
 			MV.setBorder(fieldBorder);
@@ -253,34 +220,17 @@ bool gldRenderer::loadConfiguration() {
 			VV.setLineList(&lineList);
 			VV.layer = i;
 			variableField.push_back(VV);			
-=======
-		if (visualizationType == VISUALIZE_MESH) {
-			ModelView MV(fieldBorder);
-			modelField.push_back(MV);
-		}
-		if (visualizationType == VISUALIZE_TEXTURE) {
-			TextureView TV(fieldBorder);
-			textureField.push_back(TV);
-		}
-		if (visualizationType == VISUALIZE_VALUE) {
-			variableField.border = fieldBorder;
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 		}
 	}
 	stream.close();
 	return true;
 };
-<<<<<<< HEAD
 bool gldRenderer::addTexture(const char * caption, GLuint textureID) {
-=======
-bool gldRenderer::addTexture(char * caption, GLuint textureID) {
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	TextureListItem TE(caption, textureID);
 	textureList.push_back(TE);
 	popupTextureSelect.addItem(caption);
 	return true;
 };
-<<<<<<< HEAD
 bool gldRenderer::addValues(const char * caption, const char * formatString, void* data[]) {
 	VariableWatchLine Line;
 	Line.addData(formatString, data);
@@ -291,29 +241,11 @@ bool gldRenderer::addValues(const char * caption, const char * formatString, voi
 bool gldRenderer::addModel(const char * caption, GLuint vboid, unsigned count, GLfloat* data) {
 	Model MO;
 	MO.set(caption, vboid, data, count);
-=======
-bool gldRenderer::addValues(std::string formatString, void* data[]) {
-	VariableWatchLine L;
-	L.addData(formatString, data);
-	variableField.line.push_back(L);
-	return true;
-};
-bool gldRenderer::addValues(std::string formatString, void* data) {
-	void * a_data[] = { data };
-	VariableWatchLine L;
-	L.addData(formatString, a_data);
-	variableField.line.push_back(L);
-	return true;
-};
-bool gldRenderer::addModel(char * caption, GLuint vboid, unsigned count, GLfloat* data) {
-	Model MO(caption, vboid, data, count);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	modelList.push_back(MO);
 	popupModelSelect.addItem(caption);
 	return true;
 };
 void gldRenderer::addModelData(GLuint vboid, float* data, float minValue, float maxValue) {
-<<<<<<< HEAD
 	
 	for (unsigned i = 0; i < modelList.size(); i++)
 		if (modelList[i].getVBO() == vboid) {
@@ -333,25 +265,6 @@ void gldRenderer::addModelData(const char * caption, float* data, float minValue
 void View::setBorder(Box newBorder) {
 	border = newBorder;
 };
-=======
-	for (unsigned i = 0; i < modelList.size(); i++) {
-		if (modelList[i].vboID == vboid) {
-			modelList[i].data = data;
-			modelList[i].setDataLimits(minValue, maxValue);
-		}
-	}
-};
-void gldRenderer::addModelData(char * caption, float* data, float minValue, float maxValue) {
-	for (unsigned i = 0; i < modelList.size(); i++) {
-		if (modelList[i].caption == caption) {
-			modelList[i].data = data;
-			modelList[i].setDataLimits(minValue, maxValue);
-		}
-	}
-};
-
-///		V I E W		///
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 void View::drawBackground(float r, float g, float b) {
 	glColor3f(r, g, b);
 	drawRect(GL_QUADS, border);
@@ -375,13 +288,8 @@ void TextureView::showTextureWithID(GLuint ID) {
 	texRatio = (float)texWidth / texHeight;
 };
 void TextureView::draw() {
-<<<<<<< HEAD
 	drawBackground(0.04f, 0.04f, 0.04f);
 	drawBorder(0.1f, 0.1f, 0.1f);
-=======
-	drawBackground(0.02f, 0.02f, 0.02f);
-	drawBorder(0.3f, 0.3f, 0.3f);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	if (textureShown != 0) {
 		float pomerBox = (float)border.width / border.height;
 		Box texbox = border;
@@ -399,17 +307,10 @@ void TextureView::draw() {
 		glBindTexture(GL_TEXTURE_2D, textureShown);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		glBegin(GL_QUADS);
-<<<<<<< HEAD
 		glTexCoord2f(0.0f, 1.0f); glVertex2f(texbox.left-1, texbox.top-1);
 		glTexCoord2f(1.0f, 1.0f); glVertex2f(texbox.right, texbox.top-1);
 		glTexCoord2f(1.0f, 0.0f); glVertex2f(texbox.right, texbox.bottom);
 		glTexCoord2f(0.0f, 0.0f); glVertex2f(texbox.left-1, texbox.bottom);
-=======
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(texbox.left, texbox.top);
-		glTexCoord2f(1.0f, 1.0f); glVertex2f(texbox.right, texbox.top);
-		glTexCoord2f(1.0f, 0.0f); glVertex2f(texbox.right, texbox.bottom);
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(texbox.left, texbox.bottom);
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 	}
@@ -425,11 +326,7 @@ std::string VariableWatchData::getString() {
 			<< std::boolalpha;
 	}
 	if (data == NULL)
-<<<<<<< HEAD
 		result << "N/A";
-=======
-		result << "";
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	else 
 	if (type == 'i')
 		result << *(int*)data;
@@ -449,12 +346,9 @@ std::string VariableWatchData::getString() {
 	if (type == 'b')
 		result << *(bool*)data;
 	else
-<<<<<<< HEAD
 	if (type == 's')
 		result << (char*)data;
 	else
-=======
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 		result << "%" << type;
 	return result.str();
 };
@@ -492,17 +386,12 @@ char * VariableWatchLine::getText() {
 	strcpy(result, out.c_str());
 	return result;
 };
-<<<<<<< HEAD
 void VariableView::draw() {
-=======
-void VariableWatchView::draw() {
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	//drawBackground(0.05f, 0.05f, 0.05f);
 	//drawBorder(0.2f, 0.2f, 0.2f);
 	glColor3f(0.8f, 0.8f, 0.8f);
 	setFontSize(8);
 	const int spacing = getTextHeight("X") + 5;
-<<<<<<< HEAD
 	for (unsigned i = 0; i < lineNumber.size(); i++) {
 		textPrint(border.left + 5, border.top + 5 + i*spacing,  
 			lineList->operator[](lineNumber[i]).getText() );
@@ -616,26 +505,11 @@ void Model::render() {
 };
 
 void ModelView::showModel(Model * M) {
-=======
-	for (unsigned i = 0; i < line.size(); i++) {
-		textPrint(border.left + 5, border.top + 5 + i*spacing, line[i].getText());
-	}
-};
-
-///		M O D E L   V I E W		///
-void ModelView::showModel(Model M) {
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	model = M;
 	hang = PI / 5.0;
 	vang = PI / 4.0;
 	dist = 5.0;
 }
-<<<<<<< HEAD
-=======
-float ModelView::normalizeValue(float value) {
-	return (value - model.minValue) / (model.maxValue - model.minValue);
-};
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 void ModelView::onMouseMove(int x, int y) {
 	if (wasSelected) {
 		hang -= (double)(lastMousePos.x - x) / 100.0;
@@ -678,36 +552,7 @@ void ModelView::draw() {
 	gluLookAt(x,y,z, 0,0,0, 0,1,0);
 
 	glMatrixMode(GL_MODELVIEW);
-<<<<<<< HEAD
 	if (model != NULL)
 		model->render();
-=======
-	if (model.vboID != 0) {
-		glLineWidth(1.0f);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glBindBuffer(GL_ARRAY_BUFFER, model.vboID);
-		glVertexPointer(3, GL_FLOAT, 0, NULL);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glColor3f(0.1f, 0.1f, 0.1f);
-		glDrawArrays(GL_QUADS, 0, model.verticeCount);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		
-		glPointSize(6.0f);
-		glEnable(GL_POINT_SMOOTH);
-		for (unsigned i = 0; i < model.verticeCount; i++) {
-			if (model.data == NULL) 
-				glColor3f(0.9f, 0.9f, 0.9f);
-			else {
-				float value = model.data[i];
-				if (!model.normalized)
-					value = normalizeValue(value);
-				setColorByValue(value);
-			}
-			glDrawArrays(GL_POINTS, i, 1);
-		}
-		glDisableClientState(GL_VERTEX_ARRAY);
-	}
->>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	reloadProjection();
 };
