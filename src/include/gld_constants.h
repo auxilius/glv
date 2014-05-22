@@ -7,6 +7,7 @@
 #define MENU_HEIGHT 30
 
 #define FIELD_SCALEHANDLE_SIZE 8
+<<<<<<< HEAD
 #define FIELD_MIN_SIZE 40
 
 #define FILE_CONFIG "user.conf"
@@ -33,4 +34,10 @@ static char * visualizationTypeCaption[4] = {
 	FIELD_NAME_VALUE	
 };
 
+=======
+#define FIELD_MIN_SIZE 20
+
+#define FILE_CONFIG "user.conf"
+
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 #endif

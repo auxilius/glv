@@ -6,6 +6,7 @@
 #include <gl/gl.h>
 #include <gl/glu.h>
 
+<<<<<<< HEAD
 /* Inicializuje kniznicu - ak nie su zadane parametre, automaticky sa nacitaju kontexty ktore su aktualne nastavene */
 int gldInit(HGLRC glrcToShare = NULL, HDC dcToShare = NULL);
 
@@ -31,6 +32,19 @@ bool gldAddModel(std::string caption, GLuint vbo, unsigned count);
 
 /* Nastavy data na model - identifikacia modelu podla jeho nazvu alebo id */
 bool gldAddModelData(std::string caption, float * data, float min = 0.0f, float max = 1.0f);
+=======
+int gldInit(HGLRC glrcToShare = NULL, HDC dcToShare = NULL);
+
+void gldStart();
+
+void gldStop();
+
+bool gldAddTexture(char * caption, GLuint texture);
+bool gldAddLine(char * format, void * data);
+bool gldAddLine(char * format, void * data[]);
+bool gldAddModel(char * caption, GLuint vbo, unsigned count);
+bool gldAddModelData(char * caption, float * data, float min = 0.0f, float max = 1.0f);
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 bool gldAddModelData(GLuint vboid, float * data, float min = 0.0f, float max = 1.0f);
 
 

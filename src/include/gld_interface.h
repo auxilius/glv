@@ -56,14 +56,22 @@ public:
 #define POPUPMENU_NULL ""
 
 class PopupMenu {
+<<<<<<< HEAD
 protected:
+=======
+private:
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	int minItemWidth;
 	Box activeArea, border;
 	std::vector<Button> item;
 	bool active;
+<<<<<<< HEAD
 	void loadDefaultColors(Button * item);
 public:
 	bool checkable;
+=======
+public:
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	PopupMenu();
 	PopupMenu(std::vector<std::string> data);
 	int addItem(const char * caption);
@@ -71,6 +79,7 @@ public:
 	bool isActive();
 	void show(int x = -1, int y = -1);
 	void hide();
+<<<<<<< HEAD
 	int selectedItemNumber();
 	std::string selectedItemText();
 };
@@ -85,5 +94,11 @@ public:
 	int checkedItem();
 	int uncheckedItem();
 };
+=======
+	int selectedItemNumber();		// vrati hodnotu, podla toho ktora polozka bola kliknuta, ak nic, tak vrati 0
+	std::string selectedItemText(); // vrati retazec z aktualne selectnutej polozky
+};
+
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 
 #endif

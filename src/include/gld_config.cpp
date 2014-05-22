@@ -1,7 +1,17 @@
 #include "gld_config.h"
 
 
+<<<<<<< HEAD
 
+=======
+#define MENUITEM_FIELD_FOR_TEXTURE	"TEXTURE FIELD"
+#define MENUITEM_FIELD_FOR_MESH		"MESH FIELD"
+#define MENUITEM_FIELD_FOR_VALUE	"VALUE FIELD"
+#define MENUITEM_FIELD_TO_SQUARE	"Set To Square"
+#define MENUITEM_FIELD_DELETE		"Delete"
+#define MENUITEM_FIELD_ADD			"Add Field"
+#define MENUITEM_SAVE_RUN			"Save & Finish"
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 
 //MessageBox(0, "And text here", "MessageBox caption", MB_OK);
 
@@ -26,6 +36,7 @@ void ConfigField::moveScaleHandle(Point point) {
 	border.bottom = point.y;
 };
 void ConfigField::draw(bool selected) {
+<<<<<<< HEAD
 	if (visualizationType == FIELD_TYPE_NONE)
 		glColor(145, 139, 141);
 		//glColor3f(0.3f, 0.3f, 0.3f);
@@ -39,6 +50,12 @@ void ConfigField::draw(bool selected) {
 		glColor(110, 110, 75);
 		//glColor3f(0.21960f, 0.11765f, 0.24313f);
 		
+=======
+	if (visualizationType != 0)
+		glColor3f(0.11765f, 0.24313f, 0.21960f);
+	else
+		glColor3f(0.3f, 0.3f, 0.3f);
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 	drawRect(GL_QUADS, border);
 
 	glLineWidth(1.0f);
@@ -52,6 +69,7 @@ void ConfigField::draw(bool selected) {
 
 	if (pointDistance(input.mouse, point(border.right, border.bottom)) < FIELD_SCALEHANDLE_SIZE) {
 		glColor3f(0.8f, 0.8f, 0.8f);
+<<<<<<< HEAD
 		glEnable(GL_POINT_SMOOTH);
 		glPointSize((GLfloat)FIELD_SCALEHANDLE_SIZE*2);
 		glBegin( GL_POINTS); glVertex2f(border.right, border.bottom); glEnd();
@@ -75,6 +93,18 @@ void ConfigField::draw(bool selected) {
 		setFontSize(scale);
 		textPrintCentered(border.center.x, border.center.y, visualizationTypeCaption[visualizationType]);
 	}
+=======
+		glPointSize((GLfloat)FIELD_SCALEHANDLE_SIZE);
+		glBegin( GL_POINTS); glVertex2f(border.right, border.bottom); glEnd();
+	}
+
+	double scale = (double)(border.width) / 20.0;
+	if (scale > 25) scale = 25;
+	if (border.height < 45) scale = 9;
+	setFontSize(scale);
+	glColor4f(0.95f, 0.95f, 0.95f, 0.95f);
+	textPrintCentered(border.center.x, border.center.y, visualizationTypeCaption[visualizationType]);
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 };
 
 void gldConfigurator::OnMouseDown(int x, int y, mouseButton Btn) {
@@ -91,7 +121,11 @@ bool gldConfigurator::addField(int x1, int y1, int x2, int y2) {
 };
 bool gldConfigurator::addField() {
 	Point mouse = input.mouse;
+<<<<<<< HEAD
 	return addField(mouse.x - FIELD_MIN_SIZE, mouse.y - FIELD_MIN_SIZE, mouse.x + FIELD_MIN_SIZE, mouse.y + FIELD_MIN_SIZE);
+=======
+	return addField(mouse.x - 20, mouse.y - 20, mouse.x + 20, mouse.y + 20);
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 };
 void gldConfigurator::deleteField(int which) {
 	field[which] = field.back();
@@ -126,6 +160,7 @@ void gldConfigurator::init() {
 	loadPopupMenus();
 };
 void gldConfigurator::loadPopupMenus() {
+<<<<<<< HEAD
 	popupOnField.addItem(FIELD_NAME_TEXTURE);
 	popupOnField.addItem(FIELD_NAME_MODEL);
 	popupOnField.addItem(FIELD_NAME_VALUE);
@@ -138,6 +173,17 @@ void gldConfigurator::loadPopupMenus() {
 	
 	popupDefault.addItem(MENUITEM_FIELD_ADD);
 	//popupDefault.addItem(MENUITEM_SAVE_RUN);
+=======
+	popupOnField.addItem(MENUITEM_FIELD_FOR_TEXTURE);
+	popupOnField.addItem(MENUITEM_FIELD_FOR_MESH);
+	popupOnField.addItem(MENUITEM_FIELD_FOR_VALUE);
+	popupOnField.addItem(POPUPMENU_NULL);
+	popupOnField.addItem(MENUITEM_FIELD_TO_SQUARE);
+	popupOnField.addItem(MENUITEM_FIELD_DELETE);
+	
+	popupDefault.addItem(MENUITEM_FIELD_ADD);
+	popupDefault.addItem(MENUITEM_SAVE_RUN);
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 };
 void gldConfigurator::mouseDown(mouseButton button) 
 {
@@ -149,6 +195,7 @@ void gldConfigurator::mouseDown(mouseButton button)
 		else if (popupDefault.isActive())
 			selectedMenuItem = popupDefault.selectedItemText();
 		if (selectedMenuItem != POPUPMENU_NULL) {
+<<<<<<< HEAD
 			if (selectedMenuItem == FIELD_NAME_TEXTURE)
 				field[selectedField].visualizationType = 1;
 			else
@@ -156,6 +203,15 @@ void gldConfigurator::mouseDown(mouseButton button)
 				field[selectedField].visualizationType = 2;
 			else
 			if (selectedMenuItem == FIELD_NAME_VALUE)
+=======
+			if (selectedMenuItem == MENUITEM_FIELD_FOR_TEXTURE)
+				field[selectedField].visualizationType = 1;
+			else
+			if (selectedMenuItem == MENUITEM_FIELD_FOR_MESH)
+				field[selectedField].visualizationType = 2;
+			else
+			if (selectedMenuItem == MENUITEM_FIELD_FOR_VALUE)
+>>>>>>> d897c36f0ef0ba704fa81affdc366c35607ab3d0
 				field[selectedField].visualizationType = 3;
 			else
 			if (selectedMenuItem == MENUITEM_FIELD_TO_SQUARE)
