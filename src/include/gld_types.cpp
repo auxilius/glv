@@ -1,8 +1,10 @@
 #include "gld_types.h"
-#include <math.h>
+
 
 inputManager input;
-Box canvas, form;
+Box canvas;
+IOBox form;
+FieldConfig configuration;
 
 
 void Point::set(int sx, int sy) {
@@ -88,6 +90,90 @@ void Box::setSize(int newWidth, int newHeight)
 	setWidth(newWidth);
 	setHeight(newHeight);
 };
+
+
+void IOBox::save(std::ofstream & stream) {
+	stream << left << " " << top << " " << right << " " << bottom << " ";
+
+};
+void IOBox::load(std::ifstream & stream) {
+	stream >> left >> top >> right >> bottom;
+};
+
+
+FieldConfigRecord::FieldConfigRecord() {
+	type = 0;
+};
+void FieldConfigRecord::save(std::ofstream & stream) {
+	border.save(stream);
+	stream << type << " ";
+	stream << param.size() << " ";
+	for (unsigned i = 0; i < param.size(); i++)
+		stream << param[i] << " ";
+	if (paramText.empty()) stream << "-";
+	else stream << paramText.c_str();
+	stream << std::endl;
+};
+void FieldConfigRecord::load(std::ifstream & stream) {
+	border.load(stream);
+	stream >> type;
+	param.clear();
+	unsigned paramCount = 0;
+	stream >> paramCount;
+	int newParam;
+	for (unsigned i = 0; i < paramCount; i++) {
+		stream >> newParam;
+		param.push_back(newParam);
+	}
+	std::getline(stream, paramText);
+	paramText.erase(paramText.begin());
+};
+
+void FieldConfig::save(std::ofstream & stream) {
+	stream << field.size() << std::endl;
+	for (unsigned i = 0; i < field.size(); i++)
+		field[i].save(stream);
+};
+void FieldConfig::load(std::ifstream & stream) {
+	field.clear();
+	unsigned count = 0;
+	stream >> count;
+	FieldConfigRecord newField;
+	for (unsigned i = 0; i < count; i++) {
+		newField.load(stream);
+		field.push_back(newField);
+	}
+	/*deleteAllFields();
+	MessageBox(0, L"Configuration loading failed", L"Cannot load configuration, configuration file may be corrupted.", MB_OK);
+	return false;*/
+};
+void FieldConfig::clear() {
+	field.clear();
+};
+bool FieldConfig::fieldSetType(int f, int t) {
+	if (f < field.size() && f >= 0) {
+		if (field[f].type == t)
+			return false;
+		else {
+			field[f].param.clear();
+			field[f].paramText = "";
+			field[f].type = t;
+			return true;
+		}
+	}
+	return false;
+};
+void FieldConfig::debugOut() {
+	std::cout << "-------------------------------------" << std::endl;
+	std::cout << "Configuration:" << std::endl;
+	for (unsigned i = 0; i < field.size(); i++) {
+		FieldConfigRecord * f = &field[i];
+		std::cout << "Field " << i << " - " << f->border.left << " " << f->border.top << " " << f->border.right << " " << f->border.bottom << std::endl;
+		std::cout << "  type: " << f->type << std::endl;
+		std::cout << "  text: '" << f->paramText << "'" << std::endl;
+	}
+};
+
 
 bool fileExists(char* fileName) {
 	std::ifstream infile(fileName);

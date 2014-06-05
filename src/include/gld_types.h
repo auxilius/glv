@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <vector>
 #include <gl/glew.h>
+#include <iostream>
 #include <fstream>
-
+#include <math.h>
+#include <string>
 
 
 struct Point {
@@ -17,9 +19,9 @@ Point point(int x, int y);
 double distance(float x1, float y1, float x2, float y2);
 double pointDistance(Point p1, Point p2);
 
-struct Box {
+class Box {
+public:
 	int top, left, bottom, right;
-
 	void set(Box border);
 	void set(int x1, int y1, int x2, int y2);
 	void set(int x, int y, int size);
@@ -38,7 +40,14 @@ struct Box {
 	__declspec(property(get = getHeight, put = setHeight)) int height;
 };
 
-extern Box canvas, form;
+class IOBox : public Box{
+public:
+	void save(std::ofstream & stream);
+	void load(std::ifstream & stream);
+};
+
+extern Box canvas;
+extern IOBox form;
 
 
 /*****     M O U S E   I N P U T   M A N A G E R     *****/
@@ -95,6 +104,28 @@ public:
 extern inputManager input;
 
 bool fileExists(char* fileName);
+
+
+/*****    F I E L D   C O N F I G U R A T I O N     *****/
+struct FieldConfigRecord {
+	FieldConfigRecord();
+	IOBox border;
+	unsigned type;
+	std::vector<int> param;
+	std::string paramText;
+	void save(std::ofstream & stream);
+	void load(std::ifstream & stream);
+};
+class FieldConfig {
+public:
+	std::vector<FieldConfigRecord> field;
+	void save(std::ofstream & stream);
+	void load(std::ifstream & stream);
+	void clear();
+	bool fieldSetType(int f, int t);
+	void debugOut();
+};
+extern FieldConfig configuration;
 
 
 #endif

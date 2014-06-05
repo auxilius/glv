@@ -9,14 +9,11 @@ void gldEngine::renderMenu() {
 	menuBar.set(0, canvas.bottom-MENU_HEIGHT, canvas.right, canvas.bottom);
 	glColor3f(0.3f, 0.3f, 0.3f);
 	drawRect(GL_QUADS, menuBar);
-	glColor3f(0.6f, 0.6f, 0.6f);
-	glLineWidth(1.0f);
-	//drawLine(0, canvas.bottom-30, canvas.right, canvas.bottom-30);
 
 	glColor3f(0.4f, 0.4f, 0.4f);
 	drawRect(GL_QUADS, switchButton);
-	if (configurator.numberOfField() == 0)
-		glColor4f(1.0f, 0.1f, 0.1f, 0.3f);
+	if (room == rmConfig && configManager.numberOfField() == 0)
+		glColor(80,10,10);
 	else if (switchButton.contains(input.mouse)) 
 		glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
 	else 
@@ -46,17 +43,18 @@ void gldEngine::renderMenu() {
 void gldEngine::processMenuClick(int x, int y, mouseButton button) {
 	if (button != mbLeft) 
 		return;
-
-	if ((configurator.numberOfField() != 0)
-		&& switchButton.contains(input.mouse)
-		&& (button == mbLeft)) {
+	if (room == rmConfig && (configManager.numberOfField() == 0)) 
+		return;
+	if (switchButton.contains(input.mouse) && (button == mbLeft)) {
 		if (room == rmConfig) {
-			configurator.saveConfiguration();
+			configManager.save();
 			room = rmVisual;
-			visualizer.loadConfiguration();
+			visualizer.load();
 		}
-		else if (room == rmVisual)
+		else if (room == rmVisual) {
+			visualizer.save();
 			room = rmConfig;
+		}
 	}
 };
 
@@ -68,17 +66,18 @@ void gldEngine::init() {
 
 	switchButton.set(3, 3, 180, 27);
 	reloadProjection();
-	configurator.init();
+	configManager.init();
 	visualizer.init();
 	
 	visualizer.renderTrigger = &needToRender;
-	configurator.loadConfiguration();
-	if (configurator.numberOfField() == 0) room = rmConfig;
+	loadConfig();
+	configManager.load();
+	if (configuration.field.size() == 0) 
+		room = rmConfig;
 	else {
-		visualizer.loadConfiguration();
+		visualizer.load();
 		room = rmVisual;
 	}
-	//visualizer.addValues("number of renders: %u", &renders);
 };
 
 void gldEngine::render() {
@@ -87,15 +86,11 @@ void gldEngine::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	if (room == rmConfig)
-		configurator.render();
+		configManager.render();
 	else if (room == rmVisual)
 		visualizer.render();
 	renderMenu();
 	renders++;
-};
-
-void gldEngine::saveConfiguration() {
-	configurator.saveConfiguration();
 };
 
 void gldEngine::onCanvasSizeChange(int width, int height) {
@@ -104,14 +99,14 @@ void gldEngine::onCanvasSizeChange(int width, int height) {
 void gldEngine::onMouseDown(mouseButton button) {
 	input.setMouseButtonDown(button);
 	if (room == rmConfig)
-		configurator.mouseDown(button);
+		configManager.mouseDown(button);
 	else if (room == rmVisual)
 		visualizer.mouseDown(button);
 };
 void gldEngine::onMouseUp(mouseButton button) {
 	input.setMouseButtonUp(button);
 	if (room == rmConfig)
-		configurator.mouseUp(button);
+		configManager.mouseUp(button);
 	else if (room == rmVisual)
 		visualizer.mouseUp(button);
 	processMenuClick(input.mouse.x, input.mouse.y, button);
@@ -131,8 +126,8 @@ void gldEngine::addTexture(const char * caption, const GLuint texture) {
 void gldEngine::addValues(const char * caption, const char * format, void * data[]) {
 	visualizer.addValues(caption, format, data);
 }
-void gldEngine::addModel(const char * caption, const GLuint vbo, const unsigned count) {
-	visualizer.addModel(caption, vbo, count);
+void gldEngine::addModel(const char * caption, const unsigned count, const GLuint vertices, const GLuint indices) {
+	visualizer.addModel(caption, count, vertices, indices);
 }
 void gldEngine::addModelData(const char * caption, float * data, float min, float max) {
 	visualizer.addModelData(caption, data, min, max);
@@ -140,3 +135,29 @@ void gldEngine::addModelData(const char * caption, float * data, float min, floa
 void gldEngine::addModelData(const GLuint vbo, float * data, float min, float max) {
 	visualizer.addModelData(vbo, data, min, max);
 }
+
+void gldEngine::saveConfig() {
+	if (room == rmVisual)
+		visualizer.save();
+	if (room == rmConfig)
+		configManager.save();
+	std::ofstream stream;
+	stream.open(FILE_CONFIG);
+	if (stream.fail())
+		MessageBox(0, L"Saving configuration failed", L"Cannot create configuration file, unknown error.", MB_OK);
+	form.save(stream);
+	stream << std::endl << std::endl;
+	configuration.save(stream);
+	stream.close();
+};
+void gldEngine::loadConfig() {
+	std::ifstream stream;
+	stream.open(FILE_CONFIG);
+	if (stream.fail())
+		return;
+	unsigned x;
+	stream >> x >> x >> x >> x;
+	configuration.load(stream);
+	stream.close();
+	
+};

@@ -145,9 +145,12 @@ void drawSwitchIcon(int x, int y, int size) {
 	glTranslatef((GLfloat)x, (GLfloat)y, 0.0f);
 	glScalef((GLfloat)size, (GLfloat)size, 0.0f);
 	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_INDEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 0, vertices);
+	glIndexPointer(GL_FLOAT, 0, indices);
 	glDrawElements(GL_QUADS, 60, GL_UNSIGNED_BYTE, indices);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_INDEX_ARRAY);
 	glPopMatrix();
 };
 

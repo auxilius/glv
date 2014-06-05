@@ -17,25 +17,34 @@ public:
 };
 
 struct TextureListItem {
-	TextureListItem() {};
-	TextureListItem(std::string C, GLuint ID) : Caption(C), textureID(ID) {};
-	std::string Caption;
-	GLuint textureID;
+	TextureListItem() : caption(""), bufferID(0) {};
+	TextureListItem(std::string C, GLuint ID) : caption(C), bufferID(ID) {};
+	std::string caption;
+	GLuint bufferID;
 };
 class TextureView : public View {
 private:
-	GLuint textureShown;
+	std::vector<TextureListItem> * textureList;
+	int textureListIndex;
 	GLuint texWidth, texHeight;
 	float texRatio;
+	void clearData();
 public:
-	TextureView() :textureShown(0) {};
-	TextureView(Box cBorder) :textureShown(0) { border = cBorder; };
-	GLuint getTextureShown() { return textureShown; };
-	void showTextureWithID(GLuint ID);
+	std::string waitingForTextureCaption;
+	TextureView() { clearData(); };
+	TextureView(Box cBorder) { clearData(); border = cBorder; };
+	GLuint getTextureID();
+	std::string getTextureCaption();
+	void showTexture(int index);
 	void draw();
+	void setTextureList(std::vector<TextureListItem> * list);
 };
 
 struct VariableWatchData {
+private:
+	bool error;
+public:	
+	VariableWatchData();
 	void * data;
 	short param;
 	char type;
@@ -55,7 +64,7 @@ private:
 public:
 	std::vector<unsigned> lineNumber;
 	void draw();
-	void setLine(int num, bool state);
+	void setLine(unsigned num, bool state);
 	void setLineList(std::vector<VariableWatchLine> * list);
 };
 
@@ -64,38 +73,44 @@ private:
 	GLfloat scaleFactor, translateFactor[3];
 	bool isFactorCalculated;
 	std::string	caption;
-	GLuint vboID;
+	GLuint vertexID, indexID;
 	float* data;
 	bool normalized;
 	float minValue, maxValue;
-
 	unsigned verticeCount;
 	float normalizeValue(float value);
 	void calculateTransformation();
 public:
-	Model() { set("", 0, NULL, 0); };
+	Model();
 	std::string	getCaption() { return caption; };
-	GLuint getVBO() { return vboID; };
-	void set(std::string C, GLuint ID, float* D, unsigned N);
+	GLuint getVBO() { return vertexID; };
+	void set(std::string C, unsigned N, unsigned VID, unsigned IID);
 	void setData(float* data, float min, float max);
 	void render();
 };
 class ModelView : public View {
 private:
-	Model * model;
+	std::vector<Model> * modelList;
+	int modelListIndex;
 	bool wasSelected;
 	Point lastMousePos;
 	double hang, vang, dist;
 	float normalizeValue(float value);
 public:
-	ModelView() { model = NULL; };
-	ModelView(Box cBorder) { border = cBorder; model = NULL; };
-	void showModel(Model * M);
+	std::string waitingForModelCaption;
+	ModelView() { modelList = NULL; };
+	ModelView(Box cBorder) { border = cBorder; modelList = NULL; };
+	void showModel(int index);
+	std::string getModelCaption();
+	Model * getModel();
 	void draw();
 	void onMouseMove(int x, int y);
 	void onMouseDown(mouseButton button);
 	void onMouseUp(mouseButton button);	
 	void onMouseWheel(signed short direction);
+	void setModelList(std::vector<Model> * list) {
+		modelList = list;
+	};
 };
 
 
@@ -121,13 +136,15 @@ private:
 	bool selectVariableFieldUnderMouse();
 	unsigned selectFieldUnderMouse();
 
-	void clearConfiguration();
+	void clearFields();
 public:
 	bool * renderTrigger;
 	void requestRender() { *renderTrigger = true; }
 	void init();
 	void render();
-	bool loadConfiguration();
+	
+	bool save();
+	bool load();
 
 	void mouseDown(mouseButton button);
 	void mouseUp(mouseButton button);
@@ -136,7 +153,7 @@ public:
 	
 	bool addTexture(const char * caption, GLuint textureID);
 	bool addValues(const char * caption, const char * formatString, void* data[]);
-	bool addModel(const char * caption, GLuint vboid, unsigned count, float* data = NULL);
+	bool addModel(const char * caption, const unsigned count, const GLuint vertices, const GLuint indices);
 	void addModelData(GLuint vboid, float* data, float minValue, float maxValue);
 	void addModelData(const char * caption, float* data, float minValue, float maxValue);
 	

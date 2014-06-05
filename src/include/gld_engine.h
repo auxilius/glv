@@ -14,14 +14,17 @@ private:
 	bool needToRender;
 	RoomType room;
 	Box switchButton;
-	gldConfigurator configurator;
+	gldConfigurator configManager;
 	gldRenderer visualizer;
 	void renderMenu();
 	void processMenuClick(int x, int y, mouseButton button);
 public:	
 	void init();
 	void render();
-	void saveConfiguration();
+
+	void saveConfig();
+	void loadConfig();
+
 	void onCanvasSizeChange(int width, int height);
 	void onMouseDown(mouseButton button);
 	void onMouseUp(mouseButton button);
@@ -30,7 +33,7 @@ public:
 
 	void addTexture(const char * caption, const GLuint texture);
 	void addValues(const char * caption, const char * format, void * data[]);
-	void addModel(const char * caption, const GLuint vbo, const unsigned count);
+	void addModel(const char * caption, const unsigned count, const GLuint vertices, const GLuint indices);
 	void addModelData(const char * caption, float * data, float min, float max);
 	void addModelData(const GLuint vbo, float * data, float min, float max);
 };

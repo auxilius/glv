@@ -8,7 +8,10 @@
 using namespace std;
 
 
-
+ConfigField::ConfigField(Box cBorder) {
+	border.set(cBorder);
+	visualizationType = 0;
+};
 ConfigField::ConfigField(int x1, int y1, int x2, int y2) {
 	border.set(x1, y1, x2, y2);
 	visualizationType = 0;
@@ -81,6 +84,12 @@ void gldConfigurator::OnMouseDown(int x, int y, mouseButton Btn) {
 	//M
 };
 
+bool gldConfigurator::addField(Box border) {
+	ConfigField newField(border);
+	int size = field.size();
+	field.push_back(newField);
+	return (field.size() > size);
+};
 bool gldConfigurator::addField(int x1, int y1, int x2, int y2) {
 	if (abs(x2 - x1) < 20 || abs(y2 - y1) < 20)
 		return false;
@@ -255,49 +264,28 @@ void gldConfigurator::render() {
 unsigned gldConfigurator::numberOfField() {
 	return field.size();
 };
-bool gldConfigurator::saveConfiguration() {
-	ofstream stream;
-	stream.open(FILE_CONFIG);
-	if (stream.fail()) 
-		MessageBox(0, L"Saving configuration failed", L"Cannot create configuration file, unknown error.", MB_OK);
-	stream << form.left << " " << form.top << " " 
-		   << form.width << " " << form.height << std::endl;
-	stream << field.size() << endl;
+bool gldConfigurator::save() {
 	for (unsigned i = 0; i < field.size(); i++) {
-		stream << field[i].border.top << " ";
-		stream << field[i].border.right << " ";
-		stream << field[i].border.bottom << " ";
-		stream << field[i].border.left << " ";
-		stream << field[i].visualizationType << std::endl;
-	}
-	stream.close();
-	return true;
-};
-bool gldConfigurator::loadConfiguration() {
-	ifstream stream;
-	stream.open(FILE_CONFIG);
-	if (stream.fail())
-		return false;
-	unsigned x;
-	stream >> x >> x >> x >> x;
-	unsigned numberOfFields = 0;
-	stream >> numberOfFields;
-	Box fieldBorder;
-	unsigned visualizationType;
-	for (unsigned i = 0; i < numberOfFields; i++) {
-		stream >> fieldBorder.top;
-		stream >> fieldBorder.right;
-		stream >> fieldBorder.bottom;
-		stream >> fieldBorder.left;
-		stream >> visualizationType;
-		if (addField(fieldBorder.left, fieldBorder.top, fieldBorder.right, fieldBorder.bottom) )
-			field[i].visualizationType = visualizationType;
+		if (i < configuration.field.size()) {
+			configuration.field[i].border.set(field[i].border);
+			configuration.fieldSetType(i, field[i].visualizationType);
+		}
 		else {
-			deleteAllFields();
-			MessageBox(0, L"Configuration loading failed", L"Cannot load configuration, configuration file may be corrupted.", MB_OK);
-			return false;
+			FieldConfigRecord addedField;
+			addedField.border.set(field[i].border);
+			addedField.type = field[i].visualizationType;
+			configuration.field.push_back(addedField);
 		}
 	}
-	stream.close();
+	if (configuration.field.size() > field.size())
+		configuration.field.resize(field.size());
+	return true;
+};
+bool gldConfigurator::load() {
+	deleteAllFields();
+	for (unsigned i = 0; i < configuration.field.size(); i++) {
+		addField(configuration.field[i].border);
+		field[i].visualizationType = configuration.field[i].type;
+	}
 	return true;
 };

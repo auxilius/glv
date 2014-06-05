@@ -138,7 +138,7 @@ void gldRenderer::mouseDown(mouseButton button) {
 		if (popupModelSelect.isActive()) {
 			int selectedMenuItem = popupModelSelect.selectedItemNumber();
 			if (selectedMenuItem != -1) {
-				modelField[selectedModelField].showModel(&modelList[selectedMenuItem]);
+				modelField[selectedModelField].showModel(selectedMenuItem);
 				selectedModelField = -1;
 			}
 		}
@@ -146,7 +146,8 @@ void gldRenderer::mouseDown(mouseButton button) {
 		if (popupTextureSelect.isActive()) {
 			int selectedMenuItem = popupTextureSelect.selectedItemNumber();
 			if (selectedMenuItem != -1) {
-				textureField[selectedTextureField].showTextureWithID(textureList[selectedMenuItem].textureID);
+				textureField[selectedTextureField].setTextureList(&textureList);
+				textureField[selectedTextureField].showTexture(selectedMenuItem);
 				selectedTextureField = -1;
 			}
 		}
@@ -179,56 +180,99 @@ void gldRenderer::mouseWheel(signed short direction) {
 		modelField[i].onMouseWheel(direction);
 	}
 };
-void gldRenderer::clearConfiguration() {
+void gldRenderer::clearFields() {
 	modelField.clear();
 	textureField.clear();
 	variableField.clear();
 };
-bool gldRenderer::loadConfiguration() {
-	clearConfiguration();
-	std::ifstream stream;
-	stream.open(FILE_CONFIG);
-	if (stream.fail())
-		return false;
-	unsigned x;
-	stream >> x >> x >> x >> x;
-	unsigned numberOfFields = 0;
-	stream >> numberOfFields;
-	Box fieldBorder;
-	unsigned visualizationType;
-	for (unsigned i = 0; i < numberOfFields; i++) {
-		stream >> fieldBorder.top;
-		stream >> fieldBorder.right;
-		stream >> fieldBorder.bottom;
-		stream >> fieldBorder.left;
-		stream >> visualizationType;
-		if (visualizationType == FIELD_TYPE_MODEL) {
-			ModelView MV;
-			MV.setBorder(fieldBorder);
+bool gldRenderer::save() {
+	FieldConfigRecord * cField;
+	for (unsigned i = 0; i < modelField.size(); i++) {
+		if (configuration.field.size() <= modelField[i].layer) 
+			return false;
+		cField = &configuration.field[modelField[i].layer];
+		cField->param.clear();
+		cField->paramText = modelField[i].getModelCaption();
+	}
+	for (unsigned i = 0; i < textureField.size(); i++) {
+		if (configuration.field.size() <= textureField[i].layer)
+			return false;
+		cField = &configuration.field[textureField[i].layer];
+		cField->param.clear();
+		cField->paramText = textureField[i].getTextureCaption();
+	}
+	for (unsigned i = 0; i < variableField.size(); i++) {
+		if (configuration.field.size() <= variableField[i].layer)
+			return false;
+		cField = &configuration.field[variableField[i].layer];
+		cField->param.clear();
+		for (unsigned l = 0; l < variableField[i].lineNumber.size(); l++)
+			cField->param.push_back(variableField[i].lineNumber[l]);
+	}
+	return true;
+};
+bool gldRenderer::load() {
+	clearFields();
+	//configuration.debugOut();
+	bool found = false;
+	for (unsigned i = 0; i < configuration.field.size(); i++) {
+		const FieldConfigRecord cField = configuration.field[i];
+		if (cField.type == FIELD_TYPE_MODEL) {
+			ModelView MV(cField.border);
+			MV.setModelList(&modelList);
 			MV.layer = i;
+			if (cField.paramText != "") {
+				found = false;
+				for (unsigned m = 0; m < modelList.size(); m++) {
+					if (modelList[m].getCaption() == cField.paramText) {
+						MV.showModel(m);
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+					MV.waitingForModelCaption = cField.paramText;
+			}
 			modelField.push_back(MV);
-		}
-		if (visualizationType == FIELD_TYPE_TEXTURE) {
+		} else
+		if (cField.type == FIELD_TYPE_TEXTURE) {
 			TextureView TV;
-			TV.setBorder(fieldBorder);
+			TV.setBorder(cField.border);
+			TV.setTextureList(&textureList);
 			TV.layer = i;
+			found = false;
+			for (unsigned tl = 0; tl < textureList.size(); tl++) {
+				if (textureList[tl].caption == cField.paramText) {
+					TV.showTexture(tl);
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+				TV.waitingForTextureCaption = cField.paramText;
 			textureField.push_back(TV);
-		}
-		if (visualizationType == FIELD_TYPE_VALUE) {
+		} else
+		if (cField.type == FIELD_TYPE_VALUE) {
 			VariableView VV;
-			VV.setBorder(fieldBorder);
+			VV.setBorder(cField.border);
 			VV.setLineList(&lineList);
 			VV.layer = i;
-			variableField.push_back(VV);			
+			for (unsigned l = 0; l < cField.param.size(); l++)
+				VV.setLine(cField.param[l], true);
+			variableField.push_back(VV);
 		}
 	}
-	stream.close();
 	return true;
 };
 bool gldRenderer::addTexture(const char * caption, GLuint textureID) {
 	TextureListItem TE(caption, textureID);
 	textureList.push_back(TE);
 	popupTextureSelect.addItem(caption);
+	for (unsigned i = 0; i < textureField.size(); i++) {
+		textureField[i].setTextureList(&textureList);
+		if (textureField[i].waitingForTextureCaption == caption)
+			textureField[i].showTexture(textureList.size()-1);
+	}
 	return true;
 };
 bool gldRenderer::addValues(const char * caption, const char * formatString, void* data[]) {
@@ -236,17 +280,28 @@ bool gldRenderer::addValues(const char * caption, const char * formatString, voi
 	Line.addData(formatString, data);
 	lineList.push_back(Line);
 	popupVariableSelect.addItem(caption);
+	for (unsigned i = 0; i < variableField.size(); i++)
+		variableField[i].setLineList(&lineList);
 	return true;
 };
-bool gldRenderer::addModel(const char * caption, GLuint vboid, unsigned count, GLfloat* data) {
+bool gldRenderer::addModel(const char * caption, const unsigned count, const GLuint vertices, const GLuint indices) {
+	for (unsigned i = 0; i < modelList.size(); i++)
+	if (modelList[i].getCaption() == caption) {
+		modelList[i].set(caption, count, vertices, indices);
+		return false;
+	}
 	Model MO;
-	MO.set(caption, vboid, data, count);
+	MO.set(caption, count, vertices, indices);
 	modelList.push_back(MO);
 	popupModelSelect.addItem(caption);
+	for (unsigned i = 0; i < modelField.size(); i++) {
+		modelField[i].setModelList(&modelList);
+		if (modelField[i].waitingForModelCaption == caption)
+			modelField[i].showModel(modelList.size() - 1);
+	}
 	return true;
 };
 void gldRenderer::addModelData(GLuint vboid, float* data, float minValue, float maxValue) {
-	
 	for (unsigned i = 0; i < modelList.size(); i++)
 		if (modelList[i].getVBO() == vboid) {
 			modelList[i].setData(data, minValue, maxValue);
@@ -276,47 +331,74 @@ void View::drawBorder(float r, float g, float b) {
 };
 
 ///		T E X T U R E   V I E W		///
-void TextureView::showTextureWithID(GLuint ID) {
-	textureShown = ID;
-	if (ID = 0) return;
-	glBindTexture(GL_TEXTURE_2D, textureShown);
+void TextureView::clearData() {
+	textureList = NULL;
+	textureListIndex = -1;
+	texWidth = 0;
+	texHeight = 0;
+	texRatio = 1.0f;
+};
+GLuint TextureView::getTextureID() { 
+	if (textureListIndex != -1 && textureList != NULL && textureListIndex < textureList->size())
+		return textureList->operator[](textureListIndex).bufferID;
+	return 0;
+};
+std::string TextureView::getTextureCaption() {
+	if (textureListIndex != -1 && textureList != NULL && textureListIndex < textureList->size())
+		return textureList->operator[](textureListIndex).caption;
+	return "";
+};
+void TextureView::showTexture(int index) {
+	textureListIndex = index;
+	waitingForTextureCaption = "";
+	glBindTexture(GL_TEXTURE_2D, getTextureID());
 	GLint param = 0;
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &param);
 	texWidth = param;
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &param);
 	texHeight = param;
 	texRatio = (float)texWidth / texHeight;
+	
+};
+void TextureView::setTextureList(std::vector<TextureListItem> * list) {
+	textureList = list;
 };
 void TextureView::draw() {
 	drawBackground(0.04f, 0.04f, 0.04f);
 	drawBorder(0.1f, 0.1f, 0.1f);
-	if (textureShown != 0) {
-		float pomerBox = (float)border.width / border.height;
-		Box texbox = border;
-		if (texRatio > pomerBox) {
-			texbox.width = border.width;
-			texbox.height = border.width / texRatio;
-			texbox.move(0, (border.height - texbox.height) / 2);
-		}
-		else {
-			texbox.height = border.height;
-			texbox.width = border.height * texRatio;
-			texbox.move((border.width - texbox.width) / 2, 0);
-		}
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, textureShown);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(texbox.left-1, texbox.top-1);
-		glTexCoord2f(1.0f, 1.0f); glVertex2f(texbox.right, texbox.top-1);
-		glTexCoord2f(1.0f, 0.0f); glVertex2f(texbox.right, texbox.bottom);
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(texbox.left-1, texbox.bottom);
-		glEnd();
-		glDisable(GL_TEXTURE_2D);
+	if (getTextureID() == 0)
+		return;
+	float pomerBox = (float)border.width / border.height;
+	Box texbox = border;
+	if (texRatio > pomerBox) {
+		texbox.width = border.width;
+		texbox.height = border.width / texRatio;
+		texbox.move(0, (border.height - texbox.height) / 2);
 	}
+	else {
+		texbox.height = border.height;
+		texbox.width = border.height * texRatio;
+		texbox.move((border.width - texbox.width) / 2, 0);
+	}
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, getTextureID());
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0f, 1.0f); glVertex2f(texbox.left-1, texbox.top-1);
+	glTexCoord2f(1.0f, 1.0f); glVertex2f(texbox.right, texbox.top-1);
+	glTexCoord2f(1.0f, 0.0f); glVertex2f(texbox.right, texbox.bottom);
+	glTexCoord2f(0.0f, 0.0f); glVertex2f(texbox.left-1, texbox.bottom);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
 };
 
 ///		V A R I A B L E   V I E W		///
+VariableWatchData::VariableWatchData() {
+	error = false;
+	data = NULL;
+	param = 0;
+	type = '\0';
+};
 std::string VariableWatchData::getString() {
 	std::stringstream result;
 	if (param != 0) {
@@ -325,31 +407,39 @@ std::string VariableWatchData::getString() {
 			<< std::fixed
 			<< std::boolalpha;
 	}
-	if (data == NULL)
-		result << "N/A";
-	else 
-	if (type == 'i')
-		result << *(int*)data;
-	else
-	if (type == 'u')
-		result << *(unsigned*)data;
-	else
-	if (type == 'f')
-		result << *(float*)data;
-	else
-	if (type == 'd')
-		result << *(double*)data;
-	else
-	if (type == 'c')
-		result << *(char*)data;
-	else
-	if (type == 'b')
-		result << *(bool*)data;
-	else
-	if (type == 's')
-		result << (char*)data;
-	else
-		result << "%" << type;
+	try {
+		if (data == NULL)
+			result << "N/A";
+		else
+		if (type == 'i')
+			result << *(int*)data;
+		else
+		if (type == 'u')
+			result << *(unsigned*)data;
+		else
+		if (type == 'f')
+			result << *(float*)data;
+		else
+		if (type == 'd')
+			result << *(double*)data;
+		else
+		if (type == 'c')
+			result << *(char*)data;
+		else
+		if (type == 'b')
+			result << *(bool*)data;
+		else
+		if (type == 's')
+			result << (char*)data;
+		else
+			result << "%" << type;
+	}
+	catch (...) {
+		if (!error) 		
+			MessageBox(0, L"Cannot read memory, poited value was probably ereased.", L"Memory read error", MB_OK);
+		result << "err";
+		error = true;
+	}
 	return result.str();
 };
 void VariableWatchLine::addData(std::string format, void* data[]) {
@@ -387,23 +477,24 @@ char * VariableWatchLine::getText() {
 	return result;
 };
 void VariableView::draw() {
-	//drawBackground(0.05f, 0.05f, 0.05f);
-	//drawBorder(0.2f, 0.2f, 0.2f);
 	glColor3f(0.8f, 0.8f, 0.8f);
 	setFontSize(8);
 	const int spacing = getTextHeight("X") + 5;
 	for (unsigned i = 0; i < lineNumber.size(); i++) {
-		textPrint(border.left + 5, border.top + 5 + i*spacing,  
-			lineList->operator[](lineNumber[i]).getText() );
+		if (lineNumber[i] < lineList->size()) {
+			textPrint(border.left + 5, border.top + 5 + i*spacing,  
+			  lineList->operator[](lineNumber[i]).getText());
+		}
 	}
 };
-void VariableView::setLine(int num, bool state) {
-	if (state == true && std::find(lineNumber.begin(), lineNumber.end(), (unsigned)num) == lineNumber.end()) {
-		lineNumber.push_back((unsigned)num);
+void VariableView::setLine(unsigned num, bool state) {
+	if (std::find(lineNumber.begin(), lineNumber.end(), (unsigned)num) == lineNumber.end()) {
+		if (state == true)
+			lineNumber.push_back((unsigned)num);
 	}
-	else if (std::find(lineNumber.begin(), lineNumber.end(), (unsigned)num) != lineNumber.end()) {
+	else {
 		lineNumber.erase(
-			std::remove(lineNumber.begin(), lineNumber.end(), (unsigned)num), 
+			std::remove(lineNumber.begin(), lineNumber.end(), (unsigned)num),
 			lineNumber.end());
 	}
 };
@@ -412,14 +503,18 @@ void VariableView::setLineList(std::vector<VariableWatchLine> * list) {
 };
 
 ///		M O D E L   V I E W		///
-void Model::set(std::string C, GLuint ID, float* D, unsigned N) {
+Model::Model() {
+	set("", 0, 0, 0); 
+	data = NULL;
+	minValue = 0.0f;
+	maxValue = 1.0f;
+};
+void Model::set(std::string C, unsigned N, unsigned VID, unsigned IID) {
 	caption = C;
-	vboID = ID;
-	data = D;
+	vertexID = VID;
+	indexID = IID;
 	verticeCount = N;
 	normalized = true;
-	minValue = 0;
-	maxValue = 0;
 	calculateTransformation();
 };
 void Model::setData(float* data, float min, float max) {
@@ -427,17 +522,11 @@ void Model::setData(float* data, float min, float max) {
 	minValue = min;
 	maxValue = max;
 	normalized = (min == 0.0f) && (max == 1.0f);
-
-	std::cout << "Data: ";
-	for (unsigned i = 0; i < verticeCount; i++) {
-		std::cout << data[i] << " ";
-	}
-	std::cout << std::endl;
 };
 void Model::calculateTransformation() {
-	if (vboID == 0) 
+	if (vertexID == 0) 
 		return;
-	glBindBuffer(GL_ARRAY_BUFFER, vboID);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
 	GLfloat* vert = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -446,7 +535,7 @@ void Model::calculateTransformation() {
 	memcpy(maxpos, vert, 3 * sizeof(GLfloat));
 	memcpy(minpos, vert, 3*sizeof(GLfloat));
 	for (unsigned v = 1; v < verticeCount; v++) {
-		GLfloat position[3];// = *(vert + ((v * 3) + c));
+		GLfloat position[3];
 		memcpy(position, (vert + 3 * v), 3 * sizeof(GLfloat));
 		for (unsigned c = 0; c < 3; c++) {
 			if (position[c] < minpos[c])
@@ -462,54 +551,75 @@ void Model::calculateTransformation() {
 			maxDelta = delta[i];
 	}
 	scaleFactor = 1.0f / maxDelta;
-	std::cout << "scaleFactor = " << scaleFactor << std::endl;
-	std::cout << "translateFactor = ";
 	for (unsigned i = 0; i < 3; i++) {
 		translateFactor[i] = -minpos[i] - delta[i] / 2;
-		std::cout << translateFactor[i] << "   " << std::endl;
 	}
 };
 float Model::normalizeValue(float value) {
 	return (value - minValue) / (maxValue - minValue);
 };
 void Model::render() {
-	if (vboID == 0)
+	if (vertexID == 0)
 		return;
 	glPushMatrix();
 	glScalef(scaleFactor, scaleFactor, scaleFactor);
 	glTranslatef(translateFactor[0], translateFactor[1], translateFactor[2]);
-	glLineWidth(1.0f);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, vboID);
-	glVertexPointer(3, GL_FLOAT, 0, NULL);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glColor3f(0.1f, 0.1f, 0.1f);
-	glDrawArrays(GL_QUADS, 0, verticeCount);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glPointSize(6.0f);
-	glEnable(GL_POINT_SMOOTH);
-	for (unsigned i = 0; i < verticeCount; i++) {
-		if (data == NULL)
-			glColor3f(0.9f, 0.9f, 0.9f);
-		else {
-			float value = data[i];
-			if (!normalized)
-				value = normalizeValue(value);
-			setColorByValue(value);
-		}
-		glDrawArrays(GL_POINTS, i, 1);
+		
+	if (indexID != 0) {
+		glLineWidth(1.0f);
+		glEnableClientState(GL_INDEX_ARRAY);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+		glVertexPointer(3, GL_FLOAT, 0, NULL);
+		glBindBuffer(GL_ARRAY_BUFFER, indexID);
+		glIndexPointer(GL_FLOAT, 0, NULL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glColor3f(0.1f, 0.1f, 0.1f);
+		glDrawArrays(GL_LINE_LOOP, 0, verticeCount);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDisableClientState(GL_INDEX_ARRAY);
 	}
+	if (vertexID != 0) {
+		glPointSize(6.0f);
+		glEnable(GL_POINT_SMOOTH);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+		glVertexPointer(3, GL_FLOAT, 0, NULL);
+		for (unsigned i = 0; i < verticeCount; i++) {
+			if (data == NULL)
+				glColor3f(0.9f, 0.9f, 0.9f);
+			else {
+				float value = data[i];
+				if (!normalized)
+					value = normalizeValue(value);
+				setColorByValue(value);
+			}
+			glDrawArrays(GL_POINTS, i, 1);
+		}
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glPopMatrix();
 };
-
-void ModelView::showModel(Model * M) {
-	model = M;
+Model * ModelView::getModel() {
+	if (modelListIndex != -1 && modelList != NULL && modelListIndex < modelList->size())
+		return &(modelList->operator[](modelListIndex));
+	return NULL;
+};
+void ModelView::showModel(int index) {
+	modelListIndex = index;
+	waitingForModelCaption = "";
 	hang = PI / 5.0;
 	vang = PI / 4.0;
 	dist = 5.0;
+	wasSelected = false;
+	
 }
+std::string ModelView::getModelCaption() {
+	Model * model = getModel();
+	if (model != NULL)
+		return model->getCaption();
+	return "";
+};
 void ModelView::onMouseMove(int x, int y) {
 	if (wasSelected) {
 		hang -= (double)(lastMousePos.x - x) / 100.0;
@@ -517,7 +627,7 @@ void ModelView::onMouseMove(int x, int y) {
 		lastMousePos.set(x,y);
 	}
 	if (vang < 0.01) { vang = 0.01; }
-	if (vang > PI/2) vang = PI/2;
+	if (vang > PI) vang = PI;
 };
 void ModelView::onMouseDown(mouseButton button) {
 	if (button==mbLeft && border.contains(input.mouse)) {
@@ -539,19 +649,17 @@ void ModelView::onMouseWheel(signed short direction) {
 };
 void ModelView::draw() {
 	drawBackground(0.05f, 0.05f, 0.05f);
-
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
 	glViewport(border.left, canvas.height - border.top- border.height, border.width, border.height);
-	//glOrtho(-10, 10, 10, -10, -1000, 1000);
 	gluPerspective(25, (float)border.width / border.height, 0.1, 100);
 	GLfloat x = dist * sin(vang) * sin(hang);
 	GLfloat y = dist * cos(vang);
 	GLfloat z = -dist * sin(vang) * cos(hang);
 	gluLookAt(x,y,z, 0,0,0, 0,1,0);
-
 	glMatrixMode(GL_MODELVIEW);
+	Model * model = getModel();
 	if (model != NULL)
 		model->render();
 	reloadProjection();

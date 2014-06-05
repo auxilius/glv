@@ -86,4 +86,9 @@ public:
 	int uncheckedItem();
 };
 
+
+class BottomMenuBar {
+
+};
+
 #endif

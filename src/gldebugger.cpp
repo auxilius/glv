@@ -98,13 +98,20 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_CLOSE:
 	{
 		ShowWindow(controller.mainWindowHandle, SW_HIDE);
-		controller.engine.saveConfiguration();
-		PostQuitMessage(0);
+		controller.engine.saveConfig();
+		//PostQuitMessage(0);
 		return 0;
 	}
 
 	case WM_DESTROY:
 	{
+		//controller.engine.saveConfig();
+		return 0;
+	}
+
+	case  WM_QUIT:
+	{
+		//controller.engine.saveConfig();
 		return 0;
 	}
 
@@ -236,24 +243,19 @@ void gldController::createWindow() {
 
 	std::ifstream stream;
 	stream.open("user.conf");
-	int w, h, x, y;
 	if (stream.fail()) {
-		w = 500;
-		h = 500;
-		x = 0;
-		y = 0;
+		form.moveTo(0, 0);
+		form.setSize(500, 500);
 	}
 	else {
-		stream >> x >> y >> w >> h;
+		form.load(stream);
 		stream.close();
 	}
-	form.moveTo(x, y);
-	form.setSize(w, h);
 	
 	controller.mainWindowHandle = CreateWindow(
 		L"GLDebugger", L"OpenGL Debugger Visualizer",
 		WS_OVERLAPPEDWINDOW,
-		x, y, w, h,
+		form.left, form.top, form.width, form.height,
 		NULL, NULL, NULL, NULL);
 	enableOpenGL();
 };
@@ -287,6 +289,7 @@ void gldStart(){
 };
 
 void gldStop() {
+	controller.engine.saveConfig();
 	ShowWindow(controller.mainWindowHandle, SW_HIDE);
 };
 
@@ -308,13 +311,14 @@ bool gldAddLine(std::string caption, std::string format, void * data) {
 	controller.engine.addValues(caption.c_str(), format.c_str(), a_data);
 	return true;
 };
+
 bool gldAddLine(std::string caption, std::string format, void * data[]) {
 	controller.engine.addValues(caption.c_str(), format.c_str(), data);
 	return true;
 };
 
-bool gldAddModel(std::string caption, const GLuint vbo, unsigned count) {
-	controller.engine.addModel(caption.c_str(), vbo, count);
+bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLuint indices) {
+	controller.engine.addModel(caption.c_str(), count, vertices, indices);
 	return true;
 };
 

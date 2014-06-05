@@ -15,6 +15,7 @@ struct ConfigField {
 public:
 	unsigned visualizationType;
 	Box border;
+	ConfigField(Box cBorder);
 	ConfigField(int x1, int y1, int x2, int y2);
 	void moveScaleHandle(Point point);
 	void makeSquare();
@@ -32,6 +33,7 @@ private:
 	std::vector<ConfigField> field;
 	bool addField();
 	bool addField(int x1, int y1, int x2, int y2);
+	bool addField(Box border);
 	void deleteField(int which);
 	void deleteAllFields();
 	unsigned fieldCount();
@@ -46,8 +48,8 @@ public:
 	void mouseDown(mouseButton button);
 	void mouseUp(mouseButton button);
 	unsigned numberOfField();
-	bool saveConfiguration();
-	bool loadConfiguration();
+	bool save();
+	bool load();
 };
 
 #endif
