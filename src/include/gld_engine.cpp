@@ -12,7 +12,7 @@ void gldEngine::renderMenu() {
 
 	glColor3f(0.4f, 0.4f, 0.4f);
 	drawRect(GL_QUADS, switchButton);
-	if (room == rmConfig && configManager.numberOfField() == 0)
+	if (room == rmConfig && !configuration.valid())
 		glColor(80,10,10);
 	else if (switchButton.contains(input.mouse)) 
 		glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
@@ -41,21 +41,21 @@ void gldEngine::renderMenu() {
 	}
 };
 void gldEngine::processMenuClick(int x, int y, mouseButton button) {
-	if (button != mbLeft) 
+	if (button != mbLeft || !switchButton.contains(input.mouse))
 		return;
-	if (room == rmConfig && (configManager.numberOfField() == 0)) 
-		return;
-	if (switchButton.contains(input.mouse) && (button == mbLeft)) {
-		if (room == rmConfig) {
-			configManager.save();
+	if (room == rmConfig)  {
+		configManager.save();
+		if (configuration.valid()) {
 			room = rmVisual;
 			visualizer.load();
-		}
-		else if (room == rmVisual) {
-			visualizer.save();
-			room = rmConfig;
-		}
+		} else
+			return;
 	}
+	else if (room == rmVisual) {
+		visualizer.save();
+		room = rmConfig;
+	}
+	
 };
 
 void gldEngine::init() {
@@ -70,14 +70,13 @@ void gldEngine::init() {
 	visualizer.init();
 	
 	visualizer.renderTrigger = &needToRender;
-	loadConfig();
+	configuration.load();
 	configManager.load();
-	if (configuration.field.size() == 0) 
-		room = rmConfig;
-	else {
+	if (configuration.valid()) {
 		visualizer.load();
 		room = rmVisual;
-	}
+	} else
+		room = rmConfig;
 };
 
 void gldEngine::render() {
@@ -118,46 +117,4 @@ void gldEngine::onMouseMove(int x, int y) {
 void gldEngine::onMouseWheel(signed short direction) {
 	if (room == rmVisual)
 		visualizer.mouseWheel(direction);
-};
-
-void gldEngine::addTexture(const char * caption, const GLuint texture) {
-	visualizer.addTexture(caption, texture);
-}
-void gldEngine::addValues(const char * caption, const char * format, void * data[]) {
-	visualizer.addValues(caption, format, data);
-}
-void gldEngine::addModel(const char * caption, const unsigned count, const GLuint vertices, const GLuint indices) {
-	visualizer.addModel(caption, count, vertices, indices);
-}
-void gldEngine::addModelData(const char * caption, float * data, float min, float max) {
-	visualizer.addModelData(caption, data, min, max);
-}
-void gldEngine::addModelData(const GLuint vbo, float * data, float min, float max) {
-	visualizer.addModelData(vbo, data, min, max);
-}
-
-void gldEngine::saveConfig() {
-	if (room == rmVisual)
-		visualizer.save();
-	if (room == rmConfig)
-		configManager.save();
-	std::ofstream stream;
-	stream.open(FILE_CONFIG);
-	if (stream.fail())
-		MessageBox(0, L"Saving configuration failed", L"Cannot create configuration file, unknown error.", MB_OK);
-	form.save(stream);
-	stream << std::endl << std::endl;
-	configuration.save(stream);
-	stream.close();
-};
-void gldEngine::loadConfig() {
-	std::ifstream stream;
-	stream.open(FILE_CONFIG);
-	if (stream.fail())
-		return;
-	unsigned x;
-	stream >> x >> x >> x >> x;
-	configuration.load(stream);
-	stream.close();
-	
 };

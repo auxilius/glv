@@ -27,11 +27,15 @@ bool gldAddLine(std::string caption, std::string format, void * data);
 bool gldAddLine(std::string caption, std::string format, void * data[]);
 
 /* Prida model a nazve ho podla parametru caption. Posledny parameter je pocet vertexov modelu */
-bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLuint indices = 0);
+bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum type = GL_FLOAT);
 
-/* Nastavy data na model - identifikacia modelu podla jeho nazvu alebo id */
+/* Pridadi data modelu, ktory ma popis caption */
 bool gldAddModelData(std::string caption, float * data, float min = 0.0f, float max = 1.0f);
-bool gldAddModelData(GLuint vboid, float * data, float min = 0.0f, float max = 1.0f);
 
+/* Pridadi pole indexov modelu, ktory ma popis caption */
+bool gldAddModelEdges(std::string caption, GLenum mode, unsigned count, GLuint indices, GLenum type = GL_UNSIGNED_INT);
+
+/* Pridadi texturu a koordinaty modelu, ktory ma popis caption */
+bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates, GLenum type = GL_FLOAT);
 
 #endif

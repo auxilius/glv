@@ -23,6 +23,11 @@ double pointDistance(Point p1, Point p2) {
 	return sqrt(pow((long double)(p1.x - p2.x), 2) + pow((long double)(p1.y - p2.y), 2));
 };
 
+Point Box::getPosition() {
+	Point result;
+	result.set(left, top);
+	return result;
+};
 Point Box::getCenterPosition() {
 	Point result;
 	result.set((left + right) / 2, (top + bottom) / 2);
@@ -129,13 +134,37 @@ void FieldConfigRecord::load(std::ifstream & stream) {
 	paramText.erase(paramText.begin());
 };
 
-void FieldConfig::save(std::ofstream & stream) {
+bool FieldConfig::valid() {
+	if (field.size() > 0) {
+		for (unsigned i = 0; i < field.size(); i++)
+			if (field[i].type != FIELD_TYPE_NONE)
+				return true;
+	}
+	return false;
+};
+void FieldConfig::save() {
+	if (!loaded)
+		return;
+	std::ofstream stream;
+	stream.open(FILE_CONFIG);
+	if (stream.fail())
+		MessageBox(0, L"Saving configuration failed", L"Cannot create configuration file, unknown error.", MB_OK);
+	form.save(stream);
+	stream << std::endl;
 	stream << field.size() << std::endl;
 	for (unsigned i = 0; i < field.size(); i++)
 		field[i].save(stream);
+	stream.close();
 };
-void FieldConfig::load(std::ifstream & stream) {
+void FieldConfig::load() {
+	loaded = true;
 	field.clear();
+	std::ifstream stream;
+	stream.open(FILE_CONFIG);
+	if (stream.fail())
+		return;
+	unsigned x;
+	stream >> x >> x >> x >> x;
 	unsigned count = 0;
 	stream >> count;
 	FieldConfigRecord newField;
@@ -143,9 +172,7 @@ void FieldConfig::load(std::ifstream & stream) {
 		newField.load(stream);
 		field.push_back(newField);
 	}
-	/*deleteAllFields();
-	MessageBox(0, L"Configuration loading failed", L"Cannot load configuration, configuration file may be corrupted.", MB_OK);
-	return false;*/
+	stream.close();
 };
 void FieldConfig::clear() {
 	field.clear();

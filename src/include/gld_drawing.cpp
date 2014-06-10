@@ -123,7 +123,7 @@ void drawSwitchIcon(int x, int y, int size) {
 		-0.10940, 0.164394,
 		-0.18514, 0.068690
 	};
-	static GLbyte indices[] = { 
+	static GLubyte indices[] = { 
 		2, 3, 20, 1,
 		17, 18, 19, 16,
 		13, 14, 15, 12,
@@ -144,13 +144,22 @@ void drawSwitchIcon(int x, int y, int size) {
 	glLoadIdentity();
 	glTranslatef((GLfloat)x, (GLfloat)y, 0.0f);
 	glScalef((GLfloat)size, (GLfloat)size, 0.0f);
+	
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+	
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_INDEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 0, vertices);
-	glIndexPointer(GL_FLOAT, 0, indices);
-	glDrawElements(GL_QUADS, 60, GL_UNSIGNED_BYTE, indices);
-	glDisableClientState(GL_VERTEX_ARRAY);
+	
 	glEnableClientState(GL_INDEX_ARRAY);
+	glIndexPointer(GL_UNSIGNED_BYTE, 0, indices);
+
+	glDrawElements(GL_QUADS, 60, GL_UNSIGNED_BYTE, indices);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_INDEX_ARRAY);
 	glPopMatrix();
 };
 

@@ -17,7 +17,7 @@ enum ButtonColorRelation {
 };
 
 class Button {
-private:
+protected:
 	double fontSize;
 	Box border;
 	char * textOnButton;
@@ -31,6 +31,7 @@ public:
 	bool isSeparator();
 	void removeColor(ButtonColorRelation relation);
 	void setColor(ButtonColorRelation relation, GLfloat r, GLfloat g, GLfloat b, GLfloat a = 1.0f);
+	void setColor(ButtonColorRelation relation, GLfloat * pColor);
 	void setFont(double size);
 	// CAPTION
 	char * getCaption() { return textOnButton; };
@@ -49,6 +50,18 @@ public:
 	int getHeight() { return border.getHeight(); };
 	__declspec(property(get = getHeight, put = setHeight)) int height;
 	void setSize(int w, int h) { setWidth(w); setHeight(h); };
+};
+
+class CheckButton : public Button {
+	bool checked;
+	bool firstClick;
+	void processClick();
+	void changeColors();
+public:
+	CheckButton();
+	bool isChecked();
+	void check(bool state = true);
+	bool toggle();
 };
 
 #define POPUP_ACTIVE_BORDER_SIZE 5

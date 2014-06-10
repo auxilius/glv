@@ -3,7 +3,7 @@
 
 
 
-//MessageBox(0, "And text here", "MessageBox caption", MB_OK);
+//MessageBox(0, L"And text here", L"MessageBox caption", MB_OK);
 
 using namespace std;
 
@@ -20,46 +20,26 @@ void ConfigField::makeSquare() {
 	int size = max(border.width, border.height);
 	border.setSize(size, size);
 };
-void ConfigField::moveScaleHandle(Point point) {
-	if (point.x < border.left + FIELD_MIN_SIZE)
-		point.x = border.left + FIELD_MIN_SIZE;
-	border.right = point.x;
-	if (point.y < border.top + FIELD_MIN_SIZE)
-		point.y = border.top + FIELD_MIN_SIZE;
-	border.bottom = point.y;
+void ConfigField::moveScaleHandle(int x, int y) {
+	if (x < border.left + FIELD_MIN_SIZE)
+		x = border.left + FIELD_MIN_SIZE;
+	border.right = x;
+	if (y < border.top + FIELD_MIN_SIZE)
+		y = border.top + FIELD_MIN_SIZE;
+	border.bottom = y;
 };
-void ConfigField::draw(bool selected) {
-	if (visualizationType == FIELD_TYPE_NONE)
-		glColor(145, 139, 141);
-		//glColor3f(0.3f, 0.3f, 0.3f);
-	else if (visualizationType == FIELD_TYPE_MODEL)
-		glColor(61, 70, 53);
-		//glColor3f(0.24313f, 0.21960f, 0.11765f);
-	else if (visualizationType == FIELD_TYPE_TEXTURE)
-		glColor(132, 146, 110);
-		//glColor3f(0.11765f, 0.24313f, 0.21960f);
-	else if (visualizationType == FIELD_TYPE_VALUE)
-		glColor(110, 110, 75);
-		//glColor3f(0.21960f, 0.11765f, 0.24313f);
-		
-	drawRect(GL_QUADS, border);
-
-	glLineWidth(1.0f);
-	glColor3f(0.556f, 0.556f, 0.556f);
-	drawRect(GL_LINE_LOOP, border);
-
-	if (selected) {
-		glColor4f(1.0f, 1.0f, 1.0f, 0.12f);
-		drawRect(GL_QUADS, border);
-	}
-
+void ConfigField::moveScaleHandle(Point point) {
+	moveScaleHandle(point.x, point.y);
+};
+void ConfigField::drawScaleHandle() {
 	if (pointDistance(input.mouse, point(border.right, border.bottom)) < FIELD_SCALEHANDLE_SIZE) {
 		glColor3f(0.8f, 0.8f, 0.8f);
 		glEnable(GL_POINT_SMOOTH);
-		glPointSize((GLfloat)FIELD_SCALEHANDLE_SIZE*2);
-		glBegin( GL_POINTS); glVertex2f(border.right, border.bottom); glEnd();
+		glPointSize((GLfloat)FIELD_SCALEHANDLE_SIZE * 2);
+		glBegin(GL_POINTS); glVertex2f(border.right, border.bottom); glEnd();
 	}
-
+};
+void ConfigField::drawText() {
 	glColor4f(0.95f, 0.95f, 0.95f, 0.95f);
 	double scale = (double)(border.width) / 20.0;
 	if (scale < 8)  {
@@ -79,9 +59,32 @@ void ConfigField::draw(bool selected) {
 		textPrintCentered(border.center.x, border.center.y, visualizationTypeCaption[visualizationType]);
 	}
 };
+void ConfigField::draw(bool selected) {
+	if (visualizationType == FIELD_TYPE_NONE)
+		glColor(145, 139, 141);
+		//glColor3f(0.3f, 0.3f, 0.3f);
+	else if (visualizationType == FIELD_TYPE_MODEL)
+		glColor(61, 70, 53);
+		//glColor3f(0.24313f, 0.21960f, 0.11765f);
+	else if (visualizationType == FIELD_TYPE_TEXTURE)
+		glColor(132, 146, 110);
+		//glColor3f(0.11765f, 0.24313f, 0.21960f);
+	else if (visualizationType == FIELD_TYPE_VALUE)
+		glColor(110, 110, 75);
+		//glColor3f(0.21960f, 0.11765f, 0.24313f);
+		
+	drawRect(GL_QUADS, border);
 
-void gldConfigurator::OnMouseDown(int x, int y, mouseButton Btn) {
-	//M
+	glLineWidth(1.0f);
+	glColor(100, 100, 100);
+	drawRect(GL_LINE_LOOP, border);
+
+	if (selected) {
+		glColor4f(1.0f, 1.0f, 1.0f, 0.12f);
+		drawRect(GL_QUADS, border);
+	}
+
+	drawText();
 };
 
 bool gldConfigurator::addField(Box border) {
@@ -93,10 +96,9 @@ bool gldConfigurator::addField(Box border) {
 bool gldConfigurator::addField(int x1, int y1, int x2, int y2) {
 	if (abs(x2 - x1) < 20 || abs(y2 - y1) < 20)
 		return false;
-	ConfigField newField(x1, y1, x2, y2);
-	int size = field.size();
-	field.push_back(newField);
-	return (field.size() > size);
+	Box border;
+	border.set(x1, y1, x2, y2);
+	return addField(border);
 };
 bool gldConfigurator::addField() {
 	Point mouse = input.mouse;
@@ -175,13 +177,16 @@ void gldConfigurator::mouseDown(mouseButton button)
 			else
 			if (selectedMenuItem == MENUITEM_FIELD_ADD)
 				addField();
+			save();
 		}
 		else
 		if (selectFieldHandleUnderMouse()) {
 			resizingField = true;
 		} else
 		if (!addingField) {
-			mouseClickPosition.set(input.mouse.x, input.mouse.y);
+			int x = snappedToGrid(input.mouse.x);
+			int y = snappedToGrid(input.mouse.y);
+			mouseClickPosition.set(x, y);
 			addingField = true;
 		}
 		break;
@@ -189,8 +194,10 @@ void gldConfigurator::mouseDown(mouseButton button)
 	case mbMiddle:
 		if (!movingField) {
 			mouseClickPosition.set(input.mouse.x, input.mouse.y);
-			if (selectFieldUnderMouse())
+			if (selectFieldUnderMouse()) {
 				movingField = true;
+				movedFieldPosition = field[selectedField].border.getPosition();
+			}
 		}
 		break;
 
@@ -213,16 +220,21 @@ void gldConfigurator::mouseUp(mouseButton button)
 		if (resizingField) {
 			resizingField = false;
 			selectedField = -1;
+			save();
 		} else
 		if (addingField) {
-			addField(mouseClickPosition.x, mouseClickPosition.y, input.mouse.x, input.mouse.y);
+			int x = snappedToGrid(input.mouse.x);
+			int y = snappedToGrid(input.mouse.y);
+			addField(mouseClickPosition.x, mouseClickPosition.y, x, y);
 			addingField = false;
+			save();
 		}
 		break;
 	case mbMiddle:
 		if (movingField) {
 			movingField = false;
 			selectedField = -1;
+			save();
 		}
 		break;
 
@@ -230,32 +242,74 @@ void gldConfigurator::mouseUp(mouseButton button)
 		break;
 	}
 };
+int gldConfigurator::snappedToGrid(int val) {
+	int distance = val % GRID_SIZE;
+	if (distance <= GRID_SNAP_DIST)
+		val = GRID_SIZE * ( (int)val/GRID_SIZE );
+	if (distance >= GRID_SIZE - GRID_SNAP_DIST)
+		val = GRID_SIZE * ((int)val / GRID_SIZE + 1);
+	return val;
+};
+void gldConfigurator::renderBackground() {
+	glClearColor( 0.02f, 0.05f, 0.1f, 1.0f );
+	glClear(GL_COLOR_BUFFER_BIT);
+	glColor3f( 0.03f, 0.075f, 0.15f );
+	for (unsigned i = 0; i <= form.getHeight(); i += GRID_SIZE) {
+		if (i % (GRID_SIZE * 3) == 0)
+			glLineWidth(1.5f);
+		glBegin(GL_LINES);
+		glVertex2f(0, i);
+		glVertex2f(form.getWidth(), i);
+		glEnd();
+		glLineWidth(1.0f);		
+	}
+	for (unsigned i = 0; i <= form.getWidth(); i += GRID_SIZE) {
+		if (i % (GRID_SIZE * 3) == 0)
+			glLineWidth(1.5f);
+		glBegin(GL_LINES);
+		glVertex2f(i, 0);
+		glVertex2f(i, form.getHeight());
+		glEnd();
+		glLineWidth(1.0f);
+	}
+};
 void gldConfigurator::render() {
+	renderBackground();
 	if (movingField) {
-		field[selectedField].border.move(input.mouse.x - mouseClickPosition.x, input.mouse.y - mouseClickPosition.y);
+		movedFieldPosition.x += input.mouse.x - mouseClickPosition.x;
+		movedFieldPosition.y += input.mouse.y - mouseClickPosition.y;
+		int x = snappedToGrid(movedFieldPosition.x);
+		int y = snappedToGrid(movedFieldPosition.y);
+		field[selectedField].border.moveTo(x, y);
 		mouseClickPosition = input.mouse;
 	}
 	if (resizingField) {
-		field[selectedField].moveScaleHandle(input.mouse);
+		int x = snappedToGrid(input.mouse.x);
+		int y = snappedToGrid(input.mouse.y);
+		field[selectedField].moveScaleHandle( x, y );
 		mouseClickPosition = input.mouse;
 	}
 	if (!popupOnField.isActive() && !popupDefault.isActive() && !movingField && !resizingField) {
 		selectedField = -1;
 	}
 
-	
 	for (unsigned i = 0; i < field.size(); i++) {
 		field[i].draw(i == selectedField);
+	}
+	for (unsigned i = 0; i < field.size(); i++) {
+		field[i].drawScaleHandle();
 	}
 		
 	if (addingField) {
 		glLineWidth(1.0f);
 		glColor3f(0.0f, 1.0f, 0.0f);
 		glBegin(GL_LINE_LOOP);
+		int x = snappedToGrid(input.mouse.x);
+		int y = snappedToGrid(input.mouse.y);
 		glVertex2f(mouseClickPosition.x, mouseClickPosition.y);
-		glVertex2f(input.mouse.x, mouseClickPosition.y);
-		glVertex2f(input.mouse.x, input.mouse.y);
-		glVertex2f(mouseClickPosition.x, input.mouse.y);
+		glVertex2f(x, mouseClickPosition.y);
+		glVertex2f(x, y);
+		glVertex2f(mouseClickPosition.x, y);
 		glEnd();
 	}
 	popupOnField.draw();
@@ -279,6 +333,7 @@ bool gldConfigurator::save() {
 	}
 	if (configuration.field.size() > field.size())
 		configuration.field.resize(field.size());
+	configuration.save();
 	return true;
 };
 bool gldConfigurator::load() {

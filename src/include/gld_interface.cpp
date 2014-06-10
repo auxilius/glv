@@ -100,6 +100,46 @@ void Button::setColor(ButtonColorRelation relation, GLfloat r, GLfloat g, GLfloa
 	color[relation][2] = b;
 	color[relation][3] = a;
 }; 
+void Button::setColor(ButtonColorRelation relation, GLfloat * pColor) {
+	if (color[relation] == NULL)
+		color[relation] = new GLfloat[4];
+	color[relation][0] = pColor[0];
+	color[relation][1] = pColor[1];
+	color[relation][2] = pColor[2];
+	color[relation][3] = pColor[3];
+};
+
+/************** CHECKBUTTON CLASS **************/
+CheckButton::CheckButton() {
+	checked = false;
+	firstClick = true;
+};
+void CheckButton::processClick() {
+	if (isClicked()) {
+		if (firstClick)
+			toggle();
+		firstClick = false;
+	} else
+		firstClick = true;
+	changeColors();
+};
+void CheckButton::changeColors() {
+	if (checked)
+		setColor(BACK_NORMAL, 0.5f, 0.5f, 0.5f);
+	else
+		setColor(BACK_NORMAL, 0.1f, 0.1f, 0.1f);
+};
+bool CheckButton::isChecked() {
+	return checked; 
+};
+void CheckButton::check(bool state) {
+	checked = true; 
+};
+bool CheckButton::toggle() { 
+	checked = !checked; 
+	return checked; 
+};
+
 
 
 /************** POPUP MENU CLASS **************/

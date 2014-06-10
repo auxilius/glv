@@ -16,28 +16,32 @@ public:
 	void setBorder(Box newBorder);
 };
 
-struct TextureListItem {
-	TextureListItem() : caption(""), bufferID(0) {};
-	TextureListItem(std::string C, GLuint ID) : caption(C), bufferID(ID) {};
+class TextureObject {
+private:
 	std::string caption;
 	GLuint bufferID;
+	GLint width, height;
+	float ratio;
+public:
+	TextureObject() : caption(""), bufferID(0) {};
+	TextureObject(std::string C, GLuint ID);
+	void set(GLuint ID);
+	std::string getCaption() { return caption; };
+	void render(Box frame);
 };
 class TextureView : public View {
 private:
-	std::vector<TextureListItem> * textureList;
-	int textureListIndex;
-	GLuint texWidth, texHeight;
-	float texRatio;
-	void clearData();
+	std::vector<TextureObject> * list;
+	int index;
+	TextureObject * getTexture();
 public:
 	std::string waitingForTextureCaption;
-	TextureView() { clearData(); };
-	TextureView(Box cBorder) { clearData(); border = cBorder; };
-	GLuint getTextureID();
+	TextureView() : index(-1), list(NULL) {};
+	TextureView(Box cBorder) : index(-1), list(NULL) { border = cBorder; };
+	void setTextureList(std::vector<TextureObject> * pointer);
+	void showTexture(int id);
 	std::string getTextureCaption();
-	void showTexture(int index);
-	void draw();
-	void setTextureList(std::vector<TextureListItem> * list);
+	void render();
 };
 
 struct VariableWatchData {
@@ -50,7 +54,7 @@ public:
 	char type;
 	std::string getString();
 };
-struct VariableWatchLine {
+class VariableWatchLine {
 private:
 	std::vector<std::string> text;
 	std::vector<VariableWatchData> value;
@@ -68,29 +72,58 @@ public:
 	void setLineList(std::vector<VariableWatchLine> * list);
 };
 
-class Model {
+
+class ModelObject {
 private:
-	GLfloat scaleFactor, translateFactor[3];
-	bool isFactorCalculated;
 	std::string	caption;
-	GLuint vertexID, indexID;
-	float* data;
-	bool normalized;
-	float minValue, maxValue;
-	unsigned verticeCount;
+	struct MOFactor {
+		GLfloat scale;
+		GLfloat translate[3];
+		bool isCalculated;
+	} factor;
+	struct MOVertices {
+		GLuint bid;
+		unsigned count;
+		GLenum type;
+	} vertice;
+	struct MOEdges {
+		GLuint bid;
+		GLenum mode;
+		GLenum type;
+		unsigned count;
+		bool show;
+	} edges;
+	struct MOTexture {
+		GLuint coords;
+		GLuint id;
+		GLenum type;
+		bool show;
+	} texture;
+	struct MOData {
+		float* values;
+		float minValue, maxValue;
+		bool normalized;
+		bool show;
+	} data;
 	float normalizeValue(float value);
 	void calculateTransformation();
+	void renderPoints();
+	void renderColoredPoints();
+	void renderTextured();
+	void renderEdges();
 public:
-	Model();
+	ModelObject();
 	std::string	getCaption() { return caption; };
-	GLuint getVBO() { return vertexID; };
-	void set(std::string C, unsigned N, unsigned VID, unsigned IID);
-	void setData(float* data, float min, float max);
+	GLuint getVBO() { return vertice.bid; };
+	void set(std::string C, unsigned N, unsigned VID, GLenum type);
+	void setData(float* P, float min, float max);
+	void setIndices(const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
+	void setTexture(const GLuint tex, const GLuint coords, GLenum type);
 	void render();
 };
 class ModelView : public View {
 private:
-	std::vector<Model> * modelList;
+	std::vector<ModelObject> * modelList;
 	int modelListIndex;
 	bool wasSelected;
 	Point lastMousePos;
@@ -98,17 +131,17 @@ private:
 	float normalizeValue(float value);
 public:
 	std::string waitingForModelCaption;
-	ModelView() { modelList = NULL; };
-	ModelView(Box cBorder) { border = cBorder; modelList = NULL; };
+	ModelView() { modelList = NULL; modelListIndex = -1; };
+	ModelView(Box cBorder) { border = cBorder; modelList = NULL; modelListIndex = -1; };
 	void showModel(int index);
 	std::string getModelCaption();
-	Model * getModel();
+	ModelObject * getModel();
 	void draw();
 	void onMouseMove(int x, int y);
 	void onMouseDown(mouseButton button);
 	void onMouseUp(mouseButton button);	
 	void onMouseWheel(signed short direction);
-	void setModelList(std::vector<Model> * list) {
+	void setModelList(std::vector<ModelObject> * list) {
 		modelList = list;
 	};
 };
@@ -117,11 +150,11 @@ public:
 class gldRenderer {
 private:
 	PopupMenu popupModelSelect;
-	std::vector<Model> modelList;
+	std::vector<ModelObject> modelList;
 	std::vector<ModelView> modelField;
 
 	PopupMenu popupTextureSelect;
-	std::vector<TextureListItem> textureList;
+	std::vector<TextureObject> textureList;
 	std::vector<TextureView> textureField;
 
 	CheckPopupMenu popupVariableSelect;
@@ -137,6 +170,7 @@ private:
 	unsigned selectFieldUnderMouse();
 
 	void clearFields();
+	ModelObject * findModel(const char * caption);
 public:
 	bool * renderTrigger;
 	void requestRender() { *renderTrigger = true; }
@@ -153,8 +187,10 @@ public:
 	
 	bool addTexture(const char * caption, GLuint textureID);
 	bool addValues(const char * caption, const char * formatString, void* data[]);
-	bool addModel(const char * caption, const unsigned count, const GLuint vertices, const GLuint indices);
-	void addModelData(GLuint vboid, float* data, float minValue, float maxValue);
+	
+	bool addModel(const char * caption, const unsigned count, const GLuint vboid, GLenum type);
+	void addModelEdges(const char * caption, const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
+	void addModelTexture(const char * caption, const GLuint texture, const GLuint coordinates, GLenum type);
 	void addModelData(const char * caption, float* data, float minValue, float maxValue);
 	
 };

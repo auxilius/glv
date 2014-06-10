@@ -18,14 +18,17 @@ public:
 	ConfigField(Box cBorder);
 	ConfigField(int x1, int y1, int x2, int y2);
 	void moveScaleHandle(Point point);
+	void moveScaleHandle(int x, int y);
 	void makeSquare();
 	void draw(bool selected);
+	void drawScaleHandle();
+	void drawText();
 };
 
 class gldConfigurator {
 private:
 	PopupMenu popupDefault, popupOnField;
-	Point mouseClickPosition;
+	Point mouseClickPosition, movedFieldPosition;
 	bool addingField;
 	bool movingField;
 	bool resizingField;
@@ -40,8 +43,8 @@ private:
 	bool selectFieldUnderMouse();
 	bool selectFieldHandleUnderMouse();
 	void loadPopupMenus();
-	virtual void OnMouseDown(int x, int y, mouseButton btn);
-
+	int snappedToGrid(int val);
+	void renderBackground();
 public:
 	void init();
 	void render();

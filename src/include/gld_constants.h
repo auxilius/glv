@@ -6,8 +6,10 @@
 
 #define MENU_HEIGHT 30
 
-#define FIELD_SCALEHANDLE_SIZE 8
-#define FIELD_MIN_SIZE 40
+#define FIELD_SCALEHANDLE_SIZE	8
+#define FIELD_MIN_SIZE			30
+#define GRID_SIZE			30
+#define GRID_SNAP_DIST		5
 
 #define FILE_CONFIG "user.conf"
 
@@ -24,6 +26,8 @@
 #define MENUITEM_FIELD_DELETE		"Delete"
 #define MENUITEM_FIELD_ADD			"Add Field"
 #define MENUITEM_SAVE_RUN			"Save & Finish"
+
+
 
 
 static char * visualizationTypeCaption[4] = {

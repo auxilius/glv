@@ -3,7 +3,7 @@ v0.9
 INSTALACIA:
 
 Je potrebne prodat do projektu kniznicu 'gldebugger.lib' a hlavickovy subor 'gldebugger.h'
-Taktiez treba umiestnit subor 'font_arial.glf' niekam, aby ho program pri spusteni nasiel.
+Taktiez treba umiestnit subor 'font_arial.glf' niekam, aby ho program pri spusteni nasiel, teda ku projektu (ak sa spusta z Visual Studia) alebo k exe-cku (ak sa spusta priamo execko).
 
 
 FUNKCIE:

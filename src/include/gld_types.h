@@ -9,6 +9,7 @@
 #include <fstream>
 #include <math.h>
 #include <string>
+#include "gld_constants.h"
 
 
 struct Point {
@@ -34,6 +35,7 @@ public:
 	void setWidth(int newWidth);
 	void setHeight(int newHeight);
 	void setSize(int newWidth, int newHeight);
+	Point getPosition();
 	Point getCenterPosition();
 	__declspec(property(get = getCenterPosition)) Point center;
 	__declspec(property(get = getWidth, put = setWidth)) int width;
@@ -117,10 +119,12 @@ struct FieldConfigRecord {
 	void load(std::ifstream & stream);
 };
 class FieldConfig {
+	bool loaded;
 public:
 	std::vector<FieldConfigRecord> field;
-	void save(std::ofstream & stream);
-	void load(std::ifstream & stream);
+	bool valid();
+	void save();
+	void load();
 	void clear();
 	bool fieldSetType(int f, int t);
 	void debugOut();

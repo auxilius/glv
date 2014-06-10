@@ -98,20 +98,16 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_CLOSE:
 	{
 		ShowWindow(controller.mainWindowHandle, SW_HIDE);
-		controller.engine.saveConfig();
-		//PostQuitMessage(0);
 		return 0;
 	}
 
 	case WM_DESTROY:
 	{
-		//controller.engine.saveConfig();
 		return 0;
 	}
 
 	case  WM_QUIT:
 	{
-		//controller.engine.saveConfig();
 		return 0;
 	}
 
@@ -122,6 +118,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			int x = rect.left, y = rect.top;
 			form.moveTo(x,y);
 		}
+		configuration.save();
 		return 0;
 	}
 	case WM_SIZE:
@@ -137,6 +134,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			canvas.setSize(border.width, border.height);
 			controller.engine.onCanvasSizeChange(border.width, border.height);
 		}
+		configuration.save();
 		return 0;
 	}
 
@@ -253,7 +251,7 @@ void gldController::createWindow() {
 	}
 	
 	controller.mainWindowHandle = CreateWindow(
-		L"GLDebugger", L"OpenGL Debugger Visualizer",
+		L"GLDebugger", L"GLD Visualizer",
 		WS_OVERLAPPEDWINDOW,
 		form.left, form.top, form.width, form.height,
 		NULL, NULL, NULL, NULL);
@@ -267,7 +265,6 @@ void gldController::step() {
 	SwapBuffers(controller.mainDC); // pozor pri spravovanom renderovani !!!
 	setContextOriginal();
 	Sleep(25);
-	//MessageBox(0, L"Chcipni", L"MessageBox caption", MB_OK);
 };
 
 gldController::~gldController() {
@@ -289,12 +286,11 @@ void gldStart(){
 };
 
 void gldStop() {
-	controller.engine.saveConfig();
 	ShowWindow(controller.mainWindowHandle, SW_HIDE);
 };
 
 bool gldAddTexture(std::string caption, const GLuint texture) {
-	controller.engine.addTexture(caption.c_str(), texture);
+	controller.engine.visualizer.addTexture(caption.c_str(), texture);
 	return true;
 };
 
@@ -308,28 +304,32 @@ bool gldAddLine(std::string format, void * data[]) {
 
 bool gldAddLine(std::string caption, std::string format, void * data) {
 	void * a_data[] = { data };
-	controller.engine.addValues(caption.c_str(), format.c_str(), a_data);
+	controller.engine.visualizer.addValues(caption.c_str(), format.c_str(), a_data);
 	return true;
 };
 
 bool gldAddLine(std::string caption, std::string format, void * data[]) {
-	controller.engine.addValues(caption.c_str(), format.c_str(), data);
+	controller.engine.visualizer.addValues(caption.c_str(), format.c_str(), data);
 	return true;
 };
 
-bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLuint indices) {
-	controller.engine.addModel(caption.c_str(), count, vertices, indices);
+bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum type) {
+	controller.engine.visualizer.addModel(caption.c_str(), count, vertices, type);
 	return true;
 };
 
 bool gldAddModelData(std::string caption, float * data, float min, float max) {
-	controller.engine.addModelData(caption.c_str(), data, min, max);
+	controller.engine.visualizer.addModelData(caption.c_str(), data, min, max);
 	return true;
 };
 
-bool gldAddModelData(GLuint vboid, float * data, float min, float max) {
-	controller.engine.addModelData(vboid, data, min, max);
+bool gldAddModelEdges(std::string caption, GLenum mode, unsigned count, GLuint indices, GLenum type) {
+	controller.engine.visualizer.addModelEdges(caption.c_str(), mode, count, indices, type);
 	return true;
 };
 
+bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates, GLenum type) {
+	controller.engine.visualizer.addModelTexture(caption.c_str(), texture, coordinates, type);
+	return true;
+};
 
