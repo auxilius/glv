@@ -11,6 +11,8 @@ using namespace std;
 /* Inicializuje kniznicu - ak nie su zadane parametre, automaticky sa nacitaju kontexty ktore su aktualne nastavene */
 int gldInit(HGLRC glrcToShare = NULL, HDC dcToShare = NULL);
 
+bool gldSetDirectory(char * path);
+
 /* Spusti debuggovacie okno */
 void gldStart();
 
