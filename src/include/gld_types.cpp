@@ -5,6 +5,7 @@ inputManager input;
 Box canvas;
 IOBox form;
 FieldConfig configuration;
+std::string SAVE_PATH = "";
 
 
 void Point::set(int sx, int sy) {
@@ -146,9 +147,9 @@ void FieldConfig::save() {
 	if (!loaded)
 		return;
 	std::ofstream stream;
-	stream.open(FILE_CONFIG);
+	stream.open(pathToFile(FILE_CONFIG));
 	if (stream.fail())
-		MessageBox(0, L"Saving configuration failed", L"Cannot create configuration file, unknown error.", MB_OK);
+		MessageBox(0, L"Cannot create configuration file, unknown error.", L"Saving configuration failed", MB_OK);
 	form.save(stream);
 	stream << std::endl;
 	stream << field.size() << std::endl;
@@ -160,7 +161,7 @@ void FieldConfig::load() {
 	loaded = true;
 	field.clear();
 	std::ifstream stream;
-	stream.open(FILE_CONFIG);
+	stream.open(pathToFile(FILE_CONFIG));
 	if (stream.fail())
 		return;
 	unsigned x;
@@ -208,3 +209,28 @@ bool fileExists(char* fileName) {
 	infile.close();
 	return result;
 };
+bool dirExists(const std::string& dirName_in)
+{
+	DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
+	if (ftyp == INVALID_FILE_ATTRIBUTES)
+		return false; 
+	if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
+		return true; 
+	return false;
+}
+
+
+char * pathToFile(char* fname) {
+	std::string path = SAVE_PATH + fname;
+	char * result = stringToChar(path);
+	return result;
+};
+
+
+char * stringToChar(std::string str) {
+	char * writable = new char[str.size() + 1];
+	std::copy(str.begin(), str.end(), writable);
+	writable[str.size()] = '\0';
+	return writable;
+};
+

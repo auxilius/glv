@@ -5,7 +5,7 @@
 #include "gld_config.h"
 #include <iostream>
 #include <stdarg.h>
-#include "gld_renderer.h"
+#include "gld_visualizer.h"
 
 enum RoomType { rmVisual, rmConfig };
 

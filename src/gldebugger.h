@@ -5,9 +5,13 @@
 #include <gl/glew.h>
 #include <gl/gl.h>
 #include <gl/glu.h>
+#include <string>
+using namespace std;
 
 /* Inicializuje kniznicu - ak nie su zadane parametre, automaticky sa nacitaju kontexty ktore su aktualne nastavene */
 int gldInit(HGLRC glrcToShare = NULL, HDC dcToShare = NULL);
+
+bool gldSetDirectory(char * path);
 
 /* Spusti debuggovacie okno */
 void gldStart();
@@ -25,6 +29,10 @@ bool gldAddLine(std::string format, void * data);
 bool gldAddLine(std::string format, void * data[]);
 bool gldAddLine(std::string caption, std::string format, void * data);
 bool gldAddLine(std::string caption, std::string format, void * data[]);
+
+//void gldAddArray(std::string caption, void * data, std::string format, int length, int lineLength = 0);
+//void gldAddArray(std::string caption, int * data, std::string format, int length, int lineLength = 0);
+//void gldAddArray(std::string caption, float * data, std::string format, int length, int lineLength = 0);
 
 /* Prida model a nazve ho podla parametru caption. Posledny parameter je pocet vertexov modelu */
 bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum type = GL_FLOAT);

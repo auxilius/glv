@@ -1,4 +1,5 @@
 #include "gld_drawing.h"
+#include "gld_constants.h"
 #include <iostream>
 #include <gl/glew.h>
 #include <gl/glf.h>
@@ -16,14 +17,15 @@ void reloadProjection() {
 
 void initFonts() {
 	glfInit();
-	char * fontFile = "font_arial.glf";
+	char * fontFile = pathToFile(FILE_FONT);
 	if (!fileExists(fontFile)) {
-		MessageBox(0, L"Error loading font", L"Font cannot be loaded, font file is probably missing", MB_OK);
+		MessageBox(0, L"Font cannot be loaded, font file is probably missing", L"Error loading font", MB_OK);
 		return;
 	}
-	int font = glfLoadFont(fontFile);
+	int font = glfLoadFont( fontFile );
 	glfSetCurrentFont(font);
 	glfSetAnchorPoint(GLF_LEFT_UP);
+	delete[] fontFile;
 };
 
 unsigned getTextWidth(char * text) {

@@ -12,6 +12,7 @@
 #define GRID_SNAP_DIST		5
 
 #define FILE_CONFIG "user.conf"
+#define FILE_FONT   "font_arial.glf"
 
 #define FIELD_TYPE_NONE		0
 #define FIELD_TYPE_TEXTURE	1
@@ -26,9 +27,6 @@
 #define MENUITEM_FIELD_DELETE		"Delete"
 #define MENUITEM_FIELD_ADD			"Add Field"
 #define MENUITEM_SAVE_RUN			"Save & Finish"
-
-
-
 
 static char * visualizationTypeCaption[4] = {
 	FIELD_NAME_NONE,	

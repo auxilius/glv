@@ -6,6 +6,7 @@
 #include "gld_drawing.h"
 
 #include <gl\glf.h>
+#include <typeinfo> 
 
 CRITICAL_SECTION gCS;
 
@@ -13,6 +14,7 @@ class gldController {
 private:
 	void createWindow();
 	void shareContext(HGLRC shareGLRC, HDC shareDC);
+	bool isInit;
 public:
 	int mainFont;
 	HWND mainWindowHandle;
@@ -29,10 +31,11 @@ public:
 	};
 
 	gldEngine engine;
-	gldController() {};
+	gldController() { isInit = false; };
 	~gldController();
 	void init(HGLRC shareGLRC, HDC shareDC);
 	void step();
+	bool initialized();
 };
 
 gldController controller;
@@ -203,11 +206,15 @@ void gldController::init(HGLRC shareGLRC, HDC shareDC) {
 	InitializeCriticalSection(&gCS);
 	createWindow();
 	shareContext(shareGLRC, shareDC);
-
 	setContextDebugger();
 	initFonts();
 	engine.init();
 	setContextOriginal();
+	isInit = true;
+};
+
+bool gldController::initialized() {
+	return isInit;
 };
 
 void gldController::shareContext(HGLRC shareGLRC, HDC shareDC) {
@@ -240,7 +247,7 @@ void gldController::createWindow() {
 	RegisterClass(&wc);
 
 	std::ifstream stream;
-	stream.open("user.conf");
+	stream.open( pathToFile(FILE_CONFIG) );
 	if (stream.fail()) {
 		form.moveTo(0, 0);
 		form.setSize(500, 500);
@@ -313,6 +320,16 @@ bool gldAddLine(std::string caption, std::string format, void * data[]) {
 	return true;
 };
 
+template<class T>
+void gldAddArray(std::string caption, T * data, std::string format, int length, int lineLength) {
+	//cout << data << " " << &data << " " << ((float*)data)[0] << endl;
+	//controller.engine.visualizer.addValArray(caption.c_str(), data, format.c_str(), length, lineLength);
+	if (T == int)
+		cout << "int";
+	if (T == float)
+		cout << "float";
+};
+
 bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum type) {
 	controller.engine.visualizer.addModel(caption.c_str(), count, vertices, type);
 	return true;
@@ -333,3 +350,17 @@ bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates,
 	return true;
 };
 
+bool gldSetDirectory(char * path) {
+	std::string str_path = path;
+	if (str_path[str_path.size() - 1] != '/')
+		str_path += '/';
+	if (controller.initialized()) {
+		MessageBox(0, L"Calling gldSetDirectory after gldInit, need to be called befor, no changes will appear now.", L"Error changing path", MB_OK);
+		return false;
+	}
+	if (!dirExists(str_path)) {
+		MessageBox(0, L"Directory send by gldSetDirectory does not exist. Please select existing directory.", L"Error changing path", MB_OK);
+	}
+	SAVE_PATH = str_path;
+	return true;
+};

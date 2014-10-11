@@ -105,8 +105,16 @@ public:
 };
 extern inputManager input;
 
-bool fileExists(char* fileName);
 
+/*****    F I L E S   A N D   S O . . .     *****/
+
+bool fileExists(char* fileName);
+bool dirExists(const std::string& dirName_in);
+
+extern std::string SAVE_PATH;
+char * pathToFile(char* fname);
+
+char * stringToChar(std::string str);
 
 /*****    F I E L D   C O N F I G U R A T I O N     *****/
 struct FieldConfigRecord {
@@ -130,6 +138,5 @@ public:
 	void debugOut();
 };
 extern FieldConfig configuration;
-
 
 #endif

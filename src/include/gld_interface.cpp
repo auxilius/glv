@@ -259,8 +259,10 @@ void CheckPopupMenu::setCheckedOptions(std::vector<unsigned> * checkedOptions) {
 	clearCheckedOptions();
 	for (unsigned i = 0; i < checkedOptions->size(); i++) {
 		unsigned optionNo = checkedOptions->operator[](i);
-		loadCheckedColors(&item[optionNo]);
-		optionChecked[optionNo] = true;
+		if (optionNo < item.size()) {
+			loadCheckedColors(&item[optionNo]);
+			optionChecked[optionNo] = true;
+		}
 	}
 };
 int CheckPopupMenu::checkedItem() {
