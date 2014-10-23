@@ -320,27 +320,27 @@ unsigned gldConfigurator::numberOfField() {
 };
 bool gldConfigurator::save() {
 	for (unsigned i = 0; i < field.size(); i++) {
-		if (i < configuration.field.size()) {
-			configuration.field[i].border.set(field[i].border);
-			configuration.fieldSetType(i, field[i].visualizationType);
+		if (i < configLoader.field.size()) {
+			configLoader.field[i].border.set(field[i].border);
+			configLoader.fieldSetType(i, field[i].visualizationType);
 		}
 		else {
-			FieldConfigRecord addedField;
+			ConfigFieldRecord addedField;
 			addedField.border.set(field[i].border);
 			addedField.type = field[i].visualizationType;
-			configuration.field.push_back(addedField);
+			configLoader.field.push_back(addedField);
 		}
 	}
-	if (configuration.field.size() > field.size())
-		configuration.field.resize(field.size());
-	configuration.save();
+	if (configLoader.field.size() > field.size())
+		configLoader.field.resize(field.size());
+	configLoader.save();
 	return true;
 };
 bool gldConfigurator::load() {
 	deleteAllFields();
-	for (unsigned i = 0; i < configuration.field.size(); i++) {
-		addField(configuration.field[i].border);
-		field[i].visualizationType = configuration.field[i].type;
+	for (unsigned i = 0; i < configLoader.field.size(); i++) {
+		addField(configLoader.field[i].border);
+		field[i].visualizationType = configLoader.field[i].type;
 	}
 	return true;
 };

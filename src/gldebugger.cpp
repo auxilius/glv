@@ -121,7 +121,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			int x = rect.left, y = rect.top;
 			form.moveTo(x,y);
 		}
-		configuration.save();
+		configLoader.save();
 		return 0;
 	}
 	case WM_SIZE:
@@ -137,7 +137,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			canvas.setSize(border.width, border.height);
 			controller.engine.onCanvasSizeChange(border.width, border.height);
 		}
-		configuration.save();
+		configLoader.save();
 		return 0;
 	}
 
@@ -246,15 +246,9 @@ void gldController::createWindow() {
 	wc.lpszClassName = L"GLDebugger";
 	RegisterClass(&wc);
 
-	std::ifstream stream;
-	stream.open( pathToFile(FILE_CONFIG) );
-	if (stream.fail()) {
+	if (!configLoader.load()) {
 		form.moveTo(0, 0);
 		form.setSize(500, 500);
-	}
-	else {
-		form.load(stream);
-		stream.close();
 	}
 	
 	controller.mainWindowHandle = CreateWindow(

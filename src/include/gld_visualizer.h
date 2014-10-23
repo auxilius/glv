@@ -90,12 +90,12 @@ private:
 	int modelListIndex;
 	bool wasSelected;
 	Point lastMousePos;
-	double hang, vang, dist;
 	float normalizeValue(float value);
 public:
+	double hang, vang, dist;
 	std::string waitingForModelCaption;
-	ModelView() { modelList = NULL; modelListIndex = -1; };
-	ModelView(Box cBorder) { border = cBorder; modelList = NULL; modelListIndex = -1; };
+	ModelView();
+	ModelView(Box cBorder);
 	void showModel(int index);
 	std::string getModelCaption();
 	ModelObject * getModel();

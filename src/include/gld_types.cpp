@@ -4,7 +4,7 @@
 inputManager input;
 Box canvas;
 IOBox form;
-FieldConfig configuration;
+ConfigurationLoader configLoader;
 std::string SAVE_PATH = "";
 
 
@@ -107,35 +107,45 @@ void IOBox::load(std::ifstream & stream) {
 };
 
 
-FieldConfigRecord::FieldConfigRecord() {
+ConfigFieldRecord::ConfigFieldRecord() {
 	type = 0;
 };
-void FieldConfigRecord::save(std::ofstream & stream) {
+void ConfigFieldRecord::save(std::ofstream & stream) {
 	border.save(stream);
 	stream << type << " ";
-	stream << param.size() << " ";
-	for (unsigned i = 0; i < param.size(); i++)
-		stream << param[i] << " ";
-	if (paramText.empty()) stream << "-";
-	else stream << paramText.c_str();
+	stream << param_i.size() << " ";
+	for (unsigned i = 0; i < param_i.size(); i++)
+		stream << param_i[i] << " ";
+	stream << param_d.size() << " ";
+	for (unsigned i = 0; i < param_d.size(); i++)
+		stream << param_d[i] << " ";
+	if (param_str.empty()) stream << "-";
+	else stream << param_str.c_str();
 	stream << std::endl;
 };
-void FieldConfigRecord::load(std::ifstream & stream) {
+void ConfigFieldRecord::load(std::ifstream & stream) {
 	border.load(stream);
 	stream >> type;
-	param.clear();
+	param_i.clear();
 	unsigned paramCount = 0;
 	stream >> paramCount;
-	int newParam;
+	int newParam_i;
 	for (unsigned i = 0; i < paramCount; i++) {
-		stream >> newParam;
-		param.push_back(newParam);
+		stream >> newParam_i;
+		param_i.push_back(newParam_i);
 	}
-	std::getline(stream, paramText);
-	paramText.erase(paramText.begin());
+	param_d.clear();
+	stream >> paramCount;
+	double newParam_d;
+	for (unsigned i = 0; i < paramCount; i++) {
+		stream >> newParam_d;
+		param_d.push_back(newParam_d);
+	}
+	std::getline(stream, param_str);
+	param_str.erase(param_str.begin());
 };
 
-bool FieldConfig::valid() {
+bool ConfigurationLoader::valid() {
 	if (field.size() > 0) {
 		for (unsigned i = 0; i < field.size(); i++)
 			if (field[i].type != FIELD_TYPE_NONE)
@@ -143,13 +153,15 @@ bool FieldConfig::valid() {
 	}
 	return false;
 };
-void FieldConfig::save() {
+void ConfigurationLoader::save() {
 	if (!loaded)
 		return;
 	std::ofstream stream;
 	stream.open(pathToFile(FILE_CONFIG));
-	if (stream.fail())
+	if (stream.fail()) {
 		MessageBox(0, L"Cannot create configuration file, unknown error.", L"Saving configuration failed", MB_OK);
+	}
+	stream << CONFIG_FILE_VERSION << std::endl;
 	form.save(stream);
 	stream << std::endl;
 	stream << field.size() << std::endl;
@@ -157,48 +169,68 @@ void FieldConfig::save() {
 		field[i].save(stream);
 	stream.close();
 };
-void FieldConfig::load() {
+
+bool ConfigurationLoader::load() {
 	loaded = true;
 	field.clear();
-	std::ifstream stream;
-	stream.open(pathToFile(FILE_CONFIG));
-	if (stream.fail())
-		return;
-	unsigned x;
-	stream >> x >> x >> x >> x;
+	// OPENING FILE
+	std::ifstream inStream;
+	inStream.open(pathToFile(FILE_CONFIG));
+	if (inStream.fail())
+		return false;
+	std::string version;
+	getline(inStream, version);
+	if (version != CONFIG_FILE_VERSION) {
+		MessageBox(0, L"Version of configuration file is out of date. File will be replaced.", L"Loading configuration failed", MB_OK | MB_ICONWARNING);
+		return false;
+	}
+	// READ - SKIPPING WIDTH, HEIGHT, X, Y
+	form.load(inStream);
+	// READ - NUMBER OF FIELDS
 	unsigned count = 0;
-	stream >> count;
-	FieldConfigRecord newField;
+	inStream >> count;
+	// READ - FIELDS
+	ConfigFieldRecord newField;
 	for (unsigned i = 0; i < count; i++) {
-		newField.load(stream);
+		newField.load(inStream);
 		field.push_back(newField);
 	}
-	stream.close();
+	inStream.close();
+	return true;
 };
-void FieldConfig::clear() {
+void ConfigurationLoader::clear() {
 	field.clear();
 };
-bool FieldConfig::fieldSetType(int f, int t) {
+bool ConfigurationLoader::fieldSetType(int f, int t) {
 	if (f < field.size() && f >= 0) {
 		if (field[f].type == t)
 			return false;
 		else {
-			field[f].param.clear();
-			field[f].paramText = "";
+			field[f].param_i.clear();
+			field[f].param_d.clear();
+			field[f].param_str = "";
 			field[f].type = t;
 			return true;
 		}
 	}
 	return false;
 };
-void FieldConfig::debugOut() {
+void ConfigurationLoader::debugOut() {
 	std::cout << "-------------------------------------" << std::endl;
 	std::cout << "Configuration:" << std::endl;
 	for (unsigned i = 0; i < field.size(); i++) {
-		FieldConfigRecord * f = &field[i];
+		ConfigFieldRecord * f = &field[i];
 		std::cout << "Field " << i << " - " << f->border.left << " " << f->border.top << " " << f->border.right << " " << f->border.bottom << std::endl;
 		std::cout << "  type: " << f->type << std::endl;
-		std::cout << "  text: '" << f->paramText << "'" << std::endl;
+		std::cout << "  param_i: ";
+		for (unsigned x = 0; x < f->param_i.size(); x++)
+			std::cout << f->param_i[x] << " ";
+		std::cout << std::endl;
+		std::cout << "  param_d: ";
+		for (unsigned x = 0; x < f->param_d.size(); x++)
+			std::cout << f->param_d[x] << " ";
+		std::cout << std::endl;
+		std::cout << "  param_str: '" << f->param_str << "'" << std::endl;
 	}
 };
 

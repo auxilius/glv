@@ -117,26 +117,27 @@ char * pathToFile(char* fname);
 char * stringToChar(std::string str);
 
 /*****    F I E L D   C O N F I G U R A T I O N     *****/
-struct FieldConfigRecord {
-	FieldConfigRecord();
+struct ConfigFieldRecord {
+	ConfigFieldRecord();
 	IOBox border;
 	unsigned type;
-	std::vector<int> param;
-	std::string paramText;
+	std::vector<int> param_i;
+	std::vector<double> param_d;
+	std::string param_str;
 	void save(std::ofstream & stream);
 	void load(std::ifstream & stream);
 };
-class FieldConfig {
+class ConfigurationLoader {
 	bool loaded;
 public:
-	std::vector<FieldConfigRecord> field;
+	std::vector<ConfigFieldRecord> field;
 	bool valid();
 	void save();
-	void load();
+	bool load();
 	void clear();
 	bool fieldSetType(int f, int t);
 	void debugOut();
 };
-extern FieldConfig configuration;
+extern ConfigurationLoader configLoader;
 
 #endif

@@ -12,7 +12,7 @@ void gldEngine::renderMenu() {
 
 	glColor3f(0.4f, 0.4f, 0.4f);
 	drawRect(GL_QUADS, switchButton);
-	if (room == rmConfig && !configuration.valid())
+	if (room == rmConfig && !configLoader.valid())
 		glColor(80,10,10);
 	else if (switchButton.contains(input.mouse)) 
 		glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
@@ -45,7 +45,7 @@ void gldEngine::processMenuClick(int x, int y, mouseButton button) {
 		return;
 	if (room == rmConfig)  {
 		configManager.save();
-		if (configuration.valid()) {
+		if (configLoader.valid()) {
 			room = rmVisual;
 			visualizer.load();
 		} else
@@ -70,9 +70,9 @@ void gldEngine::init() {
 	visualizer.init();
 	
 	visualizer.renderTrigger = &needToRender;
-	configuration.load();
+	// configLoader.load(); - now in gldebugger.cpp in create window function
 	configManager.load();
-	if (configuration.valid()) {
+	if (configLoader.valid()) {
 		visualizer.load();
 		room = rmVisual;
 	} else

@@ -14,6 +14,8 @@
 #define FILE_CONFIG "user.conf"
 #define FILE_FONT   "font_arial.glf"
 
+#define CONFIG_FILE_VERSION "v 1.14.11."
+
 #define FIELD_TYPE_NONE		0
 #define FIELD_TYPE_TEXTURE	1
 #define FIELD_TYPE_MODEL	2

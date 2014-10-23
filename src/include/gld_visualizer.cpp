@@ -175,6 +175,7 @@ void gldRenderer::mouseUp(mouseButton button) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
 		modelField[i].onMouseUp(button);
 	}
+	save();
 };
 void gldRenderer::mouseMove(int x, int y) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
@@ -185,6 +186,7 @@ void gldRenderer::mouseWheel(signed short direction) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
 		modelField[i].onMouseWheel(direction);
 	}
+	save();
 };
 void gldRenderer::clearFields() {
 	modelField.clear();
@@ -192,52 +194,61 @@ void gldRenderer::clearFields() {
 	variableField.clear();
 };
 bool gldRenderer::save() {
-	FieldConfigRecord * cField;
+	ConfigFieldRecord * cField;
 	for (unsigned i = 0; i < modelField.size(); i++) {
-		if (configuration.field.size() <= modelField[i].layer) 
+		if (configLoader.field.size() <= modelField[i].layer) 
 			return false;
-		cField = &configuration.field[modelField[i].layer];
-		cField->param.clear();
-		cField->paramText = modelField[i].getModelCaption();
+		cField = &configLoader.field[modelField[i].layer];
+		cField->param_d.clear();
+		cField->param_d.push_back(modelField[i].hang);
+		cField->param_d.push_back(modelField[i].vang);
+		cField->param_d.push_back(modelField[i].dist);
+		cField->param_str = modelField[i].getModelCaption();
 	}
 	for (unsigned i = 0; i < textureField.size(); i++) {
-		if (configuration.field.size() <= textureField[i].layer)
+		if (configLoader.field.size() <= textureField[i].layer)
 			return false;
-		cField = &configuration.field[textureField[i].layer];
-		cField->param.clear();
-		cField->paramText = textureField[i].getTextureCaption();
+		cField = &configLoader.field[textureField[i].layer];
+		cField->param_str = textureField[i].getTextureCaption();
 	}
 	for (unsigned i = 0; i < variableField.size(); i++) {
-		if (configuration.field.size() <= variableField[i].layer)
+		if (configLoader.field.size() <= variableField[i].layer)
 			return false;
-		cField = &configuration.field[variableField[i].layer];
-		cField->param.clear();
+		cField = &configLoader.field[variableField[i].layer];
+		cField->param_i.clear();
 		for (unsigned l = 0; l < variableField[i].itemNumber.size(); l++)
-			cField->param.push_back(variableField[i].itemNumber[l]);
+			cField->param_i.push_back(variableField[i].itemNumber[l]);
 	}
-	configuration.save();
+	configLoader.save();
 	return true;
 };
 bool gldRenderer::load() {
 	clearFields();
 	bool found = false;
-	for (unsigned i = 0; i < configuration.field.size(); i++) {
-		const FieldConfigRecord cField = configuration.field[i];
+	for (unsigned i = 0; i < configLoader.field.size(); i++) {
+		const ConfigFieldRecord cField = configLoader.field[i];
 		if (cField.type == FIELD_TYPE_MODEL) {
 			ModelView MV(cField.border);
 			MV.setModelList(&modelList);
 			MV.layer = i;
-			if (cField.paramText != "") {
+			if (cField.param_str != "") {
 				found = false;
 				for (unsigned m = 0; m < modelList.size(); m++) {
-					if (modelList[m].getCaption() == cField.paramText) {
+					if (modelList[m].getCaption() == cField.param_str) {
 						MV.showModel(m);
 						found = true;
 						break;
 					}
 				}
 				if (!found)
-					MV.waitingForModelCaption = cField.paramText;
+					MV.waitingForModelCaption = cField.param_str;
+			}
+			if ( cField.param_d.size() >= 3 ) {
+				MV.hang = cField.param_d[0];
+				MV.vang = cField.param_d[1];
+				MV.dist = cField.param_d[2];
+			} else {
+				std::cout << "WHAY? " << cField.param_str << std::endl;
 			}
 			modelField.push_back(MV);
 		} else
@@ -248,14 +259,14 @@ bool gldRenderer::load() {
 			TV.layer = i;
 			found = false;
 			for (unsigned tl = 0; tl < textureList.size(); tl++) {
-				if (textureList[tl].getCaption() == cField.paramText) {
+				if (textureList[tl].getCaption() == cField.param_str) {
 					TV.showTexture(tl);
 					found = true;
 					break;
 				}
 			}
 			if (!found)
-				TV.waitingForTextureCaption = cField.paramText;
+				TV.waitingForTextureCaption = cField.param_str;
 			textureField.push_back(TV);
 		} else
 		if (cField.type == FIELD_TYPE_VALUE) {
@@ -263,8 +274,8 @@ bool gldRenderer::load() {
 			VV.setBorder(cField.border);
 			VV.setItemList(&variableItemList);
 			VV.layer = i;
-			for (unsigned l = 0; l < cField.param.size(); l++)
-				VV.setItem(cField.param[l], true);
+			for (unsigned l = 0; l < cField.param_i.size(); l++)
+				VV.setItem(cField.param_i[l], true);
 			variableField.push_back(VV);
 		}
 	}
@@ -580,6 +591,21 @@ void ModelObject::render() {
 	glPopMatrix();
 };
 
+ModelView::ModelView() { 
+	modelList = NULL; 
+	modelListIndex = -1; 
+	hang = PI / 5.0;
+	vang = PI / 4.0;
+	dist = 5.0;
+};
+ModelView::ModelView(Box cBorder) { 
+	border = cBorder; 
+	modelList = NULL; 
+	modelListIndex = -1; 
+	hang = PI / 5.0;
+	vang = PI / 4.0;
+	dist = 5.0;
+};
 ModelObject * ModelView::getModel() {
 	if (modelListIndex != -1 && modelList != NULL && modelListIndex < modelList->size())
 		return &(modelList->operator[](modelListIndex));
@@ -588,11 +614,7 @@ ModelObject * ModelView::getModel() {
 void ModelView::showModel(int index) {
 	modelListIndex = index;
 	waitingForModelCaption = "";
-	hang = PI / 5.0;
-	vang = PI / 4.0;
-	dist = 5.0;
 	wasSelected = false;
-	
 }
 std::string ModelView::getModelCaption() {
 	ModelObject * model = getModel();
