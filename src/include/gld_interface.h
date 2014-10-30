@@ -82,7 +82,7 @@ public:
 	int addItem(const char * caption);
 	void draw();
 	bool isActive();
-	void show(int x = -1, int y = -1);
+	void show(int x = -1, int y = -1, bool menuOverride = false);
 	void hide();
 	int selectedItemNumber();
 	std::string selectedItemText();

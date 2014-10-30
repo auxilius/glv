@@ -76,11 +76,18 @@ bool Button::isSeparator() {
 };
 void Button::initializeColors() {
 	color.fill(NULL);
+	/*
 	setColor(BACK_NORMAL, 0.3f, 0.5f, 0.8f, 1.0f);
 	setColor(BACK_CLICKED, 0.7f, 0.8f, 1.0f, 1.0f);
 	setColor(BORDER_NORMAL, 0.4f, 0.6f, 0.8f, 1.0f);
 	setColor(BORDER_HOVERED, 0.8f, 0.6f, 0.4f, 1.0f);
 	setColor(TEXT_NORMAL, 0.0f, 0.0f, 0.0f, 1.0f);
+	*/
+	setColor(BACK_NORMAL, 0.4f, 0.4f, 0.4f, 1.0f);
+	setColor(BACK_HOVERED, 0.95f, 0.95f, 0.95f, 1.0f);
+	setColor(BORDER_NORMAL, 0.0f, 0.0f, 0.0f, 0.0f);
+	setColor(TEXT_NORMAL, 1.0f, 1.0f, 1.0f);
+	setColor(TEXT_HOVERED, 0.2f, 0.2f, 0.2f);
 };
 void Button::removeColor(ButtonColorRelation relation) {
 	if (relation == BACK_NORMAL || relation == BORDER_NORMAL || relation == TEXT_NORMAL) {
@@ -198,15 +205,19 @@ void PopupMenu::draw() {
 			hide();
 	}
 };
-void PopupMenu::show(int x, int y) {
+void PopupMenu::show(int x, int y, bool menuOverride) {
 	if (x == -1)
 		x = input.mouse.x;
 	if (y == -1)
 		y = input.mouse.y;
-	if (x > (int)canvas.width - activeArea.width + POPUP_ACTIVE_BORDER_SIZE * 2)
-		x = canvas.width - activeArea.width + POPUP_ACTIVE_BORDER_SIZE * 2;
-	if (y > (int)canvas.height - MENU_HEIGHT - activeArea.height + POPUP_ACTIVE_BORDER_SIZE * 2)
-		y = canvas.height - MENU_HEIGHT - activeArea.height + POPUP_ACTIVE_BORDER_SIZE * 2;
+	int xMax = canvas.width - activeArea.width + POPUP_ACTIVE_BORDER_SIZE * 2;
+	if (x > xMax)
+		x = xMax;
+	int yMax = canvas.height - activeArea.height + POPUP_ACTIVE_BORDER_SIZE * 2;
+	if (!menuOverride)
+		yMax -= MENU_HEIGHT;
+	if (y > yMax)
+		y = yMax;
 	int ypos = y;
 	for (unsigned i = 0; i < item.size(); i++) {
 		item[i].setPosition(x, ypos);

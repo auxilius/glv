@@ -4,12 +4,55 @@
 
 unsigned renders = 0;
 
-void gldEngine::renderMenu() {
+void gldEngine::panelCalculate() {
+	if (room == rmVisual)
+		button_modeSwitch.caption = "Customization";
+	else if (room == rmConfig)
+		button_modeSwitch.caption = "Visualization";
+	button_profileSelect.caption = configLoader.getProfileName();
+	
+
+	int ys = canvas.bottom - MENU_HEIGHT;
+	button_modeSwitch.setPosition(5, ys + 3);
+	button_profileSelect.setPosition(button_modeSwitch.width + 10, ys + 3);
+}
+void gldEngine::panelMouseDown() {
+
+	if (button_modeSwitch.isClicked()) {
+		if (room == rmConfig)  {
+			configManager.save();
+			if (configLoader.valid()) {
+				room = rmVisual;
+				visualizer.load();
+			} else
+				return;
+		}
+		else if (room == rmVisual) {
+			visualizer.save();
+			room = rmConfig;
+		}
+		panelCalculate();
+	}
+
+	if (configLoader.profiles.size() > 1) {
+		int select = menu_profileSelect.selectedItemNumber();
+		if (select != -1) {
+			menu_profileSelect.hide();
+			configLoader.selectProfile(select);
+			configManager.load();
+			visualizer.load();
+			panelCalculate();
+		} else
+		if (button_profileSelect.isClicked())
+			menu_profileSelect.show(button_profileSelect.position.x, button_profileSelect.position.y, true);
+	}
+}
+void gldEngine::panelRender() {
 	Box menuBar;
 	menuBar.set(0, canvas.bottom-MENU_HEIGHT, canvas.right, canvas.bottom);
 	glColor3f(0.3f, 0.3f, 0.3f);
 	drawRect(GL_QUADS, menuBar);
-
+	/*
 	glColor3f(0.4f, 0.4f, 0.4f);
 	drawRect(GL_QUADS, switchButton);
 	if (room == rmConfig && !configLoader.valid())
@@ -19,15 +62,12 @@ void gldEngine::renderMenu() {
 	else 
 		glColor4f(1.0f, 1.0f, 1.0f, 0.5f);	
 	drawSwitchIcon(switchButton.left + switchButton.height / 2, switchButton.center.y, switchButton.height);
-	std::string text = "";
-	if (room == rmVisual)
-		text = "Configure layout";
-	if (room == rmConfig)
-		text = "Start Visualization";
+	
 	setFontSize(8);
 	textPrint(switchButton.left + switchButton.height + 5, switchButton.top + 3, text);
-
-	if (room == rmVisual && form.width > switchButton.width) {
+	*/
+	
+	if (room == rmVisual && form.width > button_modeSwitch.width) {
 		glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
 		setFontSize(6);
 		textPrint(menuBar.right - 115, menuBar.top + 5, "Value scale 0-1");
@@ -39,23 +79,12 @@ void gldEngine::renderMenu() {
 		}
 		glEnd();
 	}
-};
-void gldEngine::processMenuClick(int x, int y, mouseButton button) {
-	if (button != mbLeft || !switchButton.contains(input.mouse))
-		return;
-	if (room == rmConfig)  {
-		configManager.save();
-		if (configLoader.valid()) {
-			room = rmVisual;
-			visualizer.load();
-		} else
-			return;
+
+	button_modeSwitch.draw();
+	if (configLoader.profiles.size() > 1) {
+		button_profileSelect.draw();
+		menu_profileSelect.draw();
 	}
-	else if (room == rmVisual) {
-		visualizer.save();
-		room = rmConfig;
-	}
-	
 };
 
 void gldEngine::init() {
@@ -64,13 +93,21 @@ void gldEngine::init() {
 	glDisable(GL_DEPTH_TEST);
 	glShadeModel(GL_SMOOTH);
 
-	switchButton.set(3, 3, 180, 27);
+	configLoader.init();
+	for (int i = 0; i < configLoader.profiles.size(); i++)
+		menu_profileSelect.addItem(configLoader.profiles[i].c_str());
+
+	button_modeSwitch.setFont(8);
+	button_profileSelect.setFont(8);
+	button_profileSelect.setCaption("Set profile");
+	panelCalculate();
+
 	reloadProjection();
 	configManager.init();
 	visualizer.init();
 	
 	visualizer.renderTrigger = &needToRender;
-	// configLoader.load(); - now in gldebugger.cpp in create window function
+	
 	configManager.load();
 	if (configLoader.valid()) {
 		visualizer.load();
@@ -88,12 +125,12 @@ void gldEngine::render() {
 		configManager.render();
 	else if (room == rmVisual)
 		visualizer.render();
-	renderMenu();
+	panelRender();
 	renders++;
 };
 
 void gldEngine::onCanvasSizeChange(int width, int height) {
-	switchButton.moveTo(5, canvas.bottom-25);
+	panelCalculate();
 };
 void gldEngine::onMouseDown(mouseButton button) {
 	input.setMouseButtonDown(button);
@@ -101,6 +138,7 @@ void gldEngine::onMouseDown(mouseButton button) {
 		configManager.mouseDown(button);
 	else if (room == rmVisual)
 		visualizer.mouseDown(button);
+	panelMouseDown();
 };
 void gldEngine::onMouseUp(mouseButton button) {
 	input.setMouseButtonUp(button);
@@ -108,7 +146,6 @@ void gldEngine::onMouseUp(mouseButton button) {
 		configManager.mouseUp(button);
 	else if (room == rmVisual)
 		visualizer.mouseUp(button);
-	processMenuClick(input.mouse.x, input.mouse.y, button);
 };
 void gldEngine::onMouseMove(int x, int y) {
 	if (room == rmVisual)
@@ -117,4 +154,8 @@ void gldEngine::onMouseMove(int x, int y) {
 void gldEngine::onMouseWheel(signed short direction) {
 	if (room == rmVisual)
 		visualizer.mouseWheel(direction);
+};
+
+void gldEngine::searchForConfigFiles() {
+	
 };

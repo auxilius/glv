@@ -91,6 +91,7 @@ private:
 	bool wasSelected;
 	Point lastMousePos;
 	float normalizeValue(float value);
+	void resetCamera();
 public:
 	double hang, vang, dist;
 	std::string waitingForModelCaption;

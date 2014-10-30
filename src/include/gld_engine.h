@@ -5,6 +5,7 @@
 #include "gld_config.h"
 #include <iostream>
 #include <stdarg.h>
+#include <vector>
 #include "gld_visualizer.h"
 
 enum RoomType { rmVisual, rmConfig };
@@ -13,10 +14,14 @@ class gldEngine {
 private:
 	bool needToRender;
 	RoomType room;
-	Box switchButton;
+	Button button_modeSwitch; // for switching between visualization and customization
+	PopupMenu menu_profileSelect;
+	Button button_profileSelect;
 	
-	void renderMenu();
-	void processMenuClick(int x, int y, mouseButton button);
+	void panelCalculate();
+	void panelRender();
+	void panelMouseDown();
+	void searchForConfigFiles();
 public:	
 	gldRenderer visualizer;
 	gldConfigurator configManager;
@@ -29,7 +34,6 @@ public:
 	void onMouseUp(mouseButton button);
 	void onMouseMove(int x, int y);
 	void onMouseWheel(signed short direction);
-
 };
 
 #endif

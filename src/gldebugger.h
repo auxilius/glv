@@ -6,12 +6,11 @@
 #include <gl/gl.h>
 #include <gl/glu.h>
 #include <string>
-using namespace std;
+
+#define WORKING_DIRECTORY "gldfiles/"
 
 /* Inicializuje kniznicu - ak nie su zadane parametre, automaticky sa nacitaju kontexty ktore su aktualne nastavene */
 int gldInit(HGLRC glrcToShare = NULL, HDC dcToShare = NULL);
-
-bool gldSetDirectory(char * path);
 
 /* Spusti debuggovacie okno */
 void gldStart();

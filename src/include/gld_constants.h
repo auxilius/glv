@@ -11,10 +11,14 @@
 #define GRID_SIZE			30
 #define GRID_SNAP_DIST		5
 
-#define FILE_CONFIG "user.conf"
-#define FILE_FONT   "font_arial.glf"
+#define FILE_EXT_CONFIG			".conf"
+#define FILE_PROFILE_DEFAULT	"default.conf"
+#define FILE_PROFILES			"profiles.txt"
+#define FILE_FONT				"font_arial.glf"
 
-#define CONFIG_FILE_VERSION "v 1.14.11."
+#define PROFILE_CAPTION_DEFAULT		"<default>";
+
+#define CONFIG_FILE_VERSION "v 1.14.11." // version.year.month.build
 
 #define FIELD_TYPE_NONE		0
 #define FIELD_TYPE_TEXTURE	1

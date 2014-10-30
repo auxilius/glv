@@ -50,6 +50,7 @@ public:
 
 extern Box canvas;
 extern IOBox form;
+extern HWND windowHandle;
 
 
 /*****     M O U S E   I N P U T   M A N A G E R     *****/
@@ -110,11 +111,13 @@ extern inputManager input;
 
 bool fileExists(char* fileName);
 bool dirExists(const std::string& dirName_in);
+void fileCreate(char* fileName);
 
 extern std::string SAVE_PATH;
 char * pathToFile(char* fname);
 
 char * stringToChar(std::string str);
+std::string trim(std::string str);
 
 /*****    F I E L D   C O N F I G U R A T I O N     *****/
 struct ConfigFieldRecord {
@@ -128,16 +131,29 @@ struct ConfigFieldRecord {
 	void load(std::ifstream & stream);
 };
 class ConfigurationLoader {
+private:
 	bool loaded;
+	int actualProfile;
+	void initProfiles();
+	bool loadProfilesFromFile(char* fName);
+	void saveProfiles();
+	bool load();
+	char* getConfigFileName();
+protected:
+
 public:
 	std::vector<ConfigFieldRecord> field;
+	std::vector<std::string> profiles;
+	char* getProfileName();
+	void init();
 	bool valid();
 	void save();
-	bool load();
+	void selectProfile(int selected);
 	void clear();
 	bool fieldSetType(int f, int t);
 	void debugOut();
 };
+
 extern ConfigurationLoader configLoader;
 
 #endif

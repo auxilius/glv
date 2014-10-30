@@ -247,8 +247,6 @@ bool gldRenderer::load() {
 				MV.hang = cField.param_d[0];
 				MV.vang = cField.param_d[1];
 				MV.dist = cField.param_d[2];
-			} else {
-				std::cout << "WHAY? " << cField.param_str << std::endl;
 			}
 			modelField.push_back(MV);
 		} else
@@ -469,9 +467,6 @@ void ModelObject::calculateTransformation() {
 		return;
 	glBindBuffer(GL_ARRAY_BUFFER, vertice.bid);
 	GLfloat* vert = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
 	GLfloat maxpos[3], minpos[3];
 	memcpy(maxpos, vert, 3 * sizeof(GLfloat));
 	memcpy(minpos, vert, 3*sizeof(GLfloat));
@@ -495,6 +490,8 @@ void ModelObject::calculateTransformation() {
 	for (unsigned i = 0; i < 3; i++) {
 		factor.translate[i] = -minpos[i] - delta[i] / 2;
 	}
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 };
 float ModelObject::normalizeValue(float value) {
 	return (value - data.minValue) / (data.maxValue - data.minValue);
@@ -594,14 +591,15 @@ void ModelObject::render() {
 ModelView::ModelView() { 
 	modelList = NULL; 
 	modelListIndex = -1; 
-	hang = PI / 5.0;
-	vang = PI / 4.0;
-	dist = 5.0;
+	resetCamera();
 };
 ModelView::ModelView(Box cBorder) { 
 	border = cBorder; 
 	modelList = NULL; 
-	modelListIndex = -1; 
+	modelListIndex = -1;
+	resetCamera();
+};
+void ModelView::resetCamera(){
 	hang = PI / 5.0;
 	vang = PI / 4.0;
 	dist = 5.0;

@@ -7,6 +7,7 @@
 
 #include <gl\glf.h>
 #include <typeinfo> 
+#include <direct.h>
 
 CRITICAL_SECTION gCS;
 
@@ -246,7 +247,8 @@ void gldController::createWindow() {
 	wc.lpszClassName = L"GLDebugger";
 	RegisterClass(&wc);
 
-	if (!configLoader.load()) {
+	//if (!configLoader.load()) 
+	{
 		form.moveTo(0, 0);
 		form.setSize(500, 500);
 	}
@@ -256,6 +258,8 @@ void gldController::createWindow() {
 		WS_OVERLAPPEDWINDOW,
 		form.left, form.top, form.width, form.height,
 		NULL, NULL, NULL, NULL);
+	windowHandle = mainWindowHandle;
+
 	enableOpenGL();
 };
 
@@ -274,7 +278,21 @@ gldController::~gldController() {
 };
   
 //////////   INTERFACE   //////////
+bool gldSetDirectory(char * path) {
+	std::string str_path = path;
+	if (str_path[str_path.size() - 1] != '/')
+		str_path += '/';
+	if (!dirExists(str_path)) {
+		const char * dir = str_path.c_str();
+		_mkdir(dir);
+		MessageBox(0, L"Directory set by gldSetDirectory does not exist. Creating new directory.", L"GLD - working path ", MB_OK | MB_ICONINFORMATION);
+	}
+	SAVE_PATH = str_path;
+	return true;
+};
+
 int gldInit(HGLRC glrcToShare, HDC dcToShare) {
+	gldSetDirectory(WORKING_DIRECTORY);
 	controller.init(glrcToShare, dcToShare);
 	return 0;
 };
@@ -344,17 +362,3 @@ bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates,
 	return true;
 };
 
-bool gldSetDirectory(char * path) {
-	std::string str_path = path;
-	if (str_path[str_path.size() - 1] != '/')
-		str_path += '/';
-	if (controller.initialized()) {
-		MessageBox(0, L"Calling gldSetDirectory after gldInit, need to be called befor, no changes will appear now.", L"Error changing path", MB_OK);
-		return false;
-	}
-	if (!dirExists(str_path)) {
-		MessageBox(0, L"Directory send by gldSetDirectory does not exist. Please select existing directory.", L"Error changing path", MB_OK);
-	}
-	SAVE_PATH = str_path;
-	return true;
-};
