@@ -7,10 +7,8 @@
 #include <gl/glu.h>
 #include <string>
 
-#define WORKING_DIRECTORY "gldfiles/"
-
 /* Inicializuje kniznicu - ak nie su zadane parametre, automaticky sa nacitaju kontexty ktore su aktualne nastavene */
-int gldInit(HGLRC glrcToShare = NULL, HDC dcToShare = NULL);
+int gldInit(std::string workingDir, HGLRC glrcToShare = NULL, HDC dcToShare = NULL);
 
 /* Spusti debuggovacie okno */
 void gldStart();

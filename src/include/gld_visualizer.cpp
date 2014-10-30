@@ -309,7 +309,7 @@ bool gldRenderer::addValArray(const char* caption, void * data[], const char* fo
 	item.addLine(firstLine);
 	if (lineLength <= 0)
 		lineLength = length;
-	for (unsigned i = 0; i < length; i+=lineLength ) {
+	for (int i = 0; i < length; i+=lineLength ) {
 		vwLine line;
 		if (length < i + lineLength)
 			line.printArray(data, i, length % lineLength, format);
@@ -382,28 +382,28 @@ void TextureObject::render(Box frame) {
 	Box texbox = frame;
 	if (ratio > frameRatio) {
 		texbox.width = frame.width;
-		texbox.height = frame.width / ratio;
+		texbox.height = (int)(frame.width / ratio);
 		texbox.move(0, (frame.height - texbox.height) / 2);
 	}
 	else {
 		texbox.height = frame.height;
-		texbox.width = frame.height * ratio;
+		texbox.width = (int)(frame.height * ratio);
 		texbox.move((frame.width - texbox.width) / 2, 0);
 	}
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, bufferID);
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_QUADS);
-	glTexCoord2f(0.0f, 1.0f); glVertex2f(texbox.left - 1, texbox.top - 1);
-	glTexCoord2f(1.0f, 1.0f); glVertex2f(texbox.right, texbox.top - 1);
-	glTexCoord2f(1.0f, 0.0f); glVertex2f(texbox.right, texbox.bottom);
-	glTexCoord2f(0.0f, 0.0f); glVertex2f(texbox.left - 1, texbox.bottom);
+	glTexCoord2f(0.0f, 1.0f); glVertex2f((GLfloat)texbox.left - 1.0f, (GLfloat)texbox.top - 1.0f);
+	glTexCoord2f(1.0f, 1.0f); glVertex2f((GLfloat)texbox.right, (GLfloat)texbox.top - 1.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex2f((GLfloat)texbox.right, (GLfloat)texbox.bottom);
+	glTexCoord2f(0.0f, 0.0f); glVertex2f((GLfloat)texbox.left - 1.0f, (GLfloat)texbox.bottom);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 };
 
 TextureObject * TextureView::getTexture() {
-	if (index != -1 && list != NULL && index < list->size())
+	if (index != -1 && list != NULL && index < (int)list->size())
 		return &(list->operator[](index));
 	return NULL;
 };
@@ -605,7 +605,7 @@ void ModelView::resetCamera(){
 	dist = 5.0;
 };
 ModelObject * ModelView::getModel() {
-	if (modelListIndex != -1 && modelList != NULL && modelListIndex < modelList->size())
+	if (modelListIndex != -1 && modelList != NULL && modelListIndex < (int)modelList->size())
 		return &(modelList->operator[](modelListIndex));
 	return NULL;
 };
@@ -654,9 +654,9 @@ void ModelView::draw() {
 	glLoadIdentity();
 	glViewport(border.left, canvas.height - border.top- border.height, border.width, border.height);
 	gluPerspective(25, (float)border.width / border.height, 0.1, 100);
-	GLfloat x = dist * sin(vang) * sin(hang);
-	GLfloat y = dist * cos(vang);
-	GLfloat z = -dist * sin(vang) * cos(hang);
+	GLfloat x = (GLfloat)(dist * sin(vang) * sin(hang));
+	GLfloat y = (GLfloat)(dist * cos(vang));
+	GLfloat z = (GLfloat)(-dist * sin(vang) * cos(hang));
 	gluLookAt(x,y,z, 0,0,0, 0,1,0);
 	glMatrixMode(GL_MODELVIEW);
 	ModelObject * model = getModel();

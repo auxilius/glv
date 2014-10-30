@@ -165,7 +165,7 @@ void ConfigurationLoader::initProfiles() {
 		load();
 };
 void ConfigurationLoader::selectProfile(int selected) {
-	if (selected < 0 || selected >= profiles.size() )
+	if (selected < 0 || selected >= (int)profiles.size() )
 		return;
 	if (actualProfile != selected) {
 		field.clear();
@@ -198,7 +198,7 @@ void ConfigurationLoader::saveProfiles() {
 	outStream.open(pathToFile(FILE_PROFILES));
 	if (outStream.fail())
 		MessageBox(0, L"Cannot save profiles into file.", L"GLD - save error", MB_OK | MB_ICONWARNING);
-	for (int i = 1; i < profiles.size(); i++) { 
+	for (int i = 1; i < (int)profiles.size(); i++) { 
 		outStream << profiles[i] << std::endl;
 	}
 	outStream.close();
@@ -261,7 +261,7 @@ void ConfigurationLoader::clear() {
 	field.clear();
 };
 bool ConfigurationLoader::fieldSetType(int f, int t) {
-	if (f < field.size() && f >= 0) {
+	if (f < (int)field.size() && f >= 0) {
 		if (field[f].type == t)
 			return false;
 		else {
@@ -335,8 +335,7 @@ char * pathToFile(char* fname) {
 
 char * stringToChar(std::string str) {
 	char * writable = new char[str.size() + 1];
-	std::copy(str.begin(), str.end(), writable);
-	writable[str.size()] = '\0';
+	strcpy_s(writable, str.size() + 1, str.c_str());
 	return writable;
 };
 std::string trim(std::string str) {

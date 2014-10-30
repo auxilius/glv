@@ -278,21 +278,16 @@ gldController::~gldController() {
 };
   
 //////////   INTERFACE   //////////
-bool gldSetDirectory(char * path) {
-	std::string str_path = path;
-	if (str_path[str_path.size() - 1] != '/')
-		str_path += '/';
-	if (!dirExists(str_path)) {
-		const char * dir = str_path.c_str();
-		_mkdir(dir);
-		MessageBox(0, L"Directory set by gldSetDirectory does not exist. Creating new directory.", L"GLD - working path ", MB_OK | MB_ICONINFORMATION);
-	}
-	SAVE_PATH = str_path;
+bool gldSetDirectory(std::string path) {
+	if (!dirExists(path))
+		MessageBox(0, L"Working directory set by gldInit function does not exist.\nPlease select directory that already exists.", L"gld_lib error", MB_OK | MB_ICONERROR);
+	else
+		SAVE_PATH = path.c_str();
 	return true;
 };
 
-int gldInit(HGLRC glrcToShare, HDC dcToShare) {
-	gldSetDirectory(WORKING_DIRECTORY);
+int gldInit(std::string workingDir, HGLRC glrcToShare, HDC dcToShare) {
+	gldSetDirectory(workingDir);
 	controller.init(glrcToShare, dcToShare);
 	return 0;
 };
@@ -334,8 +329,6 @@ bool gldAddLine(std::string caption, std::string format, void * data[]) {
 
 template<class T>
 void gldAddArray(std::string caption, T * data, std::string format, int length, int lineLength) {
-	//cout << data << " " << &data << " " << ((float*)data)[0] << endl;
-	//controller.engine.visualizer.addValArray(caption.c_str(), data, format.c_str(), length, lineLength);
 	if (T == int)
 		cout << "int";
 	if (T == float)

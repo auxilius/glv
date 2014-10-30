@@ -74,8 +74,8 @@ void gldEngine::panelRender() {
 		glBegin(GL_LINES);
 		for (float i = 0.0f; i <= 1.0f; i += 0.01f) {
 			setColorByValue(i);
-			glVertex2f(menuBar.right - 110 + i * 100, menuBar.bottom - 10);
-			glVertex2f(menuBar.right - 110 + i * 100, menuBar.bottom - 5);
+			glVertex2f((GLfloat)menuBar.right - 110.0f + i * 100.0f, (GLfloat)menuBar.bottom - 10.0f);
+			glVertex2f((GLfloat)menuBar.right - 110.0f + i * 100.0f, (GLfloat)menuBar.bottom - 5.0f);
 		}
 		glEnd();
 	}
@@ -94,7 +94,7 @@ void gldEngine::init() {
 	glShadeModel(GL_SMOOTH);
 
 	configLoader.init();
-	for (int i = 0; i < configLoader.profiles.size(); i++)
+	for (int i = 0; i < (int)configLoader.profiles.size(); i++)
 		menu_profileSelect.addItem(configLoader.profiles[i].c_str());
 
 	button_modeSwitch.setFont(8);

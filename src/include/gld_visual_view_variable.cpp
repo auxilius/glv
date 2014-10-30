@@ -96,7 +96,7 @@ void vwLine::printArray(void *data[], int startPosition, int length, const char 
 	unsigned data_it = 0;
 	text.push_back("\t");
 	vwFormat format = readFormat(singleFormat);
-	for (unsigned i = 0; i < length; i++) {
+	for (int i = 0; i < length; i++) {
 		vwSingleData SD;
 		SD.data = data[i];
 		SD.format = format;
@@ -109,7 +109,7 @@ char * vwLine::getArray() {
 		out = out + value[i].getString() + " ";
 	}
 	char * result = new char[out.length() + 1];
-	strcpy(result, out.c_str());
+	strcpy_s(result, out.length() + 1, out.c_str());
 	return result;
 };
 char * vwLine::getText() {
@@ -122,7 +122,7 @@ char * vwLine::getText() {
 			out = out + value[i].getString();
 	}
 	char * result = new char[out.length() + 1];
-	strcpy(result, out.c_str());
+	strcpy_s(result, out.length() + 1, out.c_str());
 	return result;
 };
 void vwLine::setText(std::string lineText) {

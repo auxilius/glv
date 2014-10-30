@@ -36,7 +36,7 @@ void ConfigField::drawScaleHandle() {
 		glColor3f(0.8f, 0.8f, 0.8f);
 		glEnable(GL_POINT_SMOOTH);
 		glPointSize((GLfloat)FIELD_SCALEHANDLE_SIZE * 2);
-		glBegin(GL_POINTS); glVertex2f(border.right, border.bottom); glEnd();
+		glBegin(GL_POINTS); glVertex2f((GLfloat)border.right, (GLfloat)border.bottom); glEnd();
 	}
 };
 void ConfigField::drawText() {
@@ -91,7 +91,7 @@ bool gldConfigurator::addField(Box border) {
 	ConfigField newField(border);
 	int size = field.size();
 	field.push_back(newField);
-	return (field.size() > size);
+	return ((int)field.size() > size);
 };
 bool gldConfigurator::addField(int x1, int y1, int x2, int y2) {
 	if (abs(x2 - x1) < 20 || abs(y2 - y1) < 20)
@@ -126,7 +126,7 @@ bool gldConfigurator::selectFieldUnderMouse() {
 bool gldConfigurator::selectFieldHandleUnderMouse() {
 	for (int i = field.size() - 1; i >= 0; i--) {
 		Point scaleHandle = point(field[i].border.right, field[i].border.bottom);
-		if (distance(scaleHandle.x, scaleHandle.y, input.mouse.x, input.mouse.y) <= FIELD_SCALEHANDLE_SIZE) {
+		if (distance((float)scaleHandle.x, (float)scaleHandle.y, (float)input.mouse.x, (float)input.mouse.y) <= (float)FIELD_SCALEHANDLE_SIZE) {
 			selectedField = i;
 			return true;
 		}
@@ -254,21 +254,21 @@ void gldConfigurator::renderBackground() {
 	glClearColor( 0.02f, 0.05f, 0.1f, 1.0f );
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f( 0.03f, 0.075f, 0.15f );
-	for (unsigned i = 0; i <= form.getHeight(); i += GRID_SIZE) {
+	for (int i = 0; i <= form.getHeight(); i += GRID_SIZE) {
 		if (i % (GRID_SIZE * 3) == 0)
 			glLineWidth(1.5f);
 		glBegin(GL_LINES);
-		glVertex2f(0, i);
-		glVertex2f(form.getWidth(), i);
+		glVertex2f(0, (GLfloat)i);
+		glVertex2f((GLfloat)form.getWidth(), (GLfloat)i);
 		glEnd();
 		glLineWidth(1.0f);		
 	}
-	for (unsigned i = 0; i <= form.getWidth(); i += GRID_SIZE) {
+	for (int i = 0; i <= form.getWidth(); i += GRID_SIZE) {
 		if (i % (GRID_SIZE * 3) == 0)
 			glLineWidth(1.5f);
 		glBegin(GL_LINES);
-		glVertex2f(i, 0);
-		glVertex2f(i, form.getHeight());
+		glVertex2f((GLfloat)i, 0);
+		glVertex2f((GLfloat)i, (GLfloat)form.getHeight());
 		glEnd();
 		glLineWidth(1.0f);
 	}
@@ -306,10 +306,10 @@ void gldConfigurator::render() {
 		glBegin(GL_LINE_LOOP);
 		int x = snappedToGrid(input.mouse.x);
 		int y = snappedToGrid(input.mouse.y);
-		glVertex2f(mouseClickPosition.x, mouseClickPosition.y);
-		glVertex2f(x, mouseClickPosition.y);
-		glVertex2f(x, y);
-		glVertex2f(mouseClickPosition.x, y);
+		glVertex2f((GLfloat)mouseClickPosition.x, (GLfloat)mouseClickPosition.y);
+		glVertex2f((GLfloat)x, (GLfloat)mouseClickPosition.y);
+		glVertex2f((GLfloat)x, (GLfloat)y);
+		glVertex2f((GLfloat)mouseClickPosition.x, (GLfloat)y);
 		glEnd();
 	}
 	popupOnField.draw();
