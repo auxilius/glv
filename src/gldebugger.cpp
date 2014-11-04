@@ -279,8 +279,10 @@ gldController::~gldController() {
   
 //////////   INTERFACE   //////////
 bool gldSetDirectory(std::string path) {
-	if (!dirExists(path))
-		MessageBox(0, L"Working directory set by gldInit function does not exist.\nPlease select directory that already exists.", L"gld_lib error", MB_OK | MB_ICONERROR);
+	if (!dirExists(path)) {
+		MessageBox(0, ERRORTEXT_WORKDIR_DONT_EXIST, ERRORTEXT_HEADER, MB_OK | MB_ICONERROR);
+		std::cout << "GLD ERROR: setting working path to '" << path << "' failed. Path does not exist." << std::endl;
+	}
 	else
 		SAVE_PATH = path.c_str();
 	return true;
@@ -352,6 +354,16 @@ bool gldAddModelEdges(std::string caption, GLenum mode, unsigned count, GLuint i
 
 bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates, GLenum type) {
 	controller.engine.visualizer.addModelTexture(caption.c_str(), texture, coordinates, type);
+	return true;
+};
+
+bool gldAddModelShaderProgram(std::string caption, GLuint shaderProgramId) {
+	controller.engine.visualizer.addModelShader(caption.c_str(), shaderProgramId);
+	return true;
+};
+
+bool gldAddModelShader(std::string caption, std::string nameOfShaderFile, GLenum shaderType) {
+	controller.engine.visualizer.addModelShader(caption.c_str(), nameOfShaderFile, shaderType);
 	return true;
 };
 

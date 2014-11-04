@@ -27,20 +27,21 @@ bool gldAddLine(std::string format, void * data[]);
 bool gldAddLine(std::string caption, std::string format, void * data);
 bool gldAddLine(std::string caption, std::string format, void * data[]);
 
-//void gldAddArray(std::string caption, void * data, std::string format, int length, int lineLength = 0);
-//void gldAddArray(std::string caption, int * data, std::string format, int length, int lineLength = 0);
-//void gldAddArray(std::string caption, float * data, std::string format, int length, int lineLength = 0);
-
-/* Prida model a nazve ho podla parametru caption. Posledny parameter je pocet vertexov modelu */
+// Prida model a nazve ho podla parametru caption. Posledny parameter je pocet vertexov modelu 
 bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum type = GL_FLOAT);
-
-/* Pridadi data modelu, ktory ma popis caption */
+// Pridadi data modelu, ktory ma popis caption 
 bool gldAddModelData(std::string caption, float * data, float min = 0.0f, float max = 1.0f);
+// Pridadi data modelu, ktory ma popis caption 
+//bool gldAddModelData(std::string caption, GLuint vbo, float min = 0.0f, float max = 1.0f);
 
-/* Pridadi pole indexov modelu, ktory ma popis caption */
+// Pridadi pole indexov modelu, ktory ma popis caption 
 bool gldAddModelEdges(std::string caption, GLenum mode, unsigned count, GLuint indices, GLenum type = GL_UNSIGNED_INT);
-
-/* Pridadi texturu a koordinaty modelu, ktory ma popis caption */
+// Pridadi texturu a koordinaty modelu, ktory ma popis caption 
 bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates, GLenum type = GL_FLOAT);
+// Ku modelu sa prida shader ktory bude upravovat renderovanie
+bool gldAddModelShader(std::string caption, std::string nameOfShaderFile, GLenum shaderType);
+// Pre model sa priradi shader program ktory bude upravovat renderovanie
+bool gldAddModelShaderProgram(std::string caption, GLuint shaderProgramId);
+
 
 #endif

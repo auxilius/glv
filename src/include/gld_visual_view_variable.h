@@ -1,5 +1,5 @@
-#ifndef __H_GLD_VIEW_VARIABLE
-#define __H_GLD_VIEW_VARIABLE
+#ifndef H_GLD_VISUALIZER_VIEW_VARIABLE
+#define H_GLD_VISUALIZER_VIEW_VARIABLE
 
 #include "gld_visual_view.h"
 

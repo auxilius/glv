@@ -338,6 +338,7 @@ char * stringToChar(std::string str) {
 	strcpy_s(writable, str.size() + 1, str.c_str());
 	return writable;
 };
+
 std::string trim(std::string str) {
 	int s = 0;
 	int e = str.length();

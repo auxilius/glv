@@ -1,11 +1,12 @@
 #ifndef H_GLDENGINE
 #define H_GLDENGINE
 
-#include "gld_types.h"
-#include "gld_config.h"
 #include <iostream>
 #include <stdarg.h>
 #include <vector>
+
+#include "gld_types.h"
+#include "gld_config.h"
 #include "gld_visualizer.h"
 
 enum RoomType { rmVisual, rmConfig };

@@ -19,7 +19,7 @@ void initFonts() {
 	glfInit();
 	char * fontFile = pathToFile(FILE_FONT);
 	if (!fileExists(fontFile)) {
-		MessageBox(0, L"Font cannot be loaded, font file is probably missing", L"Error loading font", MB_OK);
+		MessageBox(0, ERRORTEXT_FONT_MISSING, ERRORTEXT_HEADER, MB_OK | MB_ICONWARNING);
 		return;
 	}
 	int font = glfLoadFont( fontFile );

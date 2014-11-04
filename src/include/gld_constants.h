@@ -34,6 +34,12 @@
 #define MENUITEM_FIELD_ADD			"Add Field"
 #define MENUITEM_SAVE_RUN			"Save & Finish"
 
+#define ERRORTEXT_HEADER L"   GLD Error"
+#define ERRORTEXT_FONT_MISSING L" Font cannot be loaded from working directory, font file is probably missing. Place the font file into working directory to prevent rendering errors."
+#define ERRORTEXT_WORKDIR_DONT_EXIST L"Working directory set by gldInit() function does not exist. Already existing directory needs to be set."
+#define ERRORTEXT_SHADERFILE_DONT_EXIST L"One or more shader files does not exist."
+#define ERRORTEXT_SHADER_COMPILE_ERROR L"There were some errors compiling shader. See console output for more specific info."
+
 static char * visualizationTypeCaption[4] = {
 	FIELD_NAME_NONE,	
 	FIELD_NAME_TEXTURE,

@@ -1,6 +1,8 @@
+#include "gld_engine.h"
+
 #include <gl/glew.h>
 #include <gl/GLU.h>
-#include "gld_engine.h"
+
 
 unsigned renders = 0;
 
@@ -73,7 +75,7 @@ void gldEngine::panelRender() {
 		textPrint(menuBar.right - 115, menuBar.top + 5, "Value scale 0-1");
 		glBegin(GL_LINES);
 		for (float i = 0.0f; i <= 1.0f; i += 0.01f) {
-			setColorByValue(i);
+			valToColor_Rainbow(i);
 			glVertex2f((GLfloat)menuBar.right - 110.0f + i * 100.0f, (GLfloat)menuBar.bottom - 10.0f);
 			glVertex2f((GLfloat)menuBar.right - 110.0f + i * 100.0f, (GLfloat)menuBar.bottom - 5.0f);
 		}
