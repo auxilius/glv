@@ -1,13 +1,14 @@
 #include <fstream>
 #include <iostream>
+#include <gl\glf.h>
+#include <typeinfo> 
+#include <direct.h>
 #include "gldebugger.h"
 #include "gld_engine.h"
 #include "gld_types.h"
 #include "gld_drawing.h"
 
-#include <gl\glf.h>
-#include <typeinfo> 
-#include <direct.h>
+
 
 CRITICAL_SECTION gCS;
 
@@ -342,8 +343,8 @@ bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum ty
 	return true;
 };
 
-bool gldAddModelData(std::string caption, float * data, float min, float max) {
-	controller.engine.visualizer.addModelData(caption.c_str(), data, min, max);
+bool gldAddModelData(std::string caption, float * data, float min, float max, int colorMap ) {
+	controller.engine.visualizer.addModelData(caption.c_str(), data, min, max, colorMap);
 	return true;
 };
 

@@ -151,12 +151,13 @@ void ModelObject::set(std::string C, unsigned N, unsigned VID, GLenum type) {
 	calculateTransformation();
 };
 
-void ModelObject::setData(float* P, float min, float max) {
+void ModelObject::setData(float* P, float min, float max, int cl_map) {
 	data.values = P;
 	data.minValue = min;
 	data.maxValue = max;
 	data.normalized = (min == 0.0f) && (max == 1.0f);
 	data.show = (P != NULL);
+	data.colormap = cl_map;
 };
 
 void ModelObject::setIndices(const GLenum mode, const unsigned count, const GLuint indices, GLenum type) {
@@ -248,7 +249,11 @@ void ModelObject::renderColoredPoints() {
 		float value = data.values[i];
 		if (!data.normalized)
 			value = normalizeValue(value);
-		valToColor_Rainbow(value);
+		if (data.colormap == COLOR_MAP_BLUERED)
+			valToColor_BlueRed(value);
+		else
+			valToColor_Rainbow(value);
+		
 		glDrawArrays(GL_POINTS, i, 1);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

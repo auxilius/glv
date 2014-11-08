@@ -243,8 +243,7 @@ bool ConfigurationLoader::load() {
 	loaded = true;
 	// READ - SKIPPING WIDTH, HEIGHT, X, Y
 	form.load(inStream);
-	SetWindowPos(windowHandle, 0, form.left, form.top, form.width, form.height, 
-		SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+	SetWindowPos(windowHandle, 0, form.left, form.top, form.width, form.height, SWP_NOZORDER|SWP_NOACTIVATE);
 	// READ - NUMBER OF FIELDS
 	unsigned count = 0;
 	inStream >> count;

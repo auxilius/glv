@@ -364,10 +364,10 @@ void gldRenderer::addModelTexture(const char * caption, const GLuint texture, co
 		model->setTexture(texture, coordinates, type);
 };
 
-void gldRenderer::addModelData(const char * caption, float* data, float minValue, float maxValue) {
+void gldRenderer::addModelData(const char * caption, float* data, float minValue, float maxValue, int colorMap ) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
-		model->setData(data, minValue, maxValue);
+		model->setData(data, minValue, maxValue, colorMap);
 };
 
 void gldRenderer::addModelShader(const char * caption, const GLuint shaderProgram) {

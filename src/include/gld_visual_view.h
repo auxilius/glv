@@ -74,6 +74,7 @@ private:
 	} texture;
 	struct MOData {
 		float* values;
+		int colormap;
 		float minValue, maxValue;
 		bool normalized;
 		bool show;
@@ -93,7 +94,7 @@ public:
 	std::string	getCaption() { return caption; };
 	GLuint getVBO() { return vertice.bid; };
 	void set(std::string C, unsigned N, unsigned VID, GLenum type);
-	void setData(float* P, float min, float max);
+	void setData(float* P, float min, float max, int cl_map);
 	void setIndices(const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
 	void setTexture(const GLuint tex, const GLuint coords, GLenum type);
 	void setShader(const GLuint shaderProgramId);

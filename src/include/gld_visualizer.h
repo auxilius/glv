@@ -59,7 +59,7 @@ public:
 	bool addModel(const char * caption, const unsigned count, const GLuint vboid, GLenum type);
 	void addModelEdges(const char * caption, const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
 	void addModelTexture(const char * caption, const GLuint texture, const GLuint coordinates, GLenum type);
-	void addModelData(const char * caption, float* data, float minValue, float maxValue);
+	void addModelData(const char * caption, float* data, float minValue, float maxValue, int colorMap);
 	void addModelShader(const char * caption, const GLuint shaderProgram);
 	void addModelShader(const char * caption, std::string shaderFile, GLenum shaderType);
 	

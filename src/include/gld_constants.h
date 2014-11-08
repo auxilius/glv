@@ -25,6 +25,9 @@
 #define FIELD_TYPE_MODEL	2
 #define FIELD_TYPE_VALUE	3
 
+#define COLOR_MAP_RAINBOW	0
+#define COLOR_MAP_BLUERED	1
+
 #define FIELD_NAME_NONE				"N/A"
 #define FIELD_NAME_TEXTURE			"Texture Field"
 #define FIELD_NAME_MODEL			"Mesh Field"
