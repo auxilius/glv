@@ -43,8 +43,8 @@ public:
 	void render();
 };
 
-void valToColor_Rainbow(float value);
-void valToColor_BlueRed(float value);
+GLcolor valToColor_Rainbow(float value);
+GLcolor valToColor_BlueRed(float value);
 
 class ModelObject {
 private:
@@ -78,6 +78,9 @@ private:
 		float minValue, maxValue;
 		bool normalized;
 		bool show;
+
+		GLuint color_bid;
+		bool useBuffer;
 	} data;
 	struct MOShader {
 		GLuint programId;
@@ -95,6 +98,8 @@ public:
 	GLuint getVBO() { return vertice.bid; };
 	void set(std::string C, unsigned N, unsigned VID, GLenum type);
 	void setData(float* P, float min, float max, int cl_map);
+	void setColor(float* P, float min, float max, int cl_map);
+	void useColorBuffer(GLuint bid);
 	void setIndices(const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
 	void setTexture(const GLuint tex, const GLuint coords, GLenum type);
 	void setShader(const GLuint shaderProgramId);

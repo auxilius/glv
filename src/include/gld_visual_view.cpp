@@ -4,35 +4,36 @@
 #include "gld_shaders.h"
 
 
-void valToColor_Rainbow(float value) {
+GLcolor valToColor_Rainbow(float value) {
+	GLcolor result;
 	if (value >= 0.0f && value < 0.2f) {
 		value = value / 0.2f;
-		glColor3f(0.0f, value, 1.0f);
+		result.set(0.0f, value, 1.0f);
 	}
 	else if (value >= 0.2f && value < 0.4f) {
 		value = (value - 0.2f) / 0.2f;
-		glColor3f(0.0f, 1.0f, 1.0f - value);
+		result.set(0.0f, 1.0f, 1.0f - value);
 	}
 	else if (value >= 0.4f && value < 0.6f) {
 		value = (value - 0.4f) / 0.2f;
-		glColor3f(value, 1.0f, 0.0f);
+		result.set(value, 1.0f, 0.0f);
 	}
 	else if (value >= 0.6f && value < 0.8f) {
 		value = (value - 0.6f) / 0.2f;
-		glColor3f(1.0f, 1.0f - value, 0.0f);
+		result.set(1.0f, 1.0f - value, 0.0f);
 	}
 	else if (value >= 0.8f && value <= 1.0f) {
 		value = (value - 0.8f) / 0.2f;
-		glColor3f(1.0f, 0.0f, value);
+		result.set(1.0f, 0.0f, value);
 	}
 	else if (value > 1.0f)
-		glColor3f(1.0f, 1.0f, 1.0f);
-	else if (value < 0.0f)
-		glColor3f(0.0f, 0.0f, 0.0f);
+		result.set(1.0f, 1.0f, 1.0f);
+	return result;
 };
 
-void valToColor_BlueRed(float value) {
-	glColor3f( 1.0f - value, 0.0f, value );
+GLcolor valToColor_BlueRed(float value) {
+	GLcolor result( 1.0f-value, 0.0f, value);
+	return result;
 };
 
 
@@ -138,6 +139,7 @@ void TextureView::render() {
 ModelObject::ModelObject() {
 	set("", 0, 0, GL_FLOAT); 
 	data.show = false;
+	data.useBuffer = false;
 	edges.show = false;
 	texture.show = false;
 	shader.show = false;
@@ -158,6 +160,37 @@ void ModelObject::setData(float* P, float min, float max, int cl_map) {
 	data.normalized = (min == 0.0f) && (max == 1.0f);
 	data.show = (P != NULL);
 	data.colormap = cl_map;
+};
+
+void ModelObject::setColor(float* P, float min, float max, int cl_map) {
+	if (data.useBuffer) 
+		glDeleteBuffers(1, &data.color_bid);
+	data.maxValue = max;
+	data.minValue = min;
+	data.colormap = cl_map;
+	GLfloat * colors = new float[vertice.count * 3];
+	for (unsigned i = 0; i < vertice.count; i++) {
+		float nval = normalizeValue(P[i]);
+		GLcolor col;
+		if (cl_map == COLOR_MAP_BLUERED) 
+			col = valToColor_BlueRed(nval);
+		else
+			col = valToColor_Rainbow(nval);
+		colors[3*i] = col.R;
+		colors[3*i+1] = col.G;
+		colors[3*i+2] = col.B;
+	}
+	GLuint buff = 0;
+	glGenBuffersARB(1, &buff);
+	glBindBufferARB(GL_ARRAY_BUFFER, buff);
+	glBufferDataARB(GL_ARRAY_BUFFER, vertice.count*3 * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+
+	useColorBuffer(buff);
+};
+
+void ModelObject::useColorBuffer(GLuint bid) {
+	data.useBuffer = (bid != 0);
+	data.color_bid = bid;
 };
 
 void ModelObject::setIndices(const GLenum mode, const unsigned count, const GLuint indices, GLenum type) {
@@ -238,26 +271,34 @@ void ModelObject::renderPoints() {
 };
 
 void ModelObject::renderColoredPoints() {
-	if (!data.show)
-		return;
 	glPointSize(6.0f);
+	glEnable(GL_POINT_SMOOTH);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glBindBuffer(GL_ARRAY_BUFFER, vertice.bid);
 	glVertexPointer(3, vertice.type, 0, NULL);
-	glEnable(GL_POINT_SMOOTH);
-	for (unsigned i = 0; i < vertice.count; i++) {
-		float value = data.values[i];
-		if (!data.normalized)
-			value = normalizeValue(value);
-		if (data.colormap == COLOR_MAP_BLUERED)
-			valToColor_BlueRed(value);
-		else
-			valToColor_Rainbow(value);
-		
-		glDrawArrays(GL_POINTS, i, 1);
+	if (data.useBuffer) {
+		glEnableClientState(GL_COLOR_ARRAY);
+		glBindBuffer(GL_ARRAY_BUFFER, data.color_bid);
+		glColorPointer(3, GL_FLOAT, 0, NULL);
+		glDrawArrays(GL_POINTS, 0, vertice.count);
+	} 
+	else {
+		for (unsigned i = 0; i < vertice.count; i++) {
+			float value = data.values[i];
+			if (!data.normalized)
+				value = normalizeValue(value);
+			GLcolor color;
+			if (data.colormap == COLOR_MAP_BLUERED)
+				color = valToColor_BlueRed(value);
+			else
+				color = valToColor_Rainbow(value);
+			glColor3f(color.R, color.G, color.B);
+			glDrawArrays(GL_POINTS, i, 1);
+		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 };
 
 void ModelObject::renderTextured() {
@@ -317,19 +358,19 @@ void ModelObject::render()
 	if (shader.show) 
 		glUseProgram(shader.programId);
 	
-	if (edges.show) {
-		if (texture.show)
-			renderTextured();
-		else
+	if (edges.show && texture.show) 
+		renderTextured();
+	else {
+		if (edges.show)
 			renderEdges();
-	} else 
-		renderPoints();
-	
-	if (data.show)
-		renderColoredPoints();
+
+		if (data.show || data.useBuffer)
+			renderColoredPoints();
+		else
+			renderPoints();	
+	} 
 	
 	glUseProgram(0);
-	
 	glPopMatrix();
 };
 

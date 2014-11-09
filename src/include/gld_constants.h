@@ -42,6 +42,7 @@
 #define ERRORTEXT_WORKDIR_DONT_EXIST L"Working directory set by gldInit() function does not exist. Already existing directory needs to be set."
 #define ERRORTEXT_SHADERFILE_DONT_EXIST L"One or more shader files does not exist."
 #define ERRORTEXT_SHADER_COMPILE_ERROR L"There were some errors compiling shader. See console output for more specific info."
+#define ERRORTEXT_CANNOT_SWITCH_MODE L"Create at least one field and select its type to proceed to visualization mode."
 
 static char * visualizationTypeCaption[4] = {
 	FIELD_NAME_NONE,	

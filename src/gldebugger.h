@@ -3,8 +3,6 @@
 
 #include <windows.h>
 #include <gl/glew.h>
-//#include <gl/gl.h>
-//#include <gl/glu.h>
 #include <string>
 
 #define GLV_COLORMAP_RAINBOW 0
@@ -36,6 +34,11 @@ bool gldAddLine(std::string caption, std::string format, void * data[]);
 bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum type = GL_FLOAT);
 /* Pridadi data modelu, ktory ma popis caption */
 bool gldAddModelData(std::string caption, float * data, float min = 0.0f, float max = 1.0f, int colorMap = GLV_COLORMAP_RAINBOW );
+/* Pridadi data modelu, a vytvori color buffer */
+/* RADSEJ NEPOUZIVAT : UNSECURE */
+bool gldAddModelColor(std::string caption, float * data, float min = 0.0f, float max = 1.0f, int colorMap = GLV_COLORMAP_RAINBOW );
+/* Pridadi color buffer modelu, a pomocou neho bude zafarbovat vertexy */
+bool gldAddModelColorBuffer(std::string caption, GLuint colorBuffer );
 
 /* Pridadi pole indexov modelu, ktory ma popis caption */
 bool gldAddModelEdges(std::string caption, GLenum mode, unsigned count, GLuint indices, GLenum type = GL_UNSIGNED_INT);

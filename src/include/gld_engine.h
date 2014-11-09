@@ -21,8 +21,7 @@ private:
 	
 	void panelCalculate();
 	void panelRender();
-	void panelMouseDown();
-	void searchForConfigFiles();
+	bool panelMouseDown();
 public:	
 	gldRenderer visualizer;
 	gldConfigurator configManager;

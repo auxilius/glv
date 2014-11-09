@@ -370,6 +370,18 @@ void gldRenderer::addModelData(const char * caption, float* data, float minValue
 		model->setData(data, minValue, maxValue, colorMap);
 };
 
+void gldRenderer::addModelColor(const char * caption, float* data, float minValue, float maxValue, int colorMap) {
+	ModelObject * model = findModel(caption);
+	if (model != NULL)
+		model->setColor(data, minValue, maxValue, colorMap);
+}
+
+void gldRenderer::addModelColorBuffer(const char * caption, GLuint bid) {
+	ModelObject * model = findModel(caption);
+	if (model != NULL)
+		model->useColorBuffer(bid);
+}
+
 void gldRenderer::addModelShader(const char * caption, const GLuint shaderProgram) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)

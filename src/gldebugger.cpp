@@ -10,6 +10,8 @@
 
 
 
+
+
 CRITICAL_SECTION gCS;
 
 class gldController {
@@ -345,6 +347,16 @@ bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum ty
 
 bool gldAddModelData(std::string caption, float * data, float min, float max, int colorMap ) {
 	controller.engine.visualizer.addModelData(caption.c_str(), data, min, max, colorMap);
+	return true;
+};
+
+bool gldAddModelColor(std::string caption, float * data, float min, float max, int colorMap ) {
+	controller.engine.visualizer.addModelColor(caption.c_str(), data, min, max, colorMap);
+	return true;
+};
+
+bool gldAddModelColorBuffer(std::string caption, GLuint colorBuffer ) {
+	controller.engine.visualizer.addModelColorBuffer(caption.c_str(), colorBuffer);
 	return true;
 };
 

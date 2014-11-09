@@ -9,6 +9,18 @@ HWND windowHandle;
 ConfigurationLoader configLoader;
 std::string SAVE_PATH = "";
 
+GLcolor::GLcolor() {
+	set(0.0f, 0.0f, 0.0f);
+};
+GLcolor::GLcolor(GLfloat r, GLfloat g, GLfloat b) {
+	set(r, g, b);
+};
+void GLcolor::set(GLfloat r, GLfloat g, GLfloat b) {
+	R = r;
+	G = g;
+	B = b;
+};
+
 
 void Point::set(int sx, int sy) {
 	x = sx; y = sy;

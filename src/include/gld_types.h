@@ -48,6 +48,13 @@ public:
 	void load(std::ifstream & stream);
 };
 
+struct GLcolor {
+	GLfloat R,G,B;
+	GLcolor();
+	GLcolor(GLfloat r, GLfloat g, GLfloat b);
+	void set(GLfloat r, GLfloat g, GLfloat b);
+};
+
 extern Box canvas;
 extern IOBox form;
 extern HWND windowHandle;

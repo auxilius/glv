@@ -18,7 +18,7 @@ void gldEngine::panelCalculate() {
 	button_modeSwitch.setPosition(5, ys + 3);
 	button_profileSelect.setPosition(button_modeSwitch.width + 10, ys + 3);
 }
-void gldEngine::panelMouseDown() {
+bool gldEngine::panelMouseDown() {
 
 	if (button_modeSwitch.isClicked()) {
 		if (room == rmConfig)  {
@@ -26,14 +26,16 @@ void gldEngine::panelMouseDown() {
 			if (configLoader.valid()) {
 				room = rmVisual;
 				visualizer.load();
-			} else
-				return;
+			} else {
+				MessageBox(0, ERRORTEXT_CANNOT_SWITCH_MODE, ERRORTEXT_HEADER, MB_OK | MB_ICONINFORMATION);
+			}
 		}
 		else if (room == rmVisual) {
 			visualizer.save();
 			room = rmConfig;
 		}
 		panelCalculate();
+		return true;
 	}
 
 	if (configLoader.profiles.size() > 1) {
@@ -44,10 +46,19 @@ void gldEngine::panelMouseDown() {
 			configManager.load();
 			visualizer.load();
 			panelCalculate();
-		} else
-		if (button_profileSelect.isClicked())
+			if (configLoader.valid()) {
+				visualizer.load();
+				room = rmVisual;
+			} else
+				room = rmConfig;
+			return true;
+		} 
+		else if (button_profileSelect.isClicked()) {
 			menu_profileSelect.show(button_profileSelect.position.x, button_profileSelect.position.y, true);
+			return true;
+		}
 	}
+	return false;
 }
 void gldEngine::panelRender() {
 	Box menuBar;
@@ -136,11 +147,12 @@ void gldEngine::onCanvasSizeChange(int width, int height) {
 };
 void gldEngine::onMouseDown(mouseButton button) {
 	input.setMouseButtonDown(button);
-	if (room == rmConfig)
-		configManager.mouseDown(button);
-	else if (room == rmVisual)
-		visualizer.mouseDown(button);
-	panelMouseDown();
+	if (!panelMouseDown()) {
+		if (room == rmConfig)
+			configManager.mouseDown(button);
+		else if (room == rmVisual)
+			visualizer.mouseDown(button);
+	}
 };
 void gldEngine::onMouseUp(mouseButton button) {
 	input.setMouseButtonUp(button);
@@ -156,8 +168,4 @@ void gldEngine::onMouseMove(int x, int y) {
 void gldEngine::onMouseWheel(signed short direction) {
 	if (room == rmVisual)
 		visualizer.mouseWheel(direction);
-};
-
-void gldEngine::searchForConfigFiles() {
-	
 };
