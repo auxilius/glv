@@ -4,6 +4,7 @@
 #include <string>
 #include <gl/glew.h>
 
-bool shaderAddToProg(GLuint shaderProgram, std::string fileName, GLenum shaderType);
+bool shaderFileAddToProg(GLuint shaderProgram, std::string fileName, GLenum shaderType);
+bool shaderAddToProg(GLuint shaderProgram, GLchar* shaderString, GLenum shaderType);
 
 #endif

@@ -1,6 +1,5 @@
 #include <fstream>
 #include <iostream>
-#include <gl\glf.h>
 #include <typeinfo> 
 #include <direct.h>
 #include "gldebugger.h"
@@ -381,8 +380,7 @@ bool gldAddModelShaderProgram(std::string caption, GLuint shaderProgramId) {
 	return true;
 };
 
-bool gldAddModelShader(std::string caption, std::string nameOfShaderFile, GLenum shaderType) {
-	controller.engine->visualizer.addModelShader(caption.c_str(), nameOfShaderFile, shaderType);
+bool gldAddModelVertexAttrib(std::string caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer) {
+	controller.engine->visualizer.addModelVertexAttrib(caption.c_str(), atributeID, size, type, buffer);
 	return true;
 };
-

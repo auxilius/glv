@@ -64,10 +64,15 @@ bool shaderCompileTo(GLuint shaderProgram, char* pShaderText, GLenum ShaderType)
 	return true;
 }
 
-bool shaderAddToProg(GLuint shaderProgram, std::string fileName, GLenum shaderType)
+bool shaderFileAddToProg(GLuint shaderProgram, std::string fileName, GLenum shaderType)
 {
 	GLchar* shaderString = readShaderFile(fileName);
-	
+	bool result = shaderAddToProg(shaderProgram, shaderString, shaderType);
+	return result;
+}
+
+bool shaderAddToProg(GLuint shaderProgram, GLchar* shaderString, GLenum shaderType)
+{
 	shaderCompileTo(shaderProgram, shaderString, shaderType);
 
     GLint Success = 0;

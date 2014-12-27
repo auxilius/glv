@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <gl/glew.h>
-#include <gl/glf.h>
 
 
 double actualFontSize = 12;
@@ -129,4 +128,37 @@ void drawSwitchIcon(int x, int y, int size) {
 
 void glColor(unsigned char r, unsigned char g, unsigned char b) {
 	glColor3f((GLfloat)r / 255, (GLfloat)g / 255, (GLfloat)b / 255);
+};
+
+
+GLcolor valToColor_Rainbow(float value) {
+	GLcolor result;
+	if (value >= 0.0f && value < 0.2f) {
+		value = value / 0.2f;
+		result.set(0.0f, value, 1.0f);
+	}
+	else if (value >= 0.2f && value < 0.4f) {
+		value = (value - 0.2f) / 0.2f;
+		result.set(0.0f, 1.0f, 1.0f - value);
+	}
+	else if (value >= 0.4f && value < 0.6f) {
+		value = (value - 0.4f) / 0.2f;
+		result.set(value, 1.0f, 0.0f);
+	}
+	else if (value >= 0.6f && value < 0.8f) {
+		value = (value - 0.6f) / 0.2f;
+		result.set(1.0f, 1.0f - value, 0.0f);
+	}
+	else if (value >= 0.8f && value <= 1.0f) {
+		value = (value - 0.8f) / 0.2f;
+		result.set(1.0f, 0.0f, value);
+	}
+	else if (value > 1.0f)
+		result.set(1.0f, 1.0f, 1.0f);
+	return result;
+};
+
+GLcolor valToColor_BlueRed(float value) {
+	GLcolor result( 1.0f-value, 0.0f, value);
+	return result;
 };

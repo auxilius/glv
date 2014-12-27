@@ -387,8 +387,9 @@ void gldRenderer::addModelShader(const char * caption, const GLuint shaderProgra
 	if (model != NULL)
 		model->setShader(shaderProgram);
 };
-void gldRenderer::addModelShader(const char * caption, std::string shaderFile, GLenum shaderType) {
+
+void gldRenderer::addModelVertexAttrib(const char * caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
-		model->setShader(shaderFile, shaderType);
-}
+		model->addVertexAttrib(atributeID, size, type, buffer);	
+};
