@@ -8,6 +8,7 @@ IOBox form;
 HWND windowHandle;
 HDC deviceContext;
 ConfigurationLoader configLoader;
+ProfileSwitcher profileSwitcher;
 std::string SAVE_PATH = "";
 
 GLcolor::GLcolor() {
@@ -161,33 +162,168 @@ void ConfigFieldRecord::load(std::ifstream & stream) {
 };
 
 
-void ConfigurationLoader::init() {
-	initProfiles();
-}
-void ConfigurationLoader::initProfiles() {
+
+#pragma region ConfigurationLoader
+
+ConfigurationLoader::ConfigurationLoader() {
+	openedFile = NULL;
+};
+bool ConfigurationLoader::fieldsBlank() {
+	for (unsigned i = 0; i < field.size(); i++)
+		if (field[i].type != FIELD_TYPE_NONE)
+			return false;
+	return true;
+};
+bool ConfigurationLoader::save() {
+	if (openedFile == NULL)
+		return false;
+	std::ofstream stream ( openedFile );
+	if (stream.fail()) {
+		std::cout << "ERROR saving config file " << openedFile << std::endl;
+		MessageBox(0, L"Cannot create configuration file, location may be write protected.", L"Saving configuration failed", MB_OK | MB_ICONWARNING);
+		return false;
+	}
+	stream << CONFIG_FILE_VERSION << std::endl;
+	form.save(stream);
+	stream << std::endl;
+	stream << field.size() << std::endl;
+	for (unsigned i = 0; i < field.size(); i++)
+		field[i].save(stream);
+	stream.close();
+	return true;
+};
+bool ConfigurationLoader::open(char * fileName) {
+	field.clear();
+	if (!fileExists(fileName)) {
+		fileCreate(fileName);
+		openedFile = fileName;
+		return true;
+	}
+	std::ifstream inStream ( fileName );
+	if (inStream.fail()) {
+		MessageBox(0, L"Error opening config file.", L"GLD - loading error", MB_OK | MB_ICONWARNING);
+		return false;
+	}
+	std::string version;
+	getline(inStream, version);
+	if (version != CONFIG_FILE_VERSION && version != "") {
+		MessageBox(0, L"Version of configuration file is out of date. Configuration will not load.", L"GLD - loading error", MB_OK | MB_ICONINFORMATION);
+		return false;
+	}
+	// READ - SKIPPING WIDTH, HEIGHT, X, Y
+	form.load(inStream);
+	SetWindowPos(windowHandle, 0, form.left, form.top, form.width, form.height, SWP_NOZORDER|SWP_NOACTIVATE);
+	// READ - NUMBER OF FIELDS
+	unsigned count = 0;
+	inStream >> count;
+	// READ - FIELDS
+	ConfigFieldRecord newField;
+	for (unsigned i = 0; i < count; i++) {
+		newField.load(inStream);
+		field.push_back(newField);
+	}
+	inStream.close();
+	openedFile = fileName;
+	return true;
+};
+bool ConfigurationLoader::fieldSetType(int f, int t) {
+	if (f < (int)field.size() && f >= 0) {
+		if (field[f].type == t)
+			return false;
+		else {
+			field[f].param_i.clear();
+			field[f].param_d.clear();
+			field[f].param_str = "";
+			field[f].type = t;
+			return true;
+		}
+	}
+	return false;
+};
+
+/* void ConfigurationLoader::debugOut() {
+	std::cout << "-------------------------------------" << std::endl;
+	std::cout << "Configuration:" << std::endl;
+	for (unsigned i = 0; i < field.size(); i++) {
+		ConfigFieldRecord * f = &field[i];
+		std::cout << "Field " << i << " - " << f->border.left << " " << f->border.top << " " << f->border.right << " " << f->border.bottom << std::endl;
+		std::cout << "  type: " << f->type << std::endl;
+		std::cout << "  param_i: ";
+		for (unsigned x = 0; x < f->param_i.size(); x++)
+			std::cout << f->param_i[x] << " ";
+		std::cout << std::endl;
+		std::cout << "  param_d: ";
+		for (unsigned x = 0; x < f->param_d.size(); x++)
+			std::cout << f->param_d[x] << " ";
+		std::cout << std::endl;
+		std::cout << "  param_str: '" << f->param_str << "'" << std::endl;
+	}
+};
+*/
+
+#pragma endregion
+
+
+
+#pragma region ProfileSwitcher
+
+void ProfileSwitcher::init() {
 	profiles.clear();
 	char* profDefault = PROFILE_CAPTION_DEFAULT;
 	profiles.push_back( profDefault );
-	char * profFile = pathToFile(FILE_PROFILES);
-	if (fileExists( profFile ))
-		loadProfilesFromFile( profFile );
-	else
-		fileCreate( profFile );
+	this->load();
 	actualProfile = 0;
-	if ( fileExists(getConfigFileName()) )
-		load();
+	configLoader.open( getConfigFileName() );
 };
-void ConfigurationLoader::selectProfile(int selected) {
+
+void ProfileSwitcher::selectProfile(int selected) {
 	if (selected < 0 || selected >= (int)profiles.size() )
 		return;
 	if (actualProfile != selected) {
-		field.clear();
 		actualProfile = selected;
-		if ( fileExists(getConfigFileName()) )
-			load();
+		configLoader.open( getConfigFileName() );
 	}
 };
-bool ConfigurationLoader::loadProfilesFromFile(char* fName) {
+
+bool ProfileSwitcher::addProfile(std::string name) {
+	if (std::find(profiles.begin(), profiles.end(), name) != profiles.end() )
+		return false;
+	profiles.push_back(name);
+	selectProfile( profiles.size()-1 );
+	this->save();
+	return true;
+};
+
+void ProfileSwitcher::deleteProfile(int profile_id) {
+	if ( profile_id<=0 || profile_id>=(int)profiles.size())
+		return;
+	char * configFile = getConfigFileName(profile_id);
+	profiles.erase(profiles.begin()+profile_id);
+	remove(configFile);
+	if (profile_id == actualProfile)
+		selectProfile(0);
+	if (profile_id < actualProfile)
+		actualProfile--;
+	this->save();
+};
+
+void ProfileSwitcher::renameProfile(int profile_id, std::string name) {
+	if ( profile_id<=0 || profile_id>=(int)profiles.size())
+		return;
+	char * oldConfigFile = getConfigFileName(profile_id);
+	profiles[profile_id] = name;
+	rename(oldConfigFile, getConfigFileName(profile_id) );
+	if (profile_id == actualProfile)
+		configLoader.open( getConfigFileName() );
+	this->save();
+};
+
+bool ProfileSwitcher::load() {
+	char * fName = pathToFile(FILE_PROFILES);
+	if (!fileExists(fName)) {
+		fileCreate( fName );
+		return false;
+	}
 	std::ifstream inStream;
 	inStream.open( fName );
 	if (inStream.fail()) {
@@ -206,7 +342,8 @@ bool ConfigurationLoader::loadProfilesFromFile(char* fName) {
 	inStream.close();
 	return true;
 };
-void ConfigurationLoader::saveProfiles() {
+
+void ProfileSwitcher::save() {
 	std::ofstream outStream;
 	outStream.open(pathToFile(FILE_PROFILES));
 	if (outStream.fail())
@@ -216,106 +353,32 @@ void ConfigurationLoader::saveProfiles() {
 	}
 	outStream.close();
 };
-bool ConfigurationLoader::valid() {
-	if (field.size() > 0) {
-		for (unsigned i = 0; i < field.size(); i++)
-			if (field[i].type != FIELD_TYPE_NONE)
-				return true;
-	}
-	return false;
+
+char* ProfileSwitcher::getProfileName(int profile_id) {
+	if (profile_id >= 0 && profile_id < (int)profiles.size() )
+		return stringToChar( profiles[profile_id] );
+	else if (profile_id == -1)
+		return stringToChar( profiles[actualProfile] );
+	else
+		return "error_profile_id";
 };
-void ConfigurationLoader::save() {
-	char* fname = getConfigFileName();
-	std::ofstream stream ( fname );
-	if (stream.fail()) {
-		std::cout << "ERROR saving config file " << fname << std::endl;
-		MessageBox(0, L"Cannot create configuration file, location may be write protected.", L"Saving configuration failed", MB_OK | MB_ICONWARNING);
-		return;
-	}
-	stream << CONFIG_FILE_VERSION << std::endl;
-	form.save(stream);
-	stream << std::endl;
-	stream << field.size() << std::endl;
-	for (unsigned i = 0; i < field.size(); i++)
-		field[i].save(stream);
-	stream.close();
-};
-bool ConfigurationLoader::load() {
-	char* fname = getConfigFileName();
-	std::ifstream inStream ( fname );
-	if (inStream.fail()) {
-		MessageBox(0, L"Error opening config file.", L"GLD - loading error", MB_OK | MB_ICONWARNING);
-		return false;
-	}
-	std::string version;
-	getline(inStream, version);
-	if (version != CONFIG_FILE_VERSION) {
-		MessageBox(0, L"Version of configuration file is out of date. Configuration will not load.", L"GLD - loading error", MB_OK | MB_ICONINFORMATION);
-		return false;
-	}
-	loaded = true;
-	// READ - SKIPPING WIDTH, HEIGHT, X, Y
-	form.load(inStream);
-	SetWindowPos(windowHandle, 0, form.left, form.top, form.width, form.height, SWP_NOZORDER|SWP_NOACTIVATE);
-	// READ - NUMBER OF FIELDS
-	unsigned count = 0;
-	inStream >> count;
-	// READ - FIELDS
-	ConfigFieldRecord newField;
-	for (unsigned i = 0; i < count; i++) {
-		newField.load(inStream);
-		field.push_back(newField);
-	}
-	inStream.close();
-	return true;
-};
-void ConfigurationLoader::clear() {
-	field.clear();
-};
-bool ConfigurationLoader::fieldSetType(int f, int t) {
-	if (f < (int)field.size() && f >= 0) {
-		if (field[f].type == t)
-			return false;
-		else {
-			field[f].param_i.clear();
-			field[f].param_d.clear();
-			field[f].param_str = "";
-			field[f].type = t;
-			return true;
-		}
-	}
-	return false;
-};
-void ConfigurationLoader::debugOut() {
-	std::cout << "-------------------------------------" << std::endl;
-	std::cout << "Configuration:" << std::endl;
-	for (unsigned i = 0; i < field.size(); i++) {
-		ConfigFieldRecord * f = &field[i];
-		std::cout << "Field " << i << " - " << f->border.left << " " << f->border.top << " " << f->border.right << " " << f->border.bottom << std::endl;
-		std::cout << "  type: " << f->type << std::endl;
-		std::cout << "  param_i: ";
-		for (unsigned x = 0; x < f->param_i.size(); x++)
-			std::cout << f->param_i[x] << " ";
-		std::cout << std::endl;
-		std::cout << "  param_d: ";
-		for (unsigned x = 0; x < f->param_d.size(); x++)
-			std::cout << f->param_d[x] << " ";
-		std::cout << std::endl;
-		std::cout << "  param_str: '" << f->param_str << "'" << std::endl;
-	}
-};
-char* ConfigurationLoader::getProfileName() {
-	return stringToChar( profiles[actualProfile] );
-}
-char* ConfigurationLoader::getConfigFileName() {
-	std::string fname  = FILE_PROFILE_DEFAULT;
-	if ( actualProfile != 0 )
-		fname = profiles[actualProfile] + FILE_EXT_CONFIG;
+
+char* ProfileSwitcher::getConfigFileName(int profile_id) {
+	std::string fname  = (std::string)getProfileName(profile_id) + FILE_EXT_CONFIG;
+	if ( (profile_id == -1 && actualProfile == 0) || profile_id == 0)
+		fname = FILE_PROFILE_DEFAULT;
 	return pathToFile(stringToChar(fname));
-}
+};
+
+unsigned ProfileSwitcher::count() {
+	return profiles.size();
+};
+
+#pragma endregion
 
 
 
+#pragma region Utils
 
 bool fileExists(char* fileName) {
 	std::ifstream infile(fileName);
@@ -323,27 +386,26 @@ bool fileExists(char* fileName) {
 	infile.close();
 	return result;
 };
-bool dirExists(const std::string& dirName_in)
-{
+
+bool dirExists(const std::string& dirName_in) {
 	DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
 	if (ftyp == INVALID_FILE_ATTRIBUTES)
 		return false; 
 	if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
 		return true; 
 	return false;
-}
+};
+
 void fileCreate(char* fileName) {
 	std::ofstream outfile ( fileName );
 	outfile.close();
 };
-
 
 char * pathToFile(char* fname) {
 	std::string path = SAVE_PATH + fname;
 	char * result = stringToChar(path);
 	return result;
 };
-
 
 char * stringToChar(std::string str) {
 	char * writable = new char[str.size() + 1];
@@ -352,11 +414,15 @@ char * stringToChar(std::string str) {
 };
 
 std::string trim(std::string str) {
+	if (str.length() == 0)
+		return str;
 	int s = 0;
-	int e = str.length();
+	int e = str.length()-1;
 	while ( (str[s] == ' ') && (s < e) ) 
 		s++;
 	while ( (str[e] == ' ') && (s < e) ) 
 		e--;
-	return str.substr(s, e-s);
+	return str.substr(s, e-s+1);
 };
+
+#pragma endregion

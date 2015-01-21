@@ -19,6 +19,7 @@ private:
 	void shareContext(HGLRC shareGLRC, HDC shareDC);
 	bool isInit;
 public:
+	bool windowConfigChanged;
 	int mainFont;
 	HWND mainWindowHandle;
 	HDC mainDC, origDC;
@@ -138,7 +139,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			if (controller.engine != NULL) 
 				controller.engine->onCanvasSizeChange(border.width, border.height);
 		}
-		configLoader.save();
+		controller.windowConfigChanged = true;
 		return 0;
 	}
 
@@ -154,7 +155,21 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		}
 		return 0;
 	}
-
+	/*
+	case WM_MOUSELEAVE: 
+	{
+		input.setMouseButtonUp(mbLeft);
+		input.setMouseButtonUp(mbMiddle);
+		input.setMouseButtonUp(mbRight);
+		input.setMousePosition(-1, -1);
+		if (controller.engine != NULL) {
+			controller.engine->onMouseUp(mbLeft);
+			controller.engine->onMouseUp(mbMiddle);
+			controller.engine->onMouseUp(mbRight);
+			controller.engine->onMouseMove(-1, -1);
+		}
+	}
+	*/
 	case WM_MOUSEWHEEL:
 	{
 		if (controller.engine == NULL) 
@@ -201,6 +216,27 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	{
 		if (controller.engine != NULL) 
 			controller.engine->onMouseUp(mbRight);
+		return 0;
+	}
+
+	case WM_KEYDOWN:
+	{
+		
+		char key = wParam;
+		if (!input.shift && key >= 'A' && key <= 'Z')
+			key = key - 'A' + 'a';
+		controller.engine->onKeyDown(key);
+
+		if (key == KEY_SHIFT)
+			input.shift = true;
+		return 0;
+	}
+
+	case WM_KEYUP:
+	{
+		char key = wParam;
+		if (key == KEY_SHIFT)
+			input.shift = false;
 		return 0;
 	}
 
@@ -277,6 +313,12 @@ void gldController::step() {
 	engine->render();
 	SwapBuffers(controller.mainDC); // pozor pri spravovanom renderovani !!!
 	setContextOriginal();
+	static int configSaveTimer = 0;
+	if (windowConfigChanged && configSaveTimer >= 10000) {
+		configLoader.save();
+		windowConfigChanged = false;
+		configSaveTimer = 0;
+	}
 	Sleep(25);
 };
 

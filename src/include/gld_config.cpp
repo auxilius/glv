@@ -250,7 +250,7 @@ int gldConfigurator::snappedToGrid(int val) {
 	return val;
 };
 void gldConfigurator::renderBackground() {
-	glClearColor( 0.02f, 0.05f, 0.1f, 1.0f );
+	glClearColor( 0.05f, 0.1f, 0.02f, 1.0f );
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f( 0.03f, 0.075f, 0.15f );
 	for (int i = 0; i <= form.getHeight(); i += GRID_SIZE) {

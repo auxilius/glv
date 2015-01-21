@@ -1,6 +1,7 @@
 #ifndef H_GLD_CONSTANTS
 #define H_GLD_CONSTANTS
 
+#define CONFIG_FILE_VERSION "v 1.14.11." // version.year.month.build
 
 #define PI 3.141528
 
@@ -18,9 +19,9 @@
 #define FILE_PROFILES			"profiles.txt"
 #define FILE_FONT				"font_arial.glf"
 
-#define PROFILE_CAPTION_DEFAULT		"<default>";
+#define PROFILE_CAPTION_DEFAULT		"<default>"
+#define PROFILE_CAPTION_ADDNEW		"Create New Profile"
 
-#define CONFIG_FILE_VERSION "v 1.14.11." // version.year.month.build
 
 #define FIELD_TYPE_NONE		0
 #define FIELD_TYPE_TEXTURE	1
@@ -46,6 +47,10 @@
 #define MENUITEM_SAVE_RUN			"Save & Finish"
 
 
+#define POPUP_ACTIVE_BORDER_SIZE 5
+#define POPUP_TIME_TO_HIDE 100
+#define POPUPMENU_NULL ""
+
 ////   ERRORS   ////
 
 #define ERRORTEXT_HEADER L"   GLD Error"
@@ -61,5 +66,14 @@ static char * visualizationTypeCaption[4] = {
 	FIELD_NAME_MODEL,
 	FIELD_NAME_VALUE	
 };
+
+
+//   SPECIAL KEYS   //
+
+#define KEY_BACKSPACE	8
+#define KEY_ENTER		13
+#define KEY_SHIFT		16
+#define KEY_ESCAPE		27
+#define KEY_SPACE		32
 
 #endif

@@ -29,8 +29,10 @@ public:
 	Button();
 	void draw();
 	bool isClicked();
+	bool isHovered();
 	bool isSeparator();
 	void removeColor(ButtonColorRelation relation);
+	void setDefaultColor(ButtonColorRelation relation);
 	void setColor(ButtonColorRelation relation, GLfloat r, GLfloat g, GLfloat b, GLfloat a = 1.0f);
 	void setColor(ButtonColorRelation relation, GLfloat * pColor);
 	void setFont(Font *f);
@@ -57,18 +59,14 @@ public:
 class CheckButton : public Button {
 	bool checked;
 	bool firstClick;
-	void processClick();
 	void changeColors();
 public:
 	CheckButton();
+	void processClick();
 	bool isChecked();
 	void check(bool state = true);
 	bool toggle();
 };
-
-#define POPUP_ACTIVE_BORDER_SIZE 5
-#define POPUP_TIME_TO_HIDE 100
-#define POPUPMENU_NULL ""
 
 class PopupMenu {
 protected:
@@ -82,10 +80,12 @@ public:
 	PopupMenu();
 	PopupMenu(std::vector<std::string> data);
 	int addItem(const char * caption);
+	void clearAllItems();
 	void draw();
 	bool isActive();
 	void show(int x = -1, int y = -1, bool menuOverride = false);
 	void hide();
+	int hoveredItemNumber();
 	int selectedItemNumber();
 	std::string selectedItemText();
 };

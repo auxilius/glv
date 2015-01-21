@@ -3,6 +3,7 @@
 
 #include "gld_types.h"
 #include "glv_visual_model.h"
+#include "gld_interface.h"
 
 class View {
 public:
@@ -54,22 +55,25 @@ private:
 	Point lastMousePos;
 	float normalizeValue(float value);
 	void resetCamera();
+	CheckButton btnVerticesOver;
+	CheckButton btnColormap;
+	CheckButton btnAxes;
 public:
 	double hang, vang, dist;
 	std::string waitingForModelCaption;
+	void init();
 	ModelView();
 	ModelView(Box cBorder);
 	void showModel(int index);
 	std::string getModelCaption();
 	ModelObject * getModel();
 	void draw();
+	void renderUI();
 	void onMouseMove(int x, int y);
 	void onMouseDown(mouseButton button);
 	void onMouseUp(mouseButton button);	
 	void onMouseWheel(signed short direction);
-	void setModelList(std::vector<ModelObject> * list) {
-		modelList = list;
-	};
+	void setModelList(std::vector<ModelObject> * list) {modelList = list;};
 };
 
 

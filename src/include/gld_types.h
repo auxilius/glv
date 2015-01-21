@@ -78,6 +78,7 @@ private:
 	std::vector<funcMousePosBtn> listenerPosBtnUp;
 	std::vector<funcMousePos> listenerPos;
 public:
+	bool shift;
 	Point getMousePosition() {
 		return mousePosition;
 	};
@@ -129,6 +130,7 @@ std::string trim(std::string str);
 
 
 /*****    F I E L D   C O N F I G U R A T I O N     *****/
+
 struct ConfigFieldRecord {
 	ConfigFieldRecord();
 	IOBox border;
@@ -139,30 +141,38 @@ struct ConfigFieldRecord {
 	void save(std::ofstream & stream);
 	void load(std::ifstream & stream);
 };
+
 class ConfigurationLoader {
 private:
-	bool loaded;
-	int actualProfile;
-	void initProfiles();
-	bool loadProfilesFromFile(char* fName);
-	void saveProfiles();
-	bool load();
-	char* getConfigFileName();
-protected:
-
+	char * openedFile;
 public:
 	std::vector<ConfigFieldRecord> field;
-	std::vector<std::string> profiles;
-	char* getProfileName();
-	void init();
-	bool valid();
-	void save();
-	void selectProfile(int selected);
-	void clear();
+	ConfigurationLoader();
+	bool fieldsBlank();
 	bool fieldSetType(int f, int t);
-	void debugOut();
+	bool open(char * fileName);
+	bool save();
+	//void debugOut();
+};
+
+class ProfileSwitcher {
+private:
+	int actualProfile;
+	std::vector<std::string> profiles;
+	void save();
+	bool load();
+	char* getConfigFileName(int profile_id = -1);
+public:
+	void init();
+	char* getProfileName(int profile_id = -1);
+	void selectProfile(int selected);
+	bool addProfile(std::string name);
+	void deleteProfile(int profile_id);
+	void renameProfile(int profile_id, std::string name);
+	unsigned count();
 };
 
 extern ConfigurationLoader configLoader;
+extern ProfileSwitcher profileSwitcher;
 
 #endif

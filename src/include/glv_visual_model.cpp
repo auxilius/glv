@@ -22,6 +22,7 @@ ModelObject::ModelObject() {
 	set("", 0, 0, GL_FLOAT); 
 	data.show = false;
 	data.useBuffer = false;
+	data.colormap = 0;
 	edges.show = false;
 	texture.show = false;
 	shader.show = false;
@@ -207,11 +208,7 @@ void ModelObject::renderColoredPoints() {
 			float value = data.values[i];
 			if (!data.normalized)
 				value = normalizeValue(value);
-			GLcolor color;
-			if (data.colormap == COLOR_MAP_BLUERED)
-				color = valToColor_BlueRed(value);
-			else
-				color = valToColor_Rainbow(value);
+			GLcolor color = valToColor(value, data.colormap);
 			glColor3f(color.R, color.G, color.B);
 			glDrawArrays(GL_POINTS, i, 1);
 		}
@@ -266,7 +263,7 @@ void ModelObject::renderEdges() {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 };
 
-void ModelObject::render() 
+void ModelObject::render(bool forceVertices) 
 {
 	if (vertice.bid == 0)
 		return;
@@ -279,7 +276,6 @@ void ModelObject::render()
 		renderShader();
 	else 
 	{
-	
 		if (edges.show && texture.show) 
 			renderTextured();
 		else {
@@ -291,6 +287,14 @@ void ModelObject::render()
 			else
 				renderPoints();	
 		} 
+	}
+	if (forceVertices) {
+		glEnable(GL_DEPTH_TEST);
+		if (data.show || data.useBuffer)
+			renderColoredPoints();
+		else
+			renderPoints();	
+		glDisable(GL_DEPTH_TEST);
 	}
 	glPopMatrix();
 };
@@ -326,5 +330,14 @@ void ModelObject::renderShader() {
 	glUseProgram(0);
 	glPopMatrix();
 }
+
+unsigned ModelObject::getColormap() {
+	return data.colormap;	
+};
+
+bool ModelObject::willDrawColored() {
+	return (!edges.show && !shader.show);	
+};
+
 
 #pragma endregion Model Object

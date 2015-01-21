@@ -15,13 +15,16 @@ class gldEngine {
 private:
 	bool needToRender;
 	RoomType room;
-	Button button_modeSwitch; // for switching between visualization and customization
+	Button button_modeSwitch;
 	PopupMenu menu_profileSelect;
+	PopupMenu menu_profileEdit;
 	Button button_profileSelect;
+
+	void menu_profileSelectLoad();
 	
 	void panelCalculate();
 	void panelRender();
-	bool panelMouseDown();
+	bool panelMouseDown(mouseButton button);	
 public:	
 	gldRenderer visualizer;
 	gldConfigurator configManager;
@@ -34,6 +37,7 @@ public:
 	void onMouseUp(mouseButton button);
 	void onMouseMove(int x, int y);
 	void onMouseWheel(signed short direction);
+	void onKeyDown(char key);
 };
 
 #endif

@@ -2,6 +2,7 @@
 
 #include "gld_drawing.h"
 #include "gld_shaders.h"
+#include "gld_interface.h"
 
 
 
@@ -109,20 +110,36 @@ void TextureView::render() {
 
 #pragma region View::Model
 
-ModelView::ModelView() { 
+void ModelView::init() {
 	wasSelected = false;
 	modelList = NULL; 
 	modelListIndex = -1; 
 	resetCamera();
+
+	int y = border.top + 8, x = border.left + 5; 
+	btnAxes.caption = "Axes";
+	btnAxes.check();
+	btnAxes.setPosition(x, y);
+	x += btnAxes.width + 5;
+	/*btnVerticesOver.caption = "Vertices";
+	btnVerticesOver.setPosition(x, y);
+	x += btnVerticesOver.width + 5;
+	*/
+	btnColormap.caption = "Colormap";
+	btnColormap.setPosition(x, y);
+	x += btnColormap.width + 5;
+};
+
+ModelView::ModelView() { 
+	init();
 };
 
 ModelView::ModelView(Box cBorder) { 
 	border = cBorder; 
-	wasSelected = false;
-	modelList = NULL; 
-	modelListIndex = -1; 
-	resetCamera();
+	init();
 };
+
+
 
 void ModelView::resetCamera(){
 	hang = + 0.85*PI;
@@ -195,25 +212,63 @@ void ModelView::draw() {
 	gluLookAt(x,y,z, 0,0,0, 0,1,0);
 
 	glMatrixMode(GL_MODELVIEW);
-
 	glEnable(GL_DEPTH_TEST);
-
-	glLineWidth(1.0f);
-	GLfloat axeLength = 0.25f;
-	glBegin(GL_LINES);
-	glColor3f(1.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(axeLength, 0.0f, 0.0f);
-	glColor3f(0.0f, 1.0f, 0.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, axeLength, 0.0f);
-	glColor3f(0.0f, 0.0f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, axeLength);
-	glEnd();
-
 	ModelObject * model = getModel();
 	if (model != NULL)
-		model->render();
-
+		model->render( btnVerticesOver.isChecked() );
 	glDisable(GL_DEPTH_TEST);
-
+	
+	if (btnAxes.isChecked()) {
+		glLineWidth(1.0f);
+		GLfloat axeLength = 0.25f;
+		glBegin(GL_LINES);
+		glColor3f(1.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(axeLength, 0.0f, 0.0f);
+		glColor3f(0.0f, 1.0f, 0.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, axeLength, 0.0f);
+		glColor3f(0.0f, 0.0f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, axeLength);
+		glEnd();
+	}
+	
 	reloadProjection();
-	// render GUI
+	renderUI();
+};
+
+void ModelView::renderUI() {
+
+	if (btnColormap.isChecked() ) {
+		ModelObject * model = getModel();
+		if (model != NULL) {
+			int colormap = model->getColormap();
+			glBegin(GL_QUADS);
+			int x = border.left;
+			int inc = border.width/10;
+			GLcolor col0 = valToColor(0.0f, colormap);
+			for ( float i = 0.0f; i < 1.0f; i+=0.1f ) {
+				GLcolor col1 = valToColor(i+0.1f, colormap);
+				glColor3f(col0.R, col0.G, col0.B);
+				glVertex2f((GLfloat)x, (GLfloat)border.top);	
+				glVertex2f((GLfloat)x, (GLfloat)border.top+3);	
+				glColor3f(col1.R, col1.G, col1.B);
+				glVertex2f((GLfloat)x+inc, (GLfloat)border.top+3);
+				glVertex2f((GLfloat)x+inc, (GLfloat)border.top);
+				col0 = col1;
+				x += inc;
+			}
+			glEnd();
+		}
+	}
+
+	if ( border.contains(input.mouse) ) 
+	{
+		btnAxes.processClick();
+		btnAxes.draw();
+
+		//btnVerticesOver.processClick();
+		//btnVerticesOver.draw();
+
+		btnColormap.processClick();
+		btnColormap.draw();
+	}
+	
 };
 
 #pragma endregion Model View

@@ -131,6 +131,17 @@ void glColor(unsigned char r, unsigned char g, unsigned char b) {
 };
 
 
+
+GLcolor valToColor(float value, unsigned colormap) {
+	if (colormap == COLOR_MAP_BLUERED)
+		return valToColor_BlueRed(value);
+	else if (colormap == COLOR_MAP_RAINBOW)
+		return valToColor_Rainbow(value);
+	else {
+		return GLcolor(1.0f, 0.0f, 1.0f);
+	}
+};
+
 GLcolor valToColor_Rainbow(float value) {
 	GLcolor result;
 	if (value >= 0.0f && value < 0.2f) {

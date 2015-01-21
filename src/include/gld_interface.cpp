@@ -71,7 +71,10 @@ void Button::draw(){
 	
 };
 bool Button::isClicked() {
-	return input.mousePressed(mbLeft) && border.contains(input.mouse.x, input.mouse.y);
+	return isHovered() && input.mousePressed(mbLeft);
+};
+bool Button::isHovered() {
+	return border.contains(input.mouse.x, input.mouse.y);
 };
 bool Button::isSeparator() {
 	return strlen(textOnButton) == 0;
@@ -110,6 +113,20 @@ void Button::setColor(ButtonColorRelation relation, GLfloat * pColor) {
 	color[relation][2] = pColor[2];
 	color[relation][3] = pColor[3];
 };
+void Button::setDefaultColor(ButtonColorRelation relation) {
+	if (relation == BACK_NORMAL)
+		setColor(BACK_NORMAL, 0.4f, 0.4f, 0.4f, 1.0f);
+	else if (relation == BACK_HOVERED)
+		setColor(BACK_HOVERED, 0.95f, 0.95f, 0.95f, 1.0f);
+	else if (relation == BORDER_NORMAL)
+		setColor(BORDER_NORMAL, 0.0f, 0.0f, 0.0f, 0.0f);
+	else if (relation == TEXT_NORMAL)
+		setColor(TEXT_NORMAL, 1.0f, 1.0f, 1.0f);
+	else if (relation == TEXT_HOVERED)
+		setColor(TEXT_HOVERED, 0.2f, 0.2f, 0.2f);
+	else
+		delete color[relation];
+};
 
 /************** CHECKBUTTON CLASS **************/
 CheckButton::CheckButton() {
@@ -126,10 +143,14 @@ void CheckButton::processClick() {
 	changeColors();
 };
 void CheckButton::changeColors() {
-	if (checked)
-		setColor(BACK_NORMAL, 0.5f, 0.5f, 0.5f);
-	else
-		setColor(BACK_NORMAL, 0.1f, 0.1f, 0.1f);
+	if (checked) {
+		setColor(BACK_NORMAL, 0.2f, 0.3f, 0.2f);
+		setColor(BACK_HOVERED, 9.0f, 1.0f, 0.55f);
+	}
+	else {
+		setDefaultColor(BACK_NORMAL);
+		setDefaultColor(BACK_HOVERED);
+	}
 };
 bool CheckButton::isChecked() {
 	return checked; 
@@ -151,7 +172,8 @@ PopupMenu::PopupMenu() {
 	activeArea.set(-POPUP_ACTIVE_BORDER_SIZE, -POPUP_ACTIVE_BORDER_SIZE, POPUP_ACTIVE_BORDER_SIZE, POPUP_ACTIVE_BORDER_SIZE);
 };
 PopupMenu::PopupMenu(vector<string> data) {
-	PopupMenu();
+	active = false;
+	activeArea.set(-POPUP_ACTIVE_BORDER_SIZE, -POPUP_ACTIVE_BORDER_SIZE, POPUP_ACTIVE_BORDER_SIZE, POPUP_ACTIVE_BORDER_SIZE);
 	for (unsigned i = 0; i < data.size(); i++) {
 		addItem(data[i].c_str());
 	}
@@ -187,6 +209,12 @@ int PopupMenu::addItem(const char * caption) {
 		activeArea.right - POPUP_ACTIVE_BORDER_SIZE,
 		activeArea.bottom - POPUP_ACTIVE_BORDER_SIZE);
 	return item.size();
+};
+void PopupMenu::clearAllItems() {
+	item.clear();
+	active = false;
+	activeArea.set(-POPUP_ACTIVE_BORDER_SIZE, -POPUP_ACTIVE_BORDER_SIZE, POPUP_ACTIVE_BORDER_SIZE, POPUP_ACTIVE_BORDER_SIZE);
+	minItemWidth = 0;
 };
 void PopupMenu::draw() {
 	if (active) {
@@ -228,6 +256,15 @@ void PopupMenu::hide() {
 };
 bool PopupMenu::isActive() {
 	return active;
+};
+int PopupMenu::hoveredItemNumber() {
+	if (active) {
+		for (unsigned i = 0; i < item.size(); i++) {
+			if (item[i].isHovered())
+				return i;
+		}
+	}
+	return -1;
 };
 int PopupMenu::selectedItemNumber() {
 	if (active) {

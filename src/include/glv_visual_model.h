@@ -3,9 +3,9 @@
 
 #include "gld_types.h"
 
+
 class ModelObject {
 private:
-
 	std::string	caption;
 
 	struct MOFactor {
@@ -82,7 +82,9 @@ public:
 	void setTexture(const GLuint tex, const GLuint coords, GLenum type);
 	void setShader(const GLuint shaderProgramId);
 	void addVertexAttrib(GLuint location, GLint size, GLenum type, GLuint buffer);
-	void render();
+	unsigned getColormap();
+	bool willDrawColored();
+	void render(bool forceVertices);
 };
 
 #endif

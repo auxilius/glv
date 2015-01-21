@@ -25,6 +25,7 @@ void drawSwitchIcon(int x, int y, int size = 10);
 
 void glColor(unsigned char r, unsigned char g, unsigned char b);
 
+GLcolor valToColor(float value, unsigned colormap);
 GLcolor valToColor_Rainbow(float value);
 GLcolor valToColor_BlueRed(float value);
 
