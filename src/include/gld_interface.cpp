@@ -58,7 +58,7 @@ void Button::draw(){
 			glColor4fv(color[TEXT_CLICKED]);
 		else if (border.contains(input.mouse.x, input.mouse.y) && color[TEXT_HOVERED] != NULL)
 			glColor4fv(color[TEXT_HOVERED]);
-		font->textOut(border.left + BUTTON_PADDING, border.top + ( border.height - (int)(font->getHeight()*0.7) ) / 2, textOnButton);
+		font->textOut(border.left + BUTTON_PADDING, border.top + ( border.height - font->getHeight()*0.7 ) / 2, textOnButton);
 	}
 	if (isSeparator()) {
 		glColor4fv(color[BORDER_NORMAL]);

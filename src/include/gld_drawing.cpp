@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <gl/glew.h>
+#include <gl/glf.h>
 
 
 double actualFontSize = 12;
@@ -129,6 +130,7 @@ void drawSwitchIcon(int x, int y, int size) {
 void glColor(unsigned char r, unsigned char g, unsigned char b) {
 	glColor3f((GLfloat)r / 255, (GLfloat)g / 255, (GLfloat)b / 255);
 };
+<<<<<<< HEAD
 
 
 
@@ -173,3 +175,5 @@ GLcolor valToColor_BlueRed(float value) {
 	GLcolor result( 1.0f-value, 0.0f, value);
 	return result;
 };
+=======
+>>>>>>> parent of 14ca55e... update 27.12.2014

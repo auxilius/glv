@@ -63,7 +63,8 @@ public:
 	void addModelColor(const char * caption, float* data, float minValue, float maxValue, int colorMap);
 	void addModelColorBuffer(const char * caption, GLuint bid);
 	void addModelShader(const char * caption, const GLuint shaderProgram);
-	void addModelVertexAttrib(const char * caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer);
+	void addModelShader(const char * caption, std::string shaderFile, GLenum shaderType);
+	
 };
 
 
