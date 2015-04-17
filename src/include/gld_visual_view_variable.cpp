@@ -49,7 +49,7 @@ std::string vwSingleData::getString() {
 	}
 	catch (...) {
 		if (!error)
-			MessageBox(0, L"Cannot read memory, poited value was probably ereased.", L"Memory read error", MB_OK);
+			MessageBox(0, "Cannot read memory, poited value was probably ereased.", "Memory read error", MB_OK);
 		result << "err";
 		error = true;
 	}
@@ -161,8 +161,8 @@ void VariableView::setItem(unsigned num, bool state) {
 	}
 	else {
 		itemNumber.erase(
-			std::remove(itemNumber.begin(), itemNumber.end(), (unsigned)num),
-			itemNumber.end());
+		std::remove(itemNumber.begin(), itemNumber.end(), (unsigned)num),
+		itemNumber.end());
 	}
 };
 void VariableView::setItemList(std::vector<vwItem> * list) {

@@ -3,7 +3,35 @@
 
 #include <iostream>
 #include <gl/glew.h>
-#include <gl/glf.h>
+
+#include "glv_Shaders.h"
+
+
+Color clWhite	= {1.00f, 1.00f, 1.00f, 1.0f};
+Color clGray90	= {0.90f, 0.90f, 0.90f, 1.0f};
+Color clGray80	= {0.80f, 0.80f, 0.80f, 1.0f};
+Color clGray70  = {0.70f, 0.70f, 0.70f, 1.0f};
+Color clGray60	= {0.60f, 0.60f, 0.60f, 1.0f};
+Color clGray50  = {0.50f, 0.50f, 0.50f, 1.0f};
+Color clGray40	= {0.40f, 0.40f, 0.40f, 1.0f};
+Color clGray30	= {0.30f, 0.30f, 0.30f, 1.0f};
+Color clGray20	= {0.20f, 0.20f, 0.20f, 1.0f};
+Color clGray10  = {0.10f, 0.10f, 0.10f, 1.0f};
+Color clBlack	= {0.00f, 0.00f, 0.00f, 1.0f};
+
+Color clConfBack	= {0.050f, 0.100f, 0.020f, 1.0f};
+Color clConfGrid	= {0.075f, 0.100f, 0.020f, 1.0f};
+Color clConfBoxMes	= {0.240f, 0.270f, 0.210f, 1.0f};
+Color clConfBoxVal	= {0.430f, 0.430f, 0.290f, 1.0f};
+Color clConfBoxTex	= {0.520f, 0.570f, 0.430f, 1.0f};
+
+Color clBtnBack			= {0.75f, 0.75f, 0.75f, 1.0f};
+Color clBtnBackHover	= {0.85f, 0.85f, 0.85f, 1.0f};
+Color clBtnBackChecked	= {0.85f, 0.82f, 0.50f, 1.0f};
+Color clBtnBorder		= {0.50f, 0.50f, 0.50f, 1.0f};
+Color clBtnBorderHover	= {0.65f, 0.65f, 0.65f, 1.0f};
+Color clBtnText			= {0.10f, 0.10f, 0.10f, 1.0f};
+Color clBtnTextHover	= {0.20f, 0.20f, 0.20f, 1.0f};
 
 
 double actualFontSize = 12;
@@ -25,8 +53,8 @@ void initFonts() {
 	fontHuge = new Font(deviceContext, ffVerdana, 30);
 };
 
-void glVerticeSquare(Box border){
-	glVerticeSquare(border.left, border.top, border.right, border.bottom);
+void glVerticeSquare(Box *border){
+	glVerticeSquare(border->left, border->top, border->right, border->bottom);
 };
 
 void glVerticeSquare(int x, int y, int size) {
@@ -40,10 +68,19 @@ void glVerticeSquare(int x1, int y1, int x2, int y2) {
 	glVertex2f((GLfloat)x1, (GLfloat)y2);
 };
 
-void drawRect(GLenum mode, Box border) {
-	glBegin(mode);
-	glVerticeSquare(border);
-	glEnd();
+void drawRect(GLenum mode, Box *border) {
+	//glBegin(mode);
+	//glVerticeSquare(border);
+	//glEnd();
+	shader->bind(progRenderBox);
+	GLfloat colors[] = {1.0, 0.5, 1.0, 1.0};
+	shader->setUniform4f("color", colors);
+	GLfloat corners[] = {(GLfloat)border->left, (GLfloat)border->top, (GLfloat)border->right, (GLfloat)border->bottom};
+	shader->setUniform4f("corners", corners);
+	shader->setUniform1i("width", canvas.width);
+	shader->setUniform1i("height", canvas.height);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	shader->unbind();
 };
 
 void drawLine(int x1, int y1, int x2, int y2) {
@@ -53,84 +90,10 @@ void drawLine(int x1, int y1, int x2, int y2) {
 	glEnd();
 };
 
-void drawSwitchIcon(int x, int y, int size) {
-	/*static GLfloat vertices[]; = {
-		0.000000.0f, 0.000000.0f,
-		-0.54054.0f, -0.24475.0f,
-		-0.43845.0f, -0.39981.0f,
-		-0.28763.0f, -0.33971.0f,
-		-0.00796.0f, -0.44505.0f,
-		0.065734.0f, -0.58972.0f,
-		0.244751.0f, -0.54054.0f,
-		0.234205.0f, -0.37853.0f,
-		0.420811.0f, -0.14510.0f,
-		0.581173.0f, -0.11971.0f,
-		0.589723.0f, 0.065734.0f,
-		0.432378.0f, 0.105770.0f,
-		0.268042.0f, 0.355375.0f,
-		0.293451.0f, 0.515734.0f,
-		0.119718.0f, 0.581173.0f,
-		0.033019.0f, 0.443901.0f,
-		-0.25515.0f, 0.364740.0f,
-		-0.39981.0f, 0.438459.0f,
-		-0.51573.0f, 0.293451.0f,
-		-0.41197.0f, 0.168576.0f,
-		-0.42573.0f, -0.12995.0f,
-		-0.19015.0f, -0.05325.0f,
-		-0.12253.0f, -0.15485.0f,
-		-0.00811.0f, -0.19730.0f,
-		0.109406.0f, -0.16439.0f,
-		0.185140.0f, -0.06869.0f,
-		0.190156.0f, 0.053251.0f,
-		0.122539.0f, 0.154852.0f,
-		0.008117.0f, 0.197305.0f,
-		-0.10940.0f, 0.164394.0f,
-		-0.18514.0f, 0.068690.0f
-	};
-	static GLubyte indices[] = { 
-		2, 3, 20, 1,
-		17, 18, 19, 16,
-		13, 14, 15, 12,
-		9, 10, 11, 8,
-		5, 6, 7, 4,
-		16, 19, 30, 29,
-		15, 16, 29, 28,
-		12, 15, 28, 27,
-		11, 12, 27, 26,
-		8, 11, 26, 25,
-		7, 8, 25, 24,
-		4, 7, 24, 23,
-		3, 4, 23, 22,
-		20, 3, 22, 21,
-		19, 20, 21, 30
-	};
-	glPushMatrix();
-	glLoadIdentity();
-	glTranslatef((GLfloat)x, (GLfloat)y, 0.0f);
-	glScalef((GLfloat)size, (GLfloat)size, 0.0f);
-	
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D);
-	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, vertices);
-	
-	glEnableClientState(GL_INDEX_ARRAY);
-	glIndexPointer(GL_UNSIGNED_BYTE, 0, indices);
-
-	glDrawElements(GL_QUADS, 60, GL_UNSIGNED_BYTE, indices);
-
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_INDEX_ARRAY);
-	glPopMatrix();*/
-};
 
 void glColor(unsigned char r, unsigned char g, unsigned char b) {
 	glColor3f((GLfloat)r / 255, (GLfloat)g / 255, (GLfloat)b / 255);
 };
-<<<<<<< HEAD
 
 
 
@@ -175,5 +138,27 @@ GLcolor valToColor_BlueRed(float value) {
 	GLcolor result( 1.0f-value, 0.0f, value);
 	return result;
 };
-=======
->>>>>>> parent of 14ca55e... update 27.12.2014
+
+void drawBox(Box *border, Color color, bool filled /*= true*/) {
+	shader->bind(progRenderBox);
+	shader->setUniform1i("width", canvas.width);
+	shader->setUniform1i("height", canvas.height);
+	shader->setUniform4f("color", color);
+	GLfloat corners[] = {(GLfloat)border->left, (GLfloat)border->top, (GLfloat)border->right, (GLfloat)border->bottom};
+	shader->setUniform4f("corners", corners);
+	glDrawArrays( filled?GL_TRIANGLE_FAN:GL_LINE_LOOP, 0, 4);
+	shader->unbind();
+};
+
+void drawPoint(Point *position, Color color, int size /*= 1*/) {
+	glEnable(GL_POINT_SMOOTH);
+	glPointSize((GLfloat)size);
+	shader->bind(progRenderBox);
+	shader->setUniform1i("width", canvas.width);
+	shader->setUniform1i("height", canvas.height);
+	shader->setUniform4f("color", color);
+	GLfloat corners[] = {(GLfloat)position->x, (GLfloat)position->y, 0.0f, 0.0f};
+	shader->setUniform4f("corners", corners);
+	glDrawArrays( GL_POINTS, 0, 1);
+	shader->unbind();
+};

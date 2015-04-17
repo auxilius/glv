@@ -2,23 +2,27 @@
 #define H_GLD_VISUALIZER_MODEL_OBJECT
 
 #include "gld_types.h"
+#include "glv_Shaders.h"
+#include <glm/glm.hpp>
 
-
-class ModelObject {
-private:
-	std::string	caption;
+namespace {
 
 	struct MOFactor {
 		GLfloat scale;
 		GLfloat translate[3];
 		bool isCalculated;
-	} factor;
+	};
 
 	struct MOVertices {
 		GLuint bid;
 		unsigned count;
 		GLenum type;
-	} vertice;
+	};
+
+	struct MONormals {
+		GLuint bid;
+		bool show;
+	};
 
 	struct MOEdges {
 		GLuint bid;
@@ -26,14 +30,14 @@ private:
 		GLenum type;
 		unsigned count;
 		bool show;
-	} edges;
+	};
 
 	struct MOTexture {
 		GLuint coords;
 		GLuint id;
 		GLenum type;
 		bool show;
-	} texture;
+	};
 
 	struct MOData {
 		float* values;
@@ -44,12 +48,12 @@ private:
 
 		GLuint color_bid;
 		bool useBuffer;
-	} data;
+	};
 
 	struct MOShader {
 		GLuint programId;
 		bool show;
-	} shader;
+	};
 
 	struct MOAttrib {
 		GLuint buffer;
@@ -57,34 +61,63 @@ private:
 		GLint size;
 		GLenum type;
 	};
-	std::vector<MOAttrib> attrib;
 
-	GLuint defaultShaderProgram;
-	bool createDefaultShader();
-	float normalizeValue(float value);
-	void calculateTransformation();
-	void renderPoints();
-	void renderColoredPoints();
-	void renderTextured();
-	void renderEdges();
-	void renderShader();
+}
+
+
+class ModelObject {
+public:
+	glm::mat4 getMatrix(void);
+	void setAttributes(Shaders *shader);
+	void render(Shaders *shader); 
+
+private:
+	GLfloat* valuesToColors(void);
+
+	void drawElements(Shaders *shader);
+	void drawVertices(Shaders *shader);
+
 
 public:
 
-	ModelObject();
+	//ModelObject();
+	ModelObject(std::string capt, unsigned vertCount, GLuint verts, GLenum dataType);
 	std::string	getCaption() { return caption; };
 	GLuint getVBO() { return vertice.bid; };
-	void set(std::string C, unsigned N, unsigned VID, GLenum type);
+	void setVertices(unsigned count, GLuint verts, GLenum dataType);
 	void setData(float* P, float min, float max, int cl_map);
 	void setColor(float* P, float min, float max, int cl_map);
 	void useColorBuffer(GLuint bid);
 	void setIndices(const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
 	void setTexture(const GLuint tex, const GLuint coords, GLenum type);
+	void setNormals(const GLuint bufferid);
 	void setShader(const GLuint shaderProgramId);
 	void addVertexAttrib(GLuint location, GLint size, GLenum type, GLuint buffer);
 	unsigned getColormap();
 	bool willDrawColored();
 	void render(bool forceVertices);
+
+
+public://private:
+	std::string	caption;
+	MOFactor factor;
+	MOVertices vertice;
+	MONormals normals;
+	MOEdges edges;
+	MOTexture texture;
+	MOData  data;
+	MOShader shader;
+	std::vector<MOAttrib> attrib;
+
+	GLuint defaultShaderProgram;
+	//float normalizeValue(float value);
+	void calculateTransformation();
+	//void renderPoints();
+	//void renderColoredPoints();
+	//void renderNormals();
+	//void renderTextured();
+	//void renderEdges();
+	//void renderShader();
 };
 
 #endif

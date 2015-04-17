@@ -1,10 +1,9 @@
 #include <fstream>
 #include <iostream>
-#include <gl\glf.h>
 #include <typeinfo> 
 #include <direct.h>
 #include "gldebugger.h"
-#include "gld_engine.h"
+#include "glv_Engine.h"
 #include "gld_types.h"
 #include "gld_drawing.h"
 
@@ -35,7 +34,7 @@ public:
 		wglMakeCurrent(mainDC, mainGLRC);
 	};
 
-	gldEngine * engine;
+	Engine * engine;
 	gldController() { isInit = false; };
 	~gldController();
 	void init(HGLRC shareGLRC, HDC shareDC);
@@ -123,7 +122,8 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			int x = rect.left, y = rect.top;
 			form.moveTo(x,y);
 		}
-		configLoader.save();
+		if (controller.engine != NULL)
+			controller.engine->fieldManager->save();
 		return 0;
 	}
 	case WM_SIZE:
@@ -226,7 +226,8 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		char key = wParam;
 		if (!input.shift && key >= 'A' && key <= 'Z')
 			key = key - 'A' + 'a';
-		controller.engine->onKeyDown(key);
+		if (controller.engine != NULL)
+			controller.engine->onKeyDown(key);
 
 		if (key == KEY_SHIFT)
 			input.shift = true;
@@ -259,7 +260,7 @@ void gldController::init(HGLRC shareGLRC, HDC shareDC) {
 	
 	setContextDebugger();
 	initFonts();
-	engine = new gldEngine();
+	engine = new Engine();
 	engine->init();
 	setContextOriginal();
 	isInit = true;
@@ -295,13 +296,13 @@ void gldController::createWindow() {
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wc.lpszMenuName = NULL;
-	wc.lpszClassName = L"GLDebugger";
+	wc.lpszClassName = "WINGLVIEW";
 	RegisterClass(&wc);
 
 	form.set(0, 0, 500);
 	
 	controller.mainWindowHandle = CreateWindow(
-		L"GLDebugger", L"GLD Visualizer",
+		"WINGLVIEW", "OpenGL View",
 		WS_OVERLAPPEDWINDOW,
 		form.left, form.top, form.width, form.height,
 		NULL, NULL, NULL, NULL);
@@ -310,13 +311,20 @@ void gldController::createWindow() {
 };
 
 void gldController::step() {
+	POINT mousePosition;
+	if (GetCursorPos(&mousePosition)) {
+		if (ScreenToClient(mainWindowHandle, &mousePosition)) {
+			input.setMousePosition((int)mousePosition.x, (int)mousePosition.y);
+		}
+	}
 	setContextDebugger();
 	engine->render();
 	SwapBuffers(controller.mainDC); // pozor pri spravovanom renderovani !!!
 	setContextOriginal();
 	static int configSaveTimer = 0;
 	if (windowConfigChanged && configSaveTimer >= 10000) {
-		configLoader.save();
+		if (controller.engine != NULL)
+			controller.engine->fieldManager->save();
 		windowConfigChanged = false;
 		configSaveTimer = 0;
 	}
@@ -340,6 +348,8 @@ bool gldSetDirectory(std::string path) {
 };
 
 int gldInit(std::string workingDir, HGLRC glrcToShare, HDC dcToShare) {
+	if (controller.initialized())
+		return 1;
 	gldSetDirectory(workingDir);
 	controller.init(glrcToShare, dcToShare);
 	return 0;
@@ -357,8 +367,11 @@ void gldStop() {
 };
 
 bool gldAddTexture(std::string caption, const GLuint texture) {
-	controller.engine->visualizer.addTexture(caption.c_str(), texture);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addTexture(caption.c_str(), texture);
+		return true;
+	}
+	return false;
 };
 
 bool gldAddLine(std::string format, void * data) {
@@ -371,13 +384,19 @@ bool gldAddLine(std::string format, void * data[]) {
 
 bool gldAddLine(std::string caption, std::string format, void * data) {
 	void * a_data[] = { data };
-	controller.engine->visualizer.addValues(caption.c_str(), format.c_str(), a_data);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addValues(caption.c_str(), format.c_str(), a_data);
+		return true;
+	}
+	return false;
 };
 
 bool gldAddLine(std::string caption, std::string format, void * data[]) {
-	controller.engine->visualizer.addValues(caption.c_str(), format.c_str(), data);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addValues(caption.c_str(), format.c_str(), data);
+		return true;
+	}
+	return false;
 };
 
 template<class T>
@@ -389,42 +408,73 @@ void gldAddArray(std::string caption, T * data, std::string format, int length, 
 };
 
 bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum type) {
-	controller.engine->visualizer.addModel(caption.c_str(), count, vertices, type);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModel(caption.c_str(), count, vertices, type);
+		return true;
+	}
+	return false;
 };
 
 bool gldAddModelData(std::string caption, float * data, float min, float max, int colorMap ) {
-	controller.engine->visualizer.addModelData(caption.c_str(), data, min, max, colorMap);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelData(caption.c_str(), data, min, max, colorMap);
+		return true;
+	}
+	return false;
 };
 
 bool gldAddModelColor(std::string caption, float * data, float min, float max, int colorMap ) {
-	controller.engine->visualizer.addModelColor(caption.c_str(), data, min, max, colorMap);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelColor(caption.c_str(), data, min, max, colorMap);
+		return true;
+	}
+	return false;
 };
 
 bool gldAddModelColorBuffer(std::string caption, GLuint colorBuffer ) {
-	controller.engine->visualizer.addModelColorBuffer(caption.c_str(), colorBuffer);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelColorBuffer(caption.c_str(), colorBuffer);
+		return true;
+	}
+	return false;
 };
 
 bool gldAddModelEdges(std::string caption, GLenum mode, unsigned count, GLuint indices, GLenum type) {
-	controller.engine->visualizer.addModelEdges(caption.c_str(), mode, count, indices, type);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelEdges(caption.c_str(), mode, count, indices, type);
+		return true;
+	}
+	return false;
 };
 
 bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates, GLenum type) {
-	controller.engine->visualizer.addModelTexture(caption.c_str(), texture, coordinates, type);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelTexture(caption.c_str(), texture, coordinates, type);
+		return true;
+	}
+	return false;
 };
 
 bool gldAddModelShaderProgram(std::string caption, GLuint shaderProgramId) {
-	controller.engine->visualizer.addModelShader(caption.c_str(), shaderProgramId);
-	return true;
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelShader(caption.c_str(), shaderProgramId);
+		return true;
+	}
+	return false;
 };
 
-bool gldAddModelShader(std::string caption, std::string nameOfShaderFile, GLenum shaderType) {
-	controller.engine->visualizer.addModelShader(caption.c_str(), nameOfShaderFile, shaderType);
-	return true;
+bool gldAddModelVertexAttrib(std::string caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer) {
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelVertexAttrib(caption.c_str(), atributeID, size, type, buffer);
+		return true;
+	}
+	return false;
 };
 
+bool gldAddModelNomals(std::string caption, GLuint normalBuffer) {
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelNormals(caption.c_str(), normalBuffer);
+		return true;
+	}
+	return false;
+};

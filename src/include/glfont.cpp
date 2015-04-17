@@ -3,21 +3,21 @@
 #include <WTypes.h>
 #include "gld_types.h"
 
-LPCWSTR getFamilySting(FontFamily family) {
+LPCSTR getFamilySting(FontFamily family) {
 	switch (family)
 	{
 	case ffArial:
-		return L"Arial";
+		return "Arial";
 	case ffVerdana:
-		return L"Verdana";
+		return "Verdana";
 	case ffTimes:
-		return L"Times New Roman";
+		return "Times New Roman";
 	case ffCourier:
-		return L"Courier New";
+		return "Courier New";
 	case ffConsolas:
-		return L"Consolas";
+		return "Consolas";
 	default:
-		return L"";
+		return "";
 	}
 };
 

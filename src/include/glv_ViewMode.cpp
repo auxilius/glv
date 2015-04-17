@@ -1,4 +1,4 @@
-#include "gld_visualizer.h"
+#include "glv_ViewMode.h"
 
 #include <fstream>
 #include <iostream>
@@ -6,14 +6,21 @@
 #include <gl\GLU.h>
 
 
-void gldRenderer::init() {
-	
+ViewModeControl::ViewModeControl(FieldManager *fManager) {
+	fieldManager = fManager;
+};
+
+void ViewModeControl::init() {
+	using namespace std::placeholders;
+	popupModelSelect.OnItemClick = std::bind(&ViewModeControl::onModelMenuSelect, this, _1, _2);
+	popupTextureSelect.OnItemClick = std::bind(&ViewModeControl::onTextureMenuSelect, this, _1, _2);
+	popupVariableSelect.OnItemChange = std::bind(&ViewModeControl::onVariableMenuClick, this, _1, _2, _3);
 };
 
 
 ///     F I E L D   S E L E C T I N G     ///
 
-bool gldRenderer::selectModelFieldUnderMouse() {
+bool ViewModeControl::selectModelFieldUnderMouse() {
 	int topmost = -1;
 	for (unsigned i = 0; i < modelField.size(); i++) {
 		if (modelField[i].border.contains(input.mouse)) {
@@ -25,7 +32,7 @@ bool gldRenderer::selectModelFieldUnderMouse() {
 	return (topmost != -1);
 };
 
-bool gldRenderer::selectTextureFieldUnderMouse() {
+bool ViewModeControl::selectTextureFieldUnderMouse() {
 	int topmost = -1;
 	for (unsigned i = 0; i < textureField.size(); i++) {
 		if (textureField[i].border.contains(input.mouse))
@@ -36,7 +43,7 @@ bool gldRenderer::selectTextureFieldUnderMouse() {
 	return (topmost != -1);
 };
 
-bool gldRenderer::selectVariableFieldUnderMouse() {
+bool ViewModeControl::selectVariableFieldUnderMouse() {
 	int topmost = -1;
 	for (unsigned i = 0; i < variableField.size(); i++) {
 		if (variableField[i].border.contains(input.mouse)) {
@@ -48,7 +55,7 @@ bool gldRenderer::selectVariableFieldUnderMouse() {
 	return (topmost != -1);
 };
 
-unsigned gldRenderer::selectFieldUnderMouse() {
+unsigned ViewModeControl::selectFieldUnderMouse() {
 	unsigned result = FIELD_TYPE_NONE;
 	unsigned layer = 0;
 	if (selectModelFieldUnderMouse()) {
@@ -79,7 +86,7 @@ unsigned gldRenderer::selectFieldUnderMouse() {
 
 ///     R E N D E R I N G     ///
 
-void gldRenderer::render() {
+void ViewModeControl::render() {
 	glLoadIdentity();
 	// MODELS
 	for (unsigned i = 0; i < modelField.size(); i++)
@@ -99,16 +106,18 @@ void gldRenderer::render() {
 
 ///     C O N T R O L S     ///
 
-void gldRenderer::mouseDown(mouseButton button) {
+void ViewModeControl::mouseDown(mouseButton button) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
 		modelField[i].onMouseDown(button);
 	}
+
 	if (!popupTextureSelect.isActive())
 		selectedTextureField = -1;
 	if (!popupModelSelect.isActive())
 		selectedModelField = -1;
 	if (!popupVariableSelect.isActive())
 		selectedVariableField = -1;
+
 	if (button == mbRight) {
 		unsigned selected = selectFieldUnderMouse();
 		if (selected == FIELD_TYPE_MODEL) {
@@ -123,160 +132,155 @@ void gldRenderer::mouseDown(mouseButton button) {
 		}
 	}
 	if (button == mbLeft) {
-		if (popupModelSelect.isActive()) {
-			int selectedMenuItem = popupModelSelect.selectedItemNumber();
-			if (selectedMenuItem != -1) {
-				modelField[selectedModelField].showModel(selectedMenuItem);
-				save();
-				selectedModelField = -1;
-			}
-		}
-		else
-		if (popupTextureSelect.isActive()) {
-			int selectedMenuItem = popupTextureSelect.selectedItemNumber();
-			if (selectedMenuItem != -1) {
-				textureField[selectedTextureField].showTexture(selectedMenuItem);
-				save();
-				selectedTextureField = -1;
-			}
-		}
-		else
-		if (popupVariableSelect.isActive()) {
-			int check = popupVariableSelect.checkedItem();
-			if (check != -1) {
-				variableField[selectedVariableField].setItem(check, true);
-				save();
-			}
-			else {
-				int uncheck = popupVariableSelect.uncheckedItem();
-				if (uncheck != -1) {
-					variableField[selectedVariableField].setItem(uncheck, false);
-					save();
-				}
-			}
-		}
+		if (popupTextureSelect.isActive())
+			popupTextureSelect.onMouseDown(button);
+		if (popupModelSelect.isActive())
+			popupModelSelect.onMouseDown(button);
+		if (popupVariableSelect.isActive())
+			popupVariableSelect.onMouseDown(button);
 	}
 	requestRender();
 };
 
-void gldRenderer::mouseUp(mouseButton button) {
+
+void ViewModeControl::onModelMenuSelect(int itemID, std::string itemCaption) {
+	modelField[selectedModelField].showModel(itemID);
+	saveParams();
+	selectedModelField = -1;
+	popupModelSelect.hide();
+};
+
+void ViewModeControl::onTextureMenuSelect(int itemID, std::string itemCaption) {
+	textureField[selectedTextureField].showTexture(itemID);
+	saveParams();
+	selectedTextureField = -1;
+	popupTextureSelect.hide();
+};
+
+void ViewModeControl::onVariableMenuClick(int itemID, std::string itemCaption, bool itemState) {
+	variableField[selectedVariableField].setItem(itemID, itemState);
+	saveParams();
+};
+
+
+void ViewModeControl::mouseUp(mouseButton button) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
 		modelField[i].onMouseUp(button);
 	}
-	save();
+	saveParams();
 };
 
-void gldRenderer::mouseMove(int x, int y) {
+void ViewModeControl::mouseMove(int x, int y) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
 		modelField[i].onMouseMove(x, y);
 	}
 };
 
-void gldRenderer::mouseWheel(signed short direction) {
+void ViewModeControl::mouseWheel(signed short direction) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
 		modelField[i].onMouseWheel(direction);
 	}
-	save();
+	saveParams();
 };
 
 
 ///     S A V E   &   L O A D     ///
 
-ModelObject * gldRenderer::findModel(const char * caption) {
+ModelObject * ViewModeControl::findModel(const char * caption) {
 	for (unsigned i = 0; i < modelList.size(); i++)
 	if (modelList[i].getCaption() == caption)
 		return &modelList[i];
 	return NULL;
 }
 
-void gldRenderer::clearFields() {
+void ViewModeControl::clearFields() {
 	modelField.clear();
 	textureField.clear();
 	variableField.clear();
 };
 
-bool gldRenderer::save() {
-	ConfigFieldRecord * cField;
+bool ViewModeControl::saveParams() {
 	for (unsigned i = 0; i < modelField.size(); i++) {
-		if (configLoader.field.size() <= modelField[i].layer) 
-			return false;
-		cField = &configLoader.field[modelField[i].layer];
-		cField->param_d.clear();
-		cField->param_d.push_back(modelField[i].hang);
-		cField->param_d.push_back(modelField[i].vang);
-		cField->param_d.push_back(modelField[i].dist);
-		cField->param_str = modelField[i].getModelCaption();
+		FieldParams set;
+		set.dParam.push_back(modelField[i].hang);
+		set.dParam.push_back(modelField[i].vang);
+		set.dParam.push_back(modelField[i].dist);
+		set.strParam = modelField[i].getModelCaption();
+		fieldManager->fieldSetParams(modelField[i].layer, set);
 	}
 	for (unsigned i = 0; i < textureField.size(); i++) {
-		if (configLoader.field.size() <= textureField[i].layer)
-			return false;
-		cField = &configLoader.field[textureField[i].layer];
-		cField->param_str = textureField[i].getTextureCaption();
+		FieldParams set;
+		set.strParam = textureField[i].getTextureCaption();
+		fieldManager->fieldSetParams(textureField[i].layer, set);
 	}
 	for (unsigned i = 0; i < variableField.size(); i++) {
-		if (configLoader.field.size() <= variableField[i].layer)
-			return false;
-		cField = &configLoader.field[variableField[i].layer];
-		cField->param_i.clear();
+		FieldParams set;
 		for (unsigned l = 0; l < variableField[i].itemNumber.size(); l++)
-			cField->param_i.push_back(variableField[i].itemNumber[l]);
+			set.iParam.push_back(variableField[i].itemNumber[l]);
+		fieldManager->fieldSetParams(variableField[i].layer, set);
 	}
-	configLoader.save();
+	fieldManager->save();
 	return true;
 };
 
-bool gldRenderer::load() {
+bool ViewModeControl::loadParams() {
 	clearFields();
-	bool found = false;
-	for (unsigned i = 0; i < configLoader.field.size(); i++) {
-		const ConfigFieldRecord cField = configLoader.field[i];
-		if (cField.type == FIELD_TYPE_MODEL) {
-			ModelView MV(cField.border);
+	for (unsigned i = 0; i < fieldManager->fieldCount(); i++) {
+		
+		const FieldParams get = fieldManager->getFieldParams(i);
+		const short type = fieldManager->fieldGetType(i);
+		const Box border = fieldManager->fieldGetBorder(i);
+		
+		if (type == FIELD_TYPE_MODEL) {
+			ModelView MV(border);
 			MV.setModelList(&modelList);
 			MV.layer = i;
-			if (cField.param_str != "") {
-				found = false;
+			if (get.strParam != "") {
+				bool found = false;
 				for (unsigned m = 0; m < modelList.size(); m++) {
-					if (modelList[m].getCaption() == cField.param_str) {
+					if (modelList[m].getCaption() == get.strParam) {
 						MV.showModel(m);
 						found = true;
 						break;
 					}
 				}
 				if (!found)
-					MV.waitingForModelCaption = cField.param_str;
+					MV.waitingForModelCaption = get.strParam;
 			}
-			if ( cField.param_d.size() >= 3 ) {
-				MV.hang = cField.param_d[0];
-				MV.vang = cField.param_d[1];
-				MV.dist = cField.param_d[2];
+			if ( get.dParam.size() >= 3 ) {
+				MV.hang = get.dParam[0];
+				MV.vang = get.dParam[1];
+				MV.dist = get.dParam[2];
 			}
 			modelField.push_back(MV);
 		} else
-		if (cField.type == FIELD_TYPE_TEXTURE) {
+
+		if (type == FIELD_TYPE_TEXTURE) {
 			TextureView TV;
-			TV.setBorder(cField.border);
+			TV.setBorder(border);
 			TV.setTextureList(&textureList);
 			TV.layer = i;
-			found = false;
+			bool found = false;
 			for (unsigned tl = 0; tl < textureList.size(); tl++) {
-				if (textureList[tl].getCaption() == cField.param_str) {
+				if (textureList[tl].getCaption() == get.strParam) {
 					TV.showTexture(tl);
 					found = true;
 					break;
 				}
 			}
 			if (!found)
-				TV.waitingForTextureCaption = cField.param_str;
+				TV.waitingForTextureCaption = get.strParam;
 			textureField.push_back(TV);
 		} else
-		if (cField.type == FIELD_TYPE_VALUE) {
+
+		if (type == FIELD_TYPE_VALUE) {
 			VariableView VV;
-			VV.setBorder(cField.border);
+			VV.setBorder(border);
 			VV.setItemList(&variableItemList);
 			VV.layer = i;
-			for (unsigned l = 0; l < cField.param_i.size(); l++)
-				VV.setItem(cField.param_i[l], true);
+
+			for (unsigned l = 0; l < get.iParam.size(); l++)
+				VV.setItem(get.iParam[l], true);
 			variableField.push_back(VV);
 		}
 	}
@@ -286,7 +290,13 @@ bool gldRenderer::load() {
 
 ///     I N T E R F A C E     ///
 
-bool gldRenderer::addTexture(const char * caption, GLuint textureID) {
+bool ViewModeControl::addTexture(const char * caption, GLuint textureID) {
+	for (unsigned i = 0; i < textureList.size(); i++) {
+		if (textureList[i].getCaption() == caption) {
+			textureList[i].set(textureID);
+			return false;
+		}
+	}
 	TextureObject TE(caption, textureID);
 	textureList.push_back(TE);
 	popupTextureSelect.addItem(caption);
@@ -298,7 +308,7 @@ bool gldRenderer::addTexture(const char * caption, GLuint textureID) {
 	return true;
 };
 
-bool gldRenderer::addValues(const char * caption, const char * formatString, void * data[]) {
+bool ViewModeControl::addValues(const char * caption, const char * formatString, void * data[]) {
 	vwLine line;
 	line.create(formatString, data);
 	vwItem item;
@@ -310,7 +320,7 @@ bool gldRenderer::addValues(const char * caption, const char * formatString, voi
 	return true;
 };
 
-bool gldRenderer::addValArray(const char* caption, void * data[], const char* format, int length, int lineLength) {
+bool ViewModeControl::addValArray(const char* caption, void * data[], const char* format, int length, int lineLength) {
 	
 	vwItem item;
 	vwLine firstLine;
@@ -334,14 +344,14 @@ bool gldRenderer::addValArray(const char* caption, void * data[], const char* fo
 	return true;
 };
 
-bool gldRenderer::addModel(const char * caption, const unsigned count, const GLuint vboid, GLenum type) {
-	for (unsigned i = 0; i < modelList.size(); i++)
-	if (modelList[i].getCaption() == caption) {
-		modelList[i].set(caption, count, vboid, type);
-		return false;
+bool ViewModeControl::addModel(const char * caption, const unsigned count, const GLuint vboid, GLenum type) {
+	for (unsigned i = 0; i < modelList.size(); i++) {
+		if (modelList[i].getCaption() == caption) {
+			modelList[i].setVertices(count, vboid, type);
+			return false;
+		}
 	}
-	ModelObject MO;
-	MO.set(caption, count, vboid, type);
+	ModelObject MO(caption, count, vboid, type);
 	modelList.push_back(MO);
 	popupModelSelect.addItem(caption);
 	for (unsigned i = 0; i < modelField.size(); i++) {
@@ -352,43 +362,50 @@ bool gldRenderer::addModel(const char * caption, const unsigned count, const GLu
 	return true;
 };
 
-void gldRenderer::addModelEdges(const char * caption, const GLenum mode, const unsigned count, const GLuint indices, GLenum type) {
+void ViewModeControl::addModelEdges(const char * caption, const GLenum mode, const unsigned count, const GLuint indices, GLenum type) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setIndices(mode, count, indices, type);
 };
 
-void gldRenderer::addModelTexture(const char * caption, const GLuint texture, const GLuint coordinates, GLenum type) {
+void ViewModeControl::addModelNormals(const char * caption, const GLuint bufferid) {
+	ModelObject * model = findModel(caption);
+	if (model != NULL)
+		model->setNormals(bufferid);
+};
+
+void ViewModeControl::addModelTexture(const char * caption, const GLuint texture, const GLuint coordinates, GLenum type) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setTexture(texture, coordinates, type);
 };
 
-void gldRenderer::addModelData(const char * caption, float* data, float minValue, float maxValue, int colorMap ) {
+void ViewModeControl::addModelData(const char * caption, float* data, float minValue, float maxValue, int colorMap ) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setData(data, minValue, maxValue, colorMap);
 };
 
-void gldRenderer::addModelColor(const char * caption, float* data, float minValue, float maxValue, int colorMap) {
+void ViewModeControl::addModelColor(const char * caption, float* data, float minValue, float maxValue, int colorMap) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setColor(data, minValue, maxValue, colorMap);
 }
 
-void gldRenderer::addModelColorBuffer(const char * caption, GLuint bid) {
+void ViewModeControl::addModelColorBuffer(const char * caption, GLuint bid) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->useColorBuffer(bid);
 }
 
-void gldRenderer::addModelShader(const char * caption, const GLuint shaderProgram) {
+void ViewModeControl::addModelShader(const char * caption, const GLuint shaderProgram) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setShader(shaderProgram);
 };
-void gldRenderer::addModelShader(const char * caption, std::string shaderFile, GLenum shaderType) {
+
+void ViewModeControl::addModelVertexAttrib(const char * caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
-		model->setShader(shaderFile, shaderType);
-}
+		model->addVertexAttrib(atributeID, size, type, buffer);	
+};

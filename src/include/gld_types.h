@@ -11,8 +11,11 @@
 #include <string>
 #include "gld_constants.h"
 
+enum RoomType { rmVisual, rmConfig };
 
 struct Point {
+	Point();
+	Point(int cx, int cy);
 	int x, y;
 	void set(int sx, int sy);
 };
@@ -20,10 +23,15 @@ Point point(int x, int y);
 double distance(float x1, float y1, float x2, float y2);
 double pointDistance(Point p1, Point p2);
 
-class Box {
+struct Box {
+public:
+	Box();
+	Box(const Box &border);
+	Box(int x1, int y1, int x2, int y2);
+	Box(int x, int y, int size);
 public:
 	int top, left, bottom, right;
-	void set(Box border);
+	void set(const Box &border);
 	void set(int x1, int y1, int x2, int y2);
 	void set(int x, int y, int size);
 	bool contains(int x, int y);
@@ -42,12 +50,6 @@ public:
 	__declspec(property(get = getHeight, put = setHeight)) int height;
 };
 
-class IOBox : public Box{
-public:
-	void save(std::ofstream & stream);
-	void load(std::ifstream & stream);
-};
-
 struct GLcolor {
 	GLfloat R,G,B;
 	GLcolor();
@@ -56,7 +58,7 @@ struct GLcolor {
 };
 
 extern Box canvas;
-extern IOBox form;
+extern Box form;
 extern HWND windowHandle;
 extern HDC deviceContext;
 
@@ -118,61 +120,15 @@ extern inputManager input;
 
 /*****    F I L E S   A N D   S O . . .     *****/
 
-bool fileExists(char* fileName);
+bool fileExists(const char* fileName);
 bool dirExists(const std::string& dirName_in);
-void fileCreate(char* fileName);
+bool fileCreate(const char* fileName);
 
 extern std::string SAVE_PATH;
-char * pathToFile(char* fname);
+std::string pathToFile(const char* fname);
 
 char * stringToChar(std::string str);
 std::string trim(std::string str);
 
-
-/*****    F I E L D   C O N F I G U R A T I O N     *****/
-
-struct ConfigFieldRecord {
-	ConfigFieldRecord();
-	IOBox border;
-	unsigned type;
-	std::vector<int> param_i;
-	std::vector<double> param_d;
-	std::string param_str;
-	void save(std::ofstream & stream);
-	void load(std::ifstream & stream);
-};
-
-class ConfigurationLoader {
-private:
-	char * openedFile;
-public:
-	std::vector<ConfigFieldRecord> field;
-	ConfigurationLoader();
-	bool fieldsBlank();
-	bool fieldSetType(int f, int t);
-	bool open(char * fileName);
-	bool save();
-	//void debugOut();
-};
-
-class ProfileSwitcher {
-private:
-	int actualProfile;
-	std::vector<std::string> profiles;
-	void save();
-	bool load();
-	char* getConfigFileName(int profile_id = -1);
-public:
-	void init();
-	char* getProfileName(int profile_id = -1);
-	void selectProfile(int selected);
-	bool addProfile(std::string name);
-	void deleteProfile(int profile_id);
-	void renameProfile(int profile_id, std::string name);
-	unsigned count();
-};
-
-extern ConfigurationLoader configLoader;
-extern ProfileSwitcher profileSwitcher;
 
 #endif
