@@ -337,36 +337,38 @@ gldController::~gldController() {
 };
   
 //////////   INTERFACE   //////////
-bool gldSetDirectory(std::string path) {
+using namespace glv;
+
+bool setDirectory(std::string path) {
 	if (!dirExists(path)) {
 		MessageBox(0, ERRORTEXT_WORKDIR_DONT_EXIST, ERRORTEXT_HEADER, MB_OK | MB_ICONERROR);
-		std::cout << "GLD ERROR: setting working path to '" << path << "' failed. Path does not exist." << std::endl;
+		std::cout << "GLV ERROR: setting working path to '" << path << "' failed. Path does not exist. Please create the folder structure manualy." << std::endl;
 	}
 	else
 		SAVE_PATH = path.c_str();
 	return true;
 };
 
-int gldInit(std::string workingDir, HGLRC glrcToShare, HDC dcToShare) {
+int init(std::string workingDir, HGLRC glrcToShare, HDC dcToShare) {
 	if (controller.initialized())
 		return 1;
-	gldSetDirectory(workingDir);
+	setDirectory(workingDir);
 	controller.init(glrcToShare, dcToShare);
 	return 0;
 };
 
-void gldStart(){
+void show(){
 	ShowWindow(controller.mainWindowHandle, SW_SHOW);
 	LPDWORD dwThreadID = 0;
 	HANDLE hThread = CreateThread(NULL, 0, threadLoop, NULL, 0, dwThreadID);
 	CloseHandle(hThread);
 };
 
-void gldStop() {
+void close() {
 	ShowWindow(controller.mainWindowHandle, SW_HIDE);
 };
 
-bool gldAddTexture(std::string caption, const GLuint texture) {
+bool setTexture(std::string caption, const GLuint texture) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addTexture(caption.c_str(), texture);
 		return true;
@@ -374,15 +376,15 @@ bool gldAddTexture(std::string caption, const GLuint texture) {
 	return false;
 };
 
-bool gldAddLine(std::string format, void * data) {
-	return gldAddLine(format, format, data);
+bool setLine(std::string format, void * data) {
+	return setLine(format, format, data);
 };
 
-bool gldAddLine(std::string format, void * data[]) {
-	return gldAddLine(format, format, data);
+bool setLine(std::string format, void * data[]) {
+	return setLine(format, format, data);
 };
 
-bool gldAddLine(std::string caption, std::string format, void * data) {
+bool setLine(std::string caption, std::string format, void * data) {
 	void * a_data[] = { data };
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addValues(caption.c_str(), format.c_str(), a_data);
@@ -391,7 +393,7 @@ bool gldAddLine(std::string caption, std::string format, void * data) {
 	return false;
 };
 
-bool gldAddLine(std::string caption, std::string format, void * data[]) {
+bool setLine(std::string caption, std::string format, void * data[]) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addValues(caption.c_str(), format.c_str(), data);
 		return true;
@@ -400,14 +402,14 @@ bool gldAddLine(std::string caption, std::string format, void * data[]) {
 };
 
 template<class T>
-void gldAddArray(std::string caption, T * data, std::string format, int length, int lineLength) {
+void setArray(std::string caption, T * data, std::string format, int length, int lineLength) {
 	if (T == int)
 		cout << "int";
 	if (T == float)
 		cout << "float";
 };
 
-bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum type) {
+bool setModel(std::string caption, unsigned count, GLuint vertices, GLenum type) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModel(caption.c_str(), count, vertices, type);
 		return true;
@@ -415,7 +417,7 @@ bool gldAddModel(std::string caption, unsigned count, GLuint vertices, GLenum ty
 	return false;
 };
 
-bool gldAddModelData(std::string caption, float * data, float min, float max, int colorMap ) {
+bool modelData(std::string caption, float * data, float min, float max, int colorMap ) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelData(caption.c_str(), data, min, max, colorMap);
 		return true;
@@ -423,7 +425,7 @@ bool gldAddModelData(std::string caption, float * data, float min, float max, in
 	return false;
 };
 
-bool gldAddModelColor(std::string caption, float * data, float min, float max, int colorMap ) {
+bool modelColor(std::string caption, float * data, float min, float max, int colorMap ) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelColor(caption.c_str(), data, min, max, colorMap);
 		return true;
@@ -431,7 +433,7 @@ bool gldAddModelColor(std::string caption, float * data, float min, float max, i
 	return false;
 };
 
-bool gldAddModelColorBuffer(std::string caption, GLuint colorBuffer ) {
+bool modelColorBuffer(std::string caption, GLuint colorBuffer ) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelColorBuffer(caption.c_str(), colorBuffer);
 		return true;
@@ -439,7 +441,7 @@ bool gldAddModelColorBuffer(std::string caption, GLuint colorBuffer ) {
 	return false;
 };
 
-bool gldAddModelEdges(std::string caption, GLenum mode, unsigned count, GLuint indices, GLenum type) {
+bool modelEdges(std::string caption, GLenum mode, unsigned count, GLuint indices, GLenum type) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelEdges(caption.c_str(), mode, count, indices, type);
 		return true;
@@ -447,7 +449,7 @@ bool gldAddModelEdges(std::string caption, GLenum mode, unsigned count, GLuint i
 	return false;
 };
 
-bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates, GLenum type) {
+bool modelTexture(std::string caption, GLuint texture, GLuint coordinates, GLenum type) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelTexture(caption.c_str(), texture, coordinates, type);
 		return true;
@@ -455,7 +457,7 @@ bool gldAddModelTexture(std::string caption, GLuint texture, GLuint coordinates,
 	return false;
 };
 
-bool gldAddModelShaderProgram(std::string caption, GLuint shaderProgramId) {
+bool modelShaderProgram(std::string caption, GLuint shaderProgramId) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelShader(caption.c_str(), shaderProgramId);
 		return true;
@@ -463,7 +465,7 @@ bool gldAddModelShaderProgram(std::string caption, GLuint shaderProgramId) {
 	return false;
 };
 
-bool gldAddModelVertexAttrib(std::string caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer) {
+bool modelVertexAttrib(std::string caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelVertexAttrib(caption.c_str(), atributeID, size, type, buffer);
 		return true;
@@ -471,7 +473,7 @@ bool gldAddModelVertexAttrib(std::string caption, GLuint atributeID, GLint size,
 	return false;
 };
 
-bool gldAddModelNomals(std::string caption, GLuint normalBuffer) {
+bool modelNomals(std::string caption, GLuint normalBuffer) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelNormals(caption.c_str(), normalBuffer);
 		return true;
