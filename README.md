@@ -5,6 +5,9 @@ The User can configure window layout, to decide what to displayinthewindow. The 
 dividual objects, to customize visualization. Library can be used as a supportive visualizer or tool for debugging
 OpenGL applications.
 
+## Dependencies
+Library is using OpenGL Mathematics which can be found at http://glm.g-truc.net/0.9.6/index.html
+
 ## Code Example
 to use a library, interface is provided in file gldebugger.h
 
@@ -39,7 +42,7 @@ void main(void) {
 ## Interface
 `glv::init(glvWorkingDir, glrcToShare, dcToShare);`
 
-Used for initialization of the library. glvWorkingDir is directory where all supplementary files will be saved.
+Used for initialization of the library. glvWorkingDir is directory where all supplementary files will be saved. Before this call, GLEW must be initialized. 
 
 `glv::show();` and `glv::hide();`
 
