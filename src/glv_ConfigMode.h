@@ -27,7 +27,7 @@ public:
 private:
 	FieldManager *fieldManager;
 
-	Interface::PopupMenu popupDefault, popupOnField;
+	Interface::Menu popupDefault, popupOnField;
 	Point mouseClickPosition, movedFieldPosition;
 	bool addingField;
 	bool movingField;

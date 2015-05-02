@@ -14,6 +14,10 @@ void FieldParams::saveToStream(std::ofstream & stream) {
 	stream << dParam.size() << " ";
 	for (unsigned i = 0; i < dParam.size(); i++)
 		stream << std::fixed << std::setprecision(5) << dParam[i] << " ";
+	// number of char parameters followed by them
+	stream << cParam.size() << " ";
+	for (unsigned i = 0; i < cParam.size(); i++)
+		stream << cParam[i] << " ";
 	// save string parameter
 	if (strParam.empty()) 
 		stream << "-";
@@ -21,7 +25,7 @@ void FieldParams::saveToStream(std::ofstream & stream) {
 		stream << strParam.c_str();
 };
 
-void FieldParams::loadFromStream(std::ifstream & stream) {
+void FieldParams::loadFromStream(std::ifstream &stream, std::string &version) {
 	// load int parameters
 	iParam.clear();
 	unsigned paramCount = 0;
@@ -38,6 +42,16 @@ void FieldParams::loadFromStream(std::ifstream & stream) {
 	for (unsigned i = 0; i < paramCount; i++) {
 		stream >> newParam_d;
 		dParam.push_back(newParam_d);
+	}
+	// load char parameters
+	if (version >= "v 1.15.5") {
+		cParam.clear();
+		stream >> paramCount;
+		char newParam_c;
+		for (unsigned i = 0; i < paramCount; i++) {
+			stream >> newParam_c;
+			cParam.push_back(newParam_c);
+		}
 	}
 	// load string parameter and delete first space character
 	std::getline(stream, strParam);
@@ -71,8 +85,8 @@ Field::Field() {
 	type = 0;
 };
 
-Field::Field(std::ifstream & stream) {
-	loadFromStream(stream);
+Field::Field(std::ifstream & stream, std::string version) {
+	loadFromStream(stream, version);
 };
 
 void Field::makeSquare() {
@@ -133,12 +147,12 @@ void Field::saveToStream(std::ofstream & stream) {
 	stream << std::endl;
 };
 
-void Field::loadFromStream(std::ifstream & stream) {
+void Field::loadFromStream(std::ifstream & stream, std::string &version) {
 	// position of the field
 	stream >> border.left >> border.top >> border.right >> border.bottom;
 	// load type of the field
 	stream >> type;
 	// load parameters
-	params.loadFromStream(stream);
+	params.loadFromStream(stream, version);
 };
 

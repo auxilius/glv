@@ -12,9 +12,9 @@ ViewModeControl::ViewModeControl(FieldManager *fManager) {
 
 void ViewModeControl::init() {
 	using namespace std::placeholders;
-	popupModelSelect.OnItemClick = std::bind(&ViewModeControl::onModelMenuSelect, this, _1, _2);
-	popupTextureSelect.OnItemClick = std::bind(&ViewModeControl::onTextureMenuSelect, this, _1, _2);
-	popupVariableSelect.OnItemChange = std::bind(&ViewModeControl::onVariableMenuClick, this, _1, _2, _3);
+	popupModelSelect.callOnItemClick = std::bind(&ViewModeControl::onModelMenuSelect, this, _1, _2);
+	popupTextureSelect.callOnItemClick = std::bind(&ViewModeControl::onTextureMenuSelect, this, _1, _2);
+	popupVariableSelect.callOnItemChange = std::bind(&ViewModeControl::onVariableMenuClick, this, _1, _2, _3);
 };
 
 
@@ -98,9 +98,9 @@ void ViewModeControl::render() {
 	for (unsigned i = 0; i < variableField.size(); i++)
 		variableField[i].draw();
 	// menus
-	popupTextureSelect.draw();
-	popupModelSelect.draw();
-	popupVariableSelect.draw();
+	popupTextureSelect.onRender();
+	popupModelSelect.onRender();
+	popupVariableSelect.onRender();
 };
 
 
@@ -111,32 +111,32 @@ void ViewModeControl::mouseDown(mouseButton button) {
 		modelField[i].onMouseDown(button);
 	}
 
-	if (!popupTextureSelect.isActive())
+	if (!popupTextureSelect.visible)
 		selectedTextureField = -1;
-	if (!popupModelSelect.isActive())
+	if (!popupModelSelect.visible)
 		selectedModelField = -1;
-	if (!popupVariableSelect.isActive())
+	if (!popupVariableSelect.visible)
 		selectedVariableField = -1;
 
 	if (button == mbRight) {
 		unsigned selected = selectFieldUnderMouse();
 		if (selected == FIELD_TYPE_MODEL) {
-			popupModelSelect.show(input.mouse.x, input.mouse.y);
+			popupModelSelect.showAtMousePosition();
 		} else
 		if (selected == FIELD_TYPE_TEXTURE) {
-			popupTextureSelect.show(input.mouse.x, input.mouse.y);
+			popupTextureSelect.showAtMousePosition();
 		} else
 		if (selected == FIELD_TYPE_VALUE) {
 			popupVariableSelect.setCheckedOptions(&variableField[selectedVariableField].itemNumber);
-			popupVariableSelect.show(input.mouse.x, input.mouse.y);
+			popupVariableSelect.showAtMousePosition();
 		}
 	}
 	if (button == mbLeft) {
-		if (popupTextureSelect.isActive())
+		if (popupTextureSelect.visible)
 			popupTextureSelect.onMouseDown(button);
-		if (popupModelSelect.isActive())
+		if (popupModelSelect.visible)
 			popupModelSelect.onMouseDown(button);
-		if (popupVariableSelect.isActive())
+		if (popupVariableSelect.visible)
 			popupVariableSelect.onMouseDown(button);
 	}
 	requestRender();
@@ -205,6 +205,8 @@ bool ViewModeControl::saveParams() {
 		set.dParam.push_back(modelField[i].hang);
 		set.dParam.push_back(modelField[i].vang);
 		set.dParam.push_back(modelField[i].dist);
+		set.cParam.push_back(modelField[i].btnAxes.checked ? 't':'f');
+		set.cParam.push_back(modelField[i].btnColormap.checked ? 't':'f');
 		set.strParam = modelField[i].getModelCaption();
 		fieldManager->fieldSetParams(modelField[i].layer, set);
 	}
@@ -251,6 +253,10 @@ bool ViewModeControl::loadParams() {
 				MV.hang = get.dParam[0];
 				MV.vang = get.dParam[1];
 				MV.dist = get.dParam[2];
+			}
+			if (get.cParam.size() >= 2) {
+				MV.btnAxes.checked = (get.cParam[0] == 't');
+				MV.btnColormap.checked = (get.cParam[1] == 't');
 			}
 			modelField.push_back(MV);
 		} else

@@ -71,6 +71,9 @@ void TextureObject::render(Box frame) {
 	glTexCoord2f(0.0f, 0.0f); glVertex2f((GLfloat)texbox.left - 1.0f, (GLfloat)texbox.bottom);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
+
+	glColor4fv(clGray80);
+	fontSmall->textOut(frame.left+5, frame.bottom-15, this->caption + " (" + std::to_string(this->bufferID) + ")");
 };
 
 TextureObject * TextureView::getTexture() {
@@ -204,55 +207,66 @@ void ModelView::draw() {
 	drawBackground(clGray10);
 	drawBorder(clGray30);
 	
-	// SHADER RENDER TEST
 	glViewport( border.left, canvas.height-border.top-border.height, border.width, border.height );
+
 	shader->bind(progRenderModel);
-	/*
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glViewport(border.left, canvas.height - border.top- border.height, border.width, border.height);
-	gluPerspective(25, , 0.1, 100); /**/
-	glm::mat4 projection = glm::perspective(45.0f, (float)border.width / border.height, 0.01f, 100.0f );
+	
+	glm::mat4 projection = glm::perspective((float)PI/4.0f, (float)border.width / border.height, 0.01f, 100.0f );
 	shader->setUniformMatrix4f("glvProjectionMatrix", glm::value_ptr(projection));
 
 	GLfloat x = (GLfloat)(dist * sin(vang) * sin(hang));
 	GLfloat y = (GLfloat)(dist * cos(vang));
 	GLfloat z = (GLfloat)(-dist * sin(vang) * cos(hang));
 	
-	//gluLookAt(x,y,z, 0,0,0, 0,1,0);
 	glm::mat4 view = glm::lookAt( glm::vec3(x,y,z), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f) );
 	shader->setUniformMatrix4f("glvViewMatrix", glm::value_ptr(view));
 
-	//glMatrixMode(GL_MODELVIEW);
-	glEnable(GL_DEPTH_TEST);
 	ModelObject * model = getModel();
 
 	if (model != NULL) {
-
+		glEnable(GL_DEPTH_TEST);
 		glm::mat4 modelMat = model->getMatrix();
 		shader->setUniformMatrix4f("glvModelMatrix", glm::value_ptr(modelMat));
 		model->setAttributes(shader);
 		model->render(shader);	
+		glDisable(GL_DEPTH_TEST);
 	}
-	glDisable(GL_DEPTH_TEST);
 	
-	/*
+	// render axes if user enabled them
 	if (btnAxes.checked) {
-		glLineWidth(1.0f);
-		GLfloat axeLength = 0.25f;
-		glBegin(GL_LINES);
-		glColor3f(1.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(axeLength, 0.0f, 0.0f);
-		glColor3f(0.0f, 1.0f, 0.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, axeLength, 0.0f);
-		glColor3f(0.0f, 0.0f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, axeLength);
-		glEnd();
-	}/**/
+
+		const GLfloat axeLength = 0.2f;
+		glm::mat4 matIdentity = glm::mat4(1.0f);
+		shader->setUniformMatrix4f("glvModelMatrix", glm::value_ptr(matIdentity));
+		glLineWidth(1.5f);
+		shader->setUniform1i("enableValues", 0);
+		shader->setUniform1i("enableTexture", 0);
+		
+		GLfloat verts[] = { 0.0f, 0.0f, 0.0f, axeLength, 0.0f, 0.0f,
+							0.0f, 0.0f, 0.0f, 0.0f, axeLength, 0.0f,
+							0.0f, 0.0f, 0.0f, 0.0f, 0.0f, axeLength };
+		GLuint axes;
+		glGenBuffers(1, &axes);
+		glBindBuffer(GL_ARRAY_BUFFER, axes);
+		glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(GLfloat), verts, GL_STATIC_DRAW);
+		shader->setAttribute("inVertex", axes, 3);
+		
+		shader->setUniform4f("color", clRed);
+		glDrawArrays(GL_LINES, 0, 2);
+		shader->setUniform4f("color", clGreen);
+		glDrawArrays(GL_LINES, 2, 2);
+		shader->setUniform4f("color", clBlue);
+		glDrawArrays(GL_LINES, 4, 2);
+
+		glDeleteBuffers(1, &axes);
+	}
+
 	shader->unbind();
-	reloadProjection();
 	renderUI();
 };
 
 void ModelView::renderUI() {
+	reloadProjection();
 
 	if (btnColormap.checked) {
 		ModelObject * model = getModel();
@@ -278,9 +292,19 @@ void ModelView::renderUI() {
 	}
 
 	if ( border.contains(input.mouse) ) {
-		btnAxes.draw();
-		btnColormap.draw();
+		btnAxes.onRender();
+		btnColormap.onRender();
 	}
+
+	ModelObject * model = getModel();
+	std::string modelCaption = "";
+	if (model != NULL)
+		modelCaption = model->getCaption();
+	else if (waitingForModelCaption != "" && waitingForModelCaption != "-")
+		modelCaption = waitingForModelCaption;
+
+	glColor4fv(clGray80);
+	fontSmall->textOut(border.left+5, border.bottom-15, modelCaption);
 	
 };
 

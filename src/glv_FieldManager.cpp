@@ -144,10 +144,6 @@ bool FieldManager::load(std::string fileName) {
 	}
 	std::string version;
 	getline(inStream, version);
-	if (version != CONFIG_FILE_VERSION && version != "") {
-		MessageBox(0, "Version of configuration file is out of date. Configuration will not load.", "GLD - loading error", MB_OK | MB_ICONINFORMATION);
-		return false;
-	}
 	actualFile = "";
 	// READ - SKIPPING WIDTH, HEIGHT, X, Y
 	inStream >> form.left >> form.top >> form.right >> form.bottom;
@@ -159,7 +155,7 @@ bool FieldManager::load(std::string fileName) {
 	// READ - FIELDS
 	Field *newField;
 	for (unsigned i = 0; i < count; i++) {
-		newField = new Field(inStream);
+		newField = new Field(inStream, version);
 		field.push_back(newField);
 	}
 	inStream.close();

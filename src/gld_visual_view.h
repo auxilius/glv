@@ -56,10 +56,12 @@ private:
 	Point lastMousePos;
 	float normalizeValue(float value);
 	void resetCamera();
+	
+public:
 	Interface::CheckButton btnVerticesOver;
 	Interface::CheckButton btnColormap;
 	Interface::CheckButton btnAxes;
-public:
+
 	double hang, vang, dist;
 	std::string waitingForModelCaption;
 	void init();

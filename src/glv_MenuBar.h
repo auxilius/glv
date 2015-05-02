@@ -28,8 +28,12 @@ private:
 	ProfileSwitcher * profiles;
 	ProfileEdit		* profileEditor;
 
-	Interface::Button btnRoomSwitch, btnProfileSelect;
-	Interface::PopupMenu menuProfileSelect, menuProfileEdit;
+	Interface::CheckButton btnHideMenu;
+	Interface::Button btnRoomSwitch;
+	Interface::Button btnProfileSelect;
+	Interface::Menu menuProfileEdit;
+	Interface::Menu menuProfileSelect;
+	//Interface::Select selectProfile;
 
 	Box getBorder();
 	void update();

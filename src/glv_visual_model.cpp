@@ -169,9 +169,12 @@ void ModelObject::setAttributes(Shaders *shader) {
 	shader->setAttribute("inVertex", vertice.bid, 3);
 	
 	shader->setUniform1i("enableTexture", (int)texture.show);
-	if (texture.show) {
+	if (texture.show)
 		shader->setAttribute("inCoords", texture.coords , 2, texture.type);
-	}
+
+	shader->setUniform1i("enableValues", 0);
+	if (data.useBuffer)
+		shader->setAttribute("inValueColor", data.color_bid, 3);
 };
 
 
@@ -183,7 +186,7 @@ void ModelObject::render(Shaders *shader) {
 		shader->setUniform4f("color", clGray40);
 		drawElements(shader);
 	}
-	if (!texture.show) {
+	if (!texture.show || data.useBuffer) {
 		shader->setUniform4f("color", clWhite);
 		drawVertices(shader);
 	}
@@ -209,12 +212,8 @@ void ModelObject::drawElements(Shaders *shader) {
 };
 
 void ModelObject::drawVertices(Shaders *shader) {
-	glPointSize(5.0f);
 	shader->setUniform1i("enableValues", (int)data.useBuffer);
-	if (data.useBuffer) {
-		glPointSize(7.0f);
-		shader->setAttribute("inValueColor", data.color_bid, 3);
-	}
+	glPointSize(5.0f);
 	glEnable( GL_POINT_SMOOTH );
 	glDrawArrays( GL_POINTS, 0, vertice.count);
 };
@@ -230,118 +229,6 @@ bool ModelObject::willDrawColored() {
 
 
 /*
-void ModelObject::renderPoints() {
-	glPointSize(4.0f);
-	glEnable(GL_POINT_SMOOTH);
-	glColor3f(0.9f, 0.9f, 0.9f);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, vertice.bid);
-	glVertexPointer(3, vertice.type, 0, NULL);
-	glDrawArrays(GL_POINTS, 0, vertice.count);
-	glDisableClientState(GL_VERTEX_ARRAY);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-};
-
-void ModelObject::renderColoredPoints() {
-	glPointSize(6.0f);
-	glEnable(GL_POINT_SMOOTH);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, vertice.bid);
-	glVertexPointer(3, vertice.type, 0, NULL);
-	if (data.useBuffer) {
-		glEnableClientState(GL_COLOR_ARRAY);
-		glBindBuffer(GL_ARRAY_BUFFER, data.color_bid);
-		glColorPointer(3, GL_FLOAT, 0, NULL);
-		glDrawArrays(GL_POINTS, 0, vertice.count);
-	} 
-	else {
-		for (unsigned i = 0; i < vertice.count; i++) {
-			float value = data.values[i];
-			if (!data.normalized)
-				value = normalizeValue(value);
-			GLcolor color = valToColor(value, data.colormap);
-			glColor3f(color.R, color.G, color.B);
-			glDrawArrays(GL_POINTS, i, 1);
-		}
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-};
-
-void ModelObject::renderNormals() {
-	glEnable(GL_POINT_SMOOTH);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, vertice.bid);
-	glVertexPointer(3, vertice.type, 0, NULL);
-	if (data.useBuffer) {
-		glEnableClientState(GL_COLOR_ARRAY);
-		glBindBuffer(GL_ARRAY_BUFFER, data.color_bid);
-		glColorPointer(3, GL_FLOAT, 0, NULL);
-		glDrawArrays(GL_POINTS, 0, vertice.count);
-	} 
-	else {
-		for (unsigned i = 0; i < vertice.count; i++) {
-			float value = data.values[i];
-			if (!data.normalized)
-				value = normalizeValue(value);
-			GLcolor color = valToColor(value, data.colormap);
-			glColor3f(color.R, color.G, color.B);
-			glDrawArrays(GL_POINTS, i, 1);
-		}
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-};
-
-void ModelObject::renderTextured() {
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, vertice.bid);
-	glVertexPointer(3, vertice.type, 0, NULL);
-	
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, texture.coords);
-	glTexCoordPointer(2, texture.type, 0, NULL);
-
-	glBindTexture(GL_TEXTURE_2D, texture.id);
-	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, edges.bid);
-	glDrawElements(edges.mode, edges.count, edges.type, 0);
-	
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-};
-
-void ModelObject::renderEdges() {
-	glLineWidth(1.0f);
-	glColor3f(0.2f, 0.2f, 0.2f);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, vertice.bid);
-	glVertexPointer(3, vertice.type, 0, NULL);
-	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, edges.bid);
-	glDrawElements(edges.mode, edges.count, edges.type, 0);
-	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glDisableClientState(GL_VERTEX_ARRAY);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-};
 
 void ModelObject::render(bool forceVertices) 
 {

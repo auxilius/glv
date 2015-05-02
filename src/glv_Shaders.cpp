@@ -19,6 +19,7 @@ GLchar * vertBoxRender[] = {
 	"	gl_Position = vec4(vertex.x, -vertex.y, 0.0, 1.0); \n"
 	"} \n"
 };
+
 GLchar * fragBoxRender[] =  { 
 	"#version 130 \n"
 	"in vec4 fragColor; \n"
@@ -26,7 +27,6 @@ GLchar * fragBoxRender[] =  {
 	"	gl_FragColor = fragColor; \n"
 	"} \n" 
 };
-
 
 GLchar * vertModelRender[] = {
 	"#version 130 \n"
@@ -41,9 +41,8 @@ GLchar * vertModelRender[] = {
 	"	if (enableValues>0) valueColor = inValueColor; \n"
 	"	gl_Position = glvProjectionMatrix * glvViewMatrix * glvModelMatrix * vec4(inVertex, 1.0); \n"
 	"} \n"
-
-
 };
+
 GLchar * fragModelRender[] =  { 
 	"#version 130 \n"
 	"uniform int enableValues, enableTexture; \n"

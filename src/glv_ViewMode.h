@@ -15,10 +15,10 @@ class ViewModeControl {
 private:
 	FieldManager *fieldManager;
 
-	Interface::PopupMenu popupModelSelect;
-	Interface::PopupMenu popupTextureSelect;
-	Interface::CheckPopupMenu popupVariableSelect;
-	Interface::CheckPopupMenu popupShaderSelect;
+	Interface::Menu popupModelSelect;
+	Interface::Menu popupTextureSelect;
+	Interface::CheckMenu popupVariableSelect;
+	Interface::CheckMenu popupShaderSelect;
 
 	std::vector<ModelObject> modelList;
 	std::vector<TextureObject> textureList;

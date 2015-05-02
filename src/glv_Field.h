@@ -7,16 +7,17 @@
 struct FieldParams {
 	std::vector<int> iParam;
 	std::vector<double> dParam;
+	std::vector<char> cParam;
 	std::string strParam;
 	void saveToStream(std::ofstream & stream);
-	void loadFromStream(std::ifstream & stream);
+	void loadFromStream(std::ifstream & stream, std::string &version);
 	void clear();
 };
 
 class Field {
 public:
 	Field();
-	Field(std::ifstream & stream);
+	Field(std::ifstream & stream, std::string version);
 	Field(const Box &cBorder, const short &fType = FIELD_TYPE_NONE);
 	Field(int x1, int y1, int x2, int y2, const short &fType = FIELD_TYPE_NONE);
 
@@ -35,7 +36,7 @@ public:
 public:
 	FieldParams params;
 	void saveToStream(std::ofstream & stream);
-	void loadFromStream(std::ifstream & stream);
+	void loadFromStream(std::ifstream &stream, std::string &version);
 
 private:
 	short type;

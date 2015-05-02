@@ -19,6 +19,10 @@ Color clGray20	= {0.20f, 0.20f, 0.20f, 1.0f};
 Color clGray10  = {0.10f, 0.10f, 0.10f, 1.0f};
 Color clBlack	= {0.00f, 0.00f, 0.00f, 1.0f};
 
+Color clRed		= {1.0f, 0.0f, 0.0f, 1.0f};
+Color clGreen	= {0.0f, 1.0f, 0.0f, 1.0f};
+Color clBlue	= {0.0f, 0.0f, 1.0f, 1.0f};
+
 Color clConfBack	= {0.050f, 0.100f, 0.020f, 1.0f};
 Color clConfGrid	= {0.075f, 0.100f, 0.020f, 1.0f};
 Color clConfBoxMes	= {0.240f, 0.270f, 0.210f, 1.0f};
