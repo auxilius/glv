@@ -5,12 +5,43 @@ The User can configure window layout, to decide what to displayinthewindow. The 
 dividual objects, to customize visualization. Library can be used as a supportive visualizer or tool for debugging
 OpenGL applications.
 
+## Code Example
+to use a library, interface is provided in file gldebugger.h
+
+```
+void main(void) {
+
+  HGLRC myGLRC;
+  HDC myDC;
+
+  myStartOpenGL(&myGLRC, &myDC); // your procedure for context cration
+  
+  glv::init("./glv_files/", myGLRC, myHDC); // initialize the viewing window and set path where files will be stored
+  glv::show(); // show the viewer window
+  
+  GLuint vertBuf = myCubeVertexBuffer(); // create some buffer with 8 cube vertices
+  glv::setModel("Test Cube Model", 8, vertBuff); // add a model and assign it with caption
+  
+  GLuint indexBuf = myCubeIndexBuffer(); // get the buffer with cube indexes - 16 triangles
+  glv::modelElement("Test Cube Model", GL_TRIANGLES, 16, indexBuff); // specify how elements will be rendered in the viewer
+  
+  Gluint texID = myLoadNiceTexture(); // load some your texture
+  glv::setTexture("Some Nice Texture", texID); // enable to display a texture defining it's ID
+  
+  glv::setLine("Texture ID", "texture id is %u", &texID); // set a value tracker to watch the variable 'texID'
+  
+  while(true)
+    ; // loop this thread forever and view resources
+    
+};
+```
+
 ## Interface
-`glv::init();`
+`glv::init(glvWorkingDir, glrcToShare, dcToShare);`
 
-Used for initialization of the library.
+Used for initialization of the library. glvWorkingDir is directory where all supplementary files will be saved.
 
-`glv::openWindow();` and `glv::closeWindow();`
+`glv::show();` and `glv::hide();`
 
 The functions for window open/close manipulation.
 
