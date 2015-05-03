@@ -13,10 +13,10 @@ ProfileEdit::ProfileEdit(ProfileSwitcher *pSwitch) {
 	editText = "";
 
 	finish.caption = "OK";
-	finish.callOnClick = std::bind(&ProfileEdit::onConfirm, this);
+	finish.OnClick = std::bind(&ProfileEdit::onConfirm, this);
 
 	cancel.caption = "Cancel";
-	cancel.callOnClick = std::bind(&ProfileEdit::onCancel, this);
+	cancel.OnClick = std::bind(&ProfileEdit::onCancel, this);
 
 	editBorder.setSize(250, fontMain->getSize()+10);
 };
@@ -72,8 +72,8 @@ void ProfileEdit::render() {
 	glColor(200, 200, 200);
 	fontMain->textOut(editBorder.left + 10, editBorder.top + 5, editText);
 	// render buttons
-	finish.onRender();
-	cancel.onRender();
+	finish.draw();
+	cancel.draw();
 };
 
 void ProfileEdit::mouseDown(mouseButton button) {

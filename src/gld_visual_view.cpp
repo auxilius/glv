@@ -211,7 +211,7 @@ void ModelView::draw() {
 
 	shader->bind(progRenderModel);
 	
-	glm::mat4 projection = glm::perspective((float)PI/4.0f, (float)border.width / border.height, 0.01f, 100.0f );
+	glm::mat4 projection = glm::perspective(45.0f, (float)border.width / border.height, 0.01f, 100.0f );
 	shader->setUniformMatrix4f("glvProjectionMatrix", glm::value_ptr(projection));
 
 	GLfloat x = (GLfloat)(dist * sin(vang) * sin(hang));
@@ -292,8 +292,8 @@ void ModelView::renderUI() {
 	}
 
 	if ( border.contains(input.mouse) ) {
-		btnAxes.onRender();
-		btnColormap.onRender();
+		btnAxes.draw();
+		btnColormap.draw();
 	}
 
 	ModelObject * model = getModel();

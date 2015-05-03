@@ -12,9 +12,9 @@ ViewModeControl::ViewModeControl(FieldManager *fManager) {
 
 void ViewModeControl::init() {
 	using namespace std::placeholders;
-	popupModelSelect.callOnItemClick = std::bind(&ViewModeControl::onModelMenuSelect, this, _1, _2);
-	popupTextureSelect.callOnItemClick = std::bind(&ViewModeControl::onTextureMenuSelect, this, _1, _2);
-	popupVariableSelect.callOnItemChange = std::bind(&ViewModeControl::onVariableMenuClick, this, _1, _2, _3);
+	popupModelSelect.OnItemClick = std::bind(&ViewModeControl::onModelMenuSelect, this, _1, _2);
+	popupTextureSelect.OnItemClick = std::bind(&ViewModeControl::onTextureMenuSelect, this, _1, _2);
+	popupVariableSelect.OnItemChange = std::bind(&ViewModeControl::onVariableMenuClick, this, _1, _2, _3);
 };
 
 
@@ -98,9 +98,9 @@ void ViewModeControl::render() {
 	for (unsigned i = 0; i < variableField.size(); i++)
 		variableField[i].draw();
 	// menus
-	popupTextureSelect.onRender();
-	popupModelSelect.onRender();
-	popupVariableSelect.onRender();
+	popupTextureSelect.draw();
+	popupModelSelect.draw();
+	popupVariableSelect.draw();
 };
 
 
@@ -111,11 +111,11 @@ void ViewModeControl::mouseDown(mouseButton button) {
 		modelField[i].onMouseDown(button);
 	}
 
-	if (!popupTextureSelect.visible)
+	if (!popupTextureSelect.isActive())
 		selectedTextureField = -1;
-	if (!popupModelSelect.visible)
+	if (!popupModelSelect.isActive())
 		selectedModelField = -1;
-	if (!popupVariableSelect.visible)
+	if (!popupVariableSelect.isActive())
 		selectedVariableField = -1;
 
 	if (button == mbRight) {
@@ -132,11 +132,11 @@ void ViewModeControl::mouseDown(mouseButton button) {
 		}
 	}
 	if (button == mbLeft) {
-		if (popupTextureSelect.visible)
+		if (popupTextureSelect.isActive())
 			popupTextureSelect.onMouseDown(button);
-		if (popupModelSelect.visible)
+		if (popupModelSelect.isActive())
 			popupModelSelect.onMouseDown(button);
-		if (popupVariableSelect.visible)
+		if (popupVariableSelect.isActive())
 			popupVariableSelect.onMouseDown(button);
 	}
 	requestRender();

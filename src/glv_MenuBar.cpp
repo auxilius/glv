@@ -24,8 +24,8 @@ bool MenuBar::isUnderCursor() {
 	if (!btnHideMenu.checked)
 		return btnHideMenu.isHovered();
 	bool A = getBorder().contains(input.mouse);
-	bool B = menuProfileSelect.visible;
-	bool C = menuProfileEdit.visible;
+	bool B = menuProfileSelect.isActive();
+	bool C = menuProfileEdit.isActive();
 	//bool D = selectProfile.isActive();
 	return A || B || C ;//|| D;
 };
@@ -36,28 +36,28 @@ void MenuBar::init() {
 	btnHideMenu.width = BTN_HIDE_WIDTH;
 	btnHideMenu.checked = true;
 
-	btnProfileSelect.colorBorder = &clGray80;
-	btnProfileSelect.colorBorderHover = &clGray90;
-	btnRoomSwitch.colorBorder = &clGray80;
-	btnRoomSwitch.colorBorderHover = &clGray90;
-	//selectProfile.colorBorder = &clGray80;
-	//selectProfile.colorBorderHover = &clGray90;
+	btnProfileSelect.color.border = &clGray80;
+	btnProfileSelect.color.hoverBorder = &clGray90;
+	btnRoomSwitch.color.border = &clGray80;
+	btnRoomSwitch.color.hoverBorder = &clGray90;
+	//selectProfile.color.border = &clGray80;
+	//selectProfile.color.hoverBorder = &clGray90;
 
 	menuProfileEdit.addItem(MENU_PROFILE_RENAME);
 	menuProfileEdit.addItem(MENU_PROFILE_REMOVE);
 
 	using namespace std::placeholders;
-	menuProfileSelect.callOnItemClick = std::bind(&MenuBar::onMenuProfilesClick, this, _1, _2);
-	menuProfileEdit.callOnItemClick = std::bind(&MenuBar::onMenuProfileEditClick, this, _1, _2);
-	//selectProfile.callOnChange = std::bind(&MenuBar::onMenuProfilesClick, this, _1, _2);
-	btnProfileSelect.callOnClick = std::bind(&MenuBar::onProfileButtonClick, this);
-	btnRoomSwitch.callOnClick = std::bind( &MenuBar::onRoomButtonClick, this );
+	menuProfileSelect.OnItemClick = std::bind(&MenuBar::onMenuProfilesClick, this, _1, _2);
+	menuProfileEdit.OnItemClick = std::bind(&MenuBar::onMenuProfileEditClick, this, _1, _2);
+	//selectProfile.OnChange = std::bind(&MenuBar::onMenuProfilesClick, this, _1, _2);
+	btnProfileSelect.OnClick = std::bind(&MenuBar::onProfileButtonClick, this);
+	btnRoomSwitch.OnClick = std::bind( &MenuBar::onRoomButtonClick, this );
 };
 
 void MenuBar::reloadProfileList() {
 	menuProfileSelect.clearAllItems();
 	menuProfileSelect.addItem( PROFILE_CAPTION_ADDNEW );
-	menuProfileSelect.addItem( Interface::NULL_ITEM );
+	menuProfileSelect.addItem( NULL_ITEM );
 	for (unsigned i = 0; i < profiles->count(); i++)
 		menuProfileSelect.addItem( profiles->getName(i).c_str() );
 
@@ -155,15 +155,15 @@ void MenuBar::onMenuProfileEditClick(int itemID, std::string itemName) {
 void MenuBar::onRender() {
 	if (btnHideMenu.checked) {
 		drawBox(&getBorder(), clGray60);
-		btnRoomSwitch.onRender();
-		btnProfileSelect.onRender();
+		btnRoomSwitch.draw();
+		btnProfileSelect.draw();
 		if (profiles->count() > 1) {
-			menuProfileSelect.onRender(!menuProfileEdit.visible);
-			menuProfileEdit.onRender();
+			menuProfileSelect.draw(!menuProfileEdit.isActive());
+			menuProfileEdit.draw();
 		}
 		//selectProfile.draw();
 	}
-	btnHideMenu.onRender();
+	btnHideMenu.draw();
 };
 
 void MenuBar::onMouseDown(mouseButton button) {
@@ -181,10 +181,10 @@ void MenuBar::onMouseDown(mouseButton button) {
 	// Profile Selection
 	if (profiles->count() > 1) {
 		
-		if (menuProfileEdit.visible)
+		if (menuProfileEdit.isActive())
 			menuProfileEdit.onMouseDown(button);
 		else
-		if (menuProfileSelect.visible)
+		if (menuProfileSelect.isActive())
 			menuProfileSelect.onMouseDown(button);			
 		else 
 			btnProfileSelect.onMouseDown(button);

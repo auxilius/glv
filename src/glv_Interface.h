@@ -14,169 +14,132 @@
 
 namespace Interface {
 
-	const std::string NULL_ITEM = "";
-	typedef std::function<void(mouseButton)> EventOnClick;
-	typedef std::function<void(bool)> EventOnStateChange;
-	typedef std::function<void(int,std::string)> EventOnMenuClick;
-	typedef std::function<void(int,std::string,bool)> EventOnMenuStateChange;
+	typedef std::function<void(void)> ButtonEventCallback;
+	typedef std::function<void(bool)> CheckButtonEventCallback;
 
-
-	class Rect {
+	class Button {
 	public:
-		Rect();
-		// state
-		virtual bool isHovered();
-		// event notifiers
-		virtual void onMouseDown(mouseButton button);
-		virtual void onRender(bool alsoHoverColors = true);
+		ButtonEventCallback OnClick;
+		GLfloat borderWidth;
+		struct ButtonColors {
+			Color *back;
+			Color *hoverBack;
+			Color *border;
+			Color *hoverBorder;
+			Color *text;
+			Color *hoverText;
+		} color;
+		void onMouseDown(mouseButton button);
 	public:
-		// callback pointers
-		EventOnClick callOnClick;
-		// properties
-		bool visible;
-		GLfloat outlineWidth;
-		// colors
-		Color *colorBack;
-		Color *colorBackHover;
-		Color *colorBorder;
-		Color *colorBorderHover;
-	public:
-		// POSITION
-		void setPosition(int x, int y);
-		Point getPosition();
-		__declspec(property(get = getPosition)) Point position;
-		// WIDTH
-		void setWidth(int newWidth);
-		int getWidth();
-		__declspec(property(get = getWidth, put = setWidth)) int width;
-		// HEIGHT
-		void setHeight(int newHeight);
-		int getHeight();
-		__declspec(property(get = getHeight, put = setHeight)) int height;
-		// SIZE (WIDTH + HEIGHT)
-		void setSize(int w, int h);
-	protected:
-		Box border;
-		virtual void loadDefaultColors();
-		virtual void drawBorder(bool alsoHoverColors);
-	};
-	
-
-	/***   BUTTONS   ***/
-
-	class Button : public Rect {
-	public:
-		// colors
-		Color *colorText;
-		Color *colorTextHover;
-		// constructor
 		Button();
-		// event notifiers
-		virtual void onRender(bool alsoHoverColors = true);
-		// FONT
-		Font* getFont();
-		void setFont(Font *newFont);
-		__declspec(property(get = getCaption, put = setCaption)) std::string font;
+		void draw(bool alsoHoverColors = true);
+		bool isHovered();
+		void setFont(Font *f);
 		// CAPTION
-		std::string getCaption();
+		std::string getCaption() { return textOnButton; };
 		void setCaption(std::string newCaption);
 		__declspec(property(get = getCaption, put = setCaption)) std::string caption;
+		// POSITION
+		void setPosition(int x, int y) { border.moveTo(x, y); };
+		Point getPosition() { return point(border.left, border.top); };
+		__declspec(property(get = getPosition)) Point position;
+		// WIDTH
+		void setWidth(int newWidth) { border.setWidth(newWidth); };
+		int getWidth() { return border.getWidth(); };
+		__declspec(property(get = getWidth, put = setWidth)) int width;
+		// HEIGHT
+		void setHeight(int newHeight) { border.setHeight(newHeight); };
+		int getHeight() { return border.getHeight(); };
+		__declspec(property(get = getHeight, put = setHeight)) int height;
+		// WIDTH + HEIGHT
+		void setSize(int w, int h) { setWidth(w); setHeight(h); };
 	protected:
-		virtual void loadDefaultColors();
-		virtual void drawText(bool alsoHoverColors);
-	private:
+		Font *font;
+		Box border;
 		std::string textOnButton;
-		Font *myFont;
-		void fitSizeToText();
+		void loadDefaultColors();
+		void recalcSize();
+	protected:
+		void drawBorder(bool alsoHoverColors);
+		void drawText(bool alsoHoverColors);
 	};
 
 
 	class CheckButton : public Button {
 	public:
-		EventOnStateChange callOnChange;
-		// constructor
+		CheckButtonEventCallback OnChange;
 		CheckButton();
-		// event notifiers
-		virtual void onMouseDown(mouseButton button);
+		void onMouseDown(mouseButton button);
 		// CHECKED
 		void setChecked(bool state);
-		bool getChecked();
+		bool getChecked() { return checkState; };
 		__declspec(property(get = getChecked, put = setChecked)) bool checked;
-	private:
+	protected:
 		bool checkState;
 	};
 
 
-	/***   MENU LISTS   ***/
-	
-	class Menu : public Rect {
+
+
+
+	#define NULL_ITEM ""
+
+	typedef std::function<void(int,std::string)> MenuClickEvent;
+	typedef std::function<void(int,std::string,bool)> MenuChangeEvent;
+
+	class Menu {
 	public:
-		// callbacks
-		EventOnMenuClick callOnItemClick;
-		// constructor
+		MenuClickEvent OnItemClick;
+		bool checkable;
 		Menu();
-		// event notifiers
-		virtual void onMouseDown(mouseButton button);
-		virtual void onRender(bool highlightHovered = true);
-		// item list manipulation
+		Menu(std::vector<std::string> data);
+		void onMouseDown(mouseButton button);
 		int addItem(std::string caption);
-		std::string getItemCaption(int itemID);
 		void clearAllItems();
-		// visibility manipulation
+		void draw(bool highlightHovered = true);
+		bool isActive();
 		void show(int x, int y);
 		void showAtMousePosition();
 		void hide();
+		int getWidth();
+		std::string getItemCaption(int itemID);
 	protected:
-		// list of items
+		int minItemWidth;
+		Box activeArea, border;
 		std::vector<Button> item;
-		// creates an item which cam be added to the list of items
-		virtual Button createItem(std::string name);
+		bool active;
+		virtual Button newItem(std::string name);
 	};
 
 	
 	class CheckMenu : public Menu {
 	public:
-		// callbacks
-		EventOnMenuStateChange callOnItemChange;
-		// set the items to the states
+		MenuChangeEvent OnItemChange;
+		void onMouseDown(mouseButton button);
 		void setCheckedOptions(std::vector<unsigned> * checkedOptions);
-		// event notifiers
-		virtual void onMouseDown(mouseButton button);
+		int checkedItem();
+		int uncheckedItem();
 	protected:
-		// creates an item which cam be added to the list of items
-		virtual Button createItem(std::string name);
+		Button newItem(std::string name);
 	};
 
 
-	/***   COMBO BOX   ***/
 
 	class Select : public Button {
 	public:
-		// callback - when value of select was changed
-		EventOnMenuClick callOnChange;
-		// constructor
+		MenuClickEvent OnChange;
 		Select();
-		// add item to the list
 		int addItem(std::string caption);
-		// select specified item
-		void selectItem(std::string item);
-		// clear the list of items
+		void select(std::string item);
 		void clearAllItems();
+		void onMouseDown(mouseButton button);
+		void draw();
+		bool isActive();
 
-		// event notifier - when mouse button was pressed
-		virtual void onMouseDown(mouseButton button);
-		// event notifier - when it is time for rendering
-		virtual void onRender(void);
-		// if the list is opened and user is selecting item
-		bool isOpened();
 	private:
-		// list of items which can be selected
 		Menu menuList;
-		// actualy selected item
 		int actualSelected;
-		// event notifier - when *this button was clicked
-		void onClick();
-		// event notifier - when any item from the list was selected
+		void onClickButton();
 		void onItemClick(int id, std::string caption);
 	};
 
