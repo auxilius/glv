@@ -4,6 +4,9 @@
 
 Shaders *shader = NULL;
 
+
+////	BOX RENDERING
+
 GLchar * vertBoxRender[] = {
 	"#version 130 \n"
 	"uniform vec4 corners, color; \n"
@@ -28,31 +31,42 @@ GLchar * fragBoxRender[] =  {
 	"} \n" 
 };
 
+
+////	MODEL RENDERING
+
 GLchar * vertModelRender[] = {
 	"#version 130 \n"
-	"in vec3 inVertex; \n"
-	"in vec2 inCoords; \n"
-	"in vec3 inValueColor; \n"
-	"uniform int enableValues, enableTexture; \n"
+	"in vec3 glvVertex; \n"
+	"in vec2 glvCoords; \n"
+	"in vec3 glvValueColor; \n"
+	"uniform int glvEnableValues, glvEnableTexture, glvEnableLightning; \n"
 	"uniform mat4 glvModelMatrix, glvViewMatrix, glvProjectionMatrix; \n"
-	"out vec2 coords; out vec3 valueColor; \n"
+	"out vec2 coords; out vec3 valueColor; out float distance; \n"
 	"void main(void) { \n"
-	"	if (enableTexture>0) coords = inCoords; \n"
-	"	if (enableValues>0) valueColor = inValueColor; \n"
-	"	gl_Position = glvProjectionMatrix * glvViewMatrix * glvModelMatrix * vec4(inVertex, 1.0); \n"
+	"	mat4 MVP = glvProjectionMatrix *glvViewMatrix * glvModelMatrix; \n"
+	"	vec4 projPosition = MVP * vec4(glvVertex, 1.0); \n"
+	"	vec4 projOrigin = MVP * vec4(0.0,0.0,0.0,1.0); \n"
+	"	if (glvEnableTexture>0) coords = glvCoords; \n"
+	"	if (glvEnableValues>0) valueColor = glvValueColor; \n"
+	"   if (glvEnableLightning>0) { \n"
+	"		distance = 0.3 + (projOrigin.z - projPosition.z)*0.7; \n"
+	"		if (distance < 0.25) distance = 0.25; \n"
+	"	} \n"
+	"	gl_Position = projPosition; \n"
 	"} \n"
 };
 
 GLchar * fragModelRender[] =  { 
 	"#version 130 \n"
-	"uniform int enableValues, enableTexture; \n"
-	"uniform sampler2D texData; \n"
-	"uniform vec4 color; \n"
-	"in vec2 coords; in vec3 valueColor; \n"
+	"uniform int glvEnableValues, glvEnableTexture, glvEnableLightning; \n"
+	"uniform sampler2D glvTexture; \n"
+	"uniform vec4 glvColor; \n"
+	"in vec2 coords; in vec3 valueColor; in float distance; \n"
 	"void main(void) { \n"
-	"	vec4 fragColor = color; \n"
-	"	if (enableTexture>0) fragColor = texture(texData, coords); \n"
-	"	if (enableValues>0) fragColor = vec4(valueColor, 1.0); \n"
+	"	vec4 fragColor = glvColor; \n"
+	"	if (glvEnableTexture>0) fragColor = texture(glvTexture, coords); \n"
+	"	if (glvEnableValues>0) fragColor = vec4(valueColor, 1.0); \n"
+	"   if (glvEnableLightning>0) fragColor.rgb = fragColor.rgb * distance; \n"
 	"	gl_FragColor = fragColor; \n"
 	"}  \n"
 };
@@ -71,6 +85,12 @@ void Shaders::bind(ShaderProgram programName) {
 	actualProgram = program[programName];
 	glUseProgram(program[programName]);
 };
+
+void Shaders::bindCustom(GLuint custom_program) {
+	actualProgram = custom_program;
+	glUseProgram(custom_program);
+};
+
 
 void Shaders::unbind() {
 	actualProgram = 0;
@@ -110,8 +130,11 @@ bool Shaders::setUniformMatrix4f(std::string name, GLfloat* values) {
 };
 
 bool Shaders::setAttribute(std::string name, GLuint buffer, GLint size, GLenum type) {
-
 	GLint location = getLocationAttrib(name.c_str());
+	return setAttribute(location, buffer, size, type);
+};
+
+bool Shaders::setAttribute(GLuint location, GLuint buffer, GLint size, GLenum type) {
 	if (location != -1) {
 		glEnableVertexAttribArray(location);
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);

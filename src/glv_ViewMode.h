@@ -62,7 +62,7 @@ public:
 	bool addValues(const char * caption, const char * formatString, void * data[]);
 	bool addValArray(const char* caption, void* data[], const char* format, int length, int lineLength);
 	
-	bool addModel(const char * caption, const unsigned count, const GLuint vboid, GLenum type);
+	bool addModel(const char * caption, const unsigned count, const GLuint vboid, bool rewrite, GLenum type);
 	void addModelEdges(const char * caption, const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
 	void addModelNormals(const char * caption, const GLuint bufferid);
 	void addModelTexture(const char * caption, const GLuint texture, const GLuint coordinates, GLenum type);

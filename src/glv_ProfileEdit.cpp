@@ -6,17 +6,20 @@ ProfileEdit::ProfileEdit(ProfileSwitcher *pSwitch) {
 	// handle to the Profile Switcher
 	profiles = pSwitch;
 	// initialize values
-	renaming = false;
+	editing = false;
 	profileBeingEdited = -1;
 	active = false;
 	// initialize interface
 	editText = "";
 
-	finish.caption = "OK";
-	finish.OnClick = std::bind(&ProfileEdit::onConfirm, this);
+	btnFinish.caption = "OK";
+	btnFinish.callOnClick = std::bind(&ProfileEdit::onConfirm, this);
 
-	cancel.caption = "Cancel";
-	cancel.OnClick = std::bind(&ProfileEdit::onCancel, this);
+	btnCancel.caption = "Cancel";
+	btnCancel.callOnClick = std::bind(&ProfileEdit::onCancel, this);
+
+	btnRemove.caption = "Delete";
+	btnRemove.callOnClick = std::bind(&ProfileEdit::onRemove, this);
 
 	editBorder.setSize(250, fontMain->getSize()+10);
 };
@@ -25,9 +28,9 @@ bool ProfileEdit::isActive() {
 	return active;
 };
 
-void ProfileEdit::startRenaming(int profileId) {
+void ProfileEdit::startEditing(int profileId) {
 	active = true;
-	renaming = true;
+	editing = true;
 	profileBeingEdited = profileId;	
 	editText = profiles->getName(profileId);
 	recalculatePositions();
@@ -35,7 +38,7 @@ void ProfileEdit::startRenaming(int profileId) {
 
 void ProfileEdit::startAddingNew() {
 	active = true;
-	renaming = false;
+	editing = false;
 	profileBeingEdited = -1;
 	editText = "";
 	recalculatePositions();
@@ -43,26 +46,28 @@ void ProfileEdit::startAddingNew() {
 
 void ProfileEdit::recalculatePositions() {
 	// beging of the interface
-	int x = (canvas.width - 250) / 2;
 	int y = canvas.height / 2 - 25;
+	int x = (canvas.width - 250) / 2;
+	// name edit box
 	editBorder.moveTo(x, y);
-	// calculate width both buttons placed beside each other
-	int buttonsWidth = finish.width + cancel.width + 10;
-	// set the coordinates to the finish button position
-	x = (canvas.width - buttonsWidth) / 2;
+	// width of both buttons beside each other
+	int buttonsWidth = btnFinish.width + btnCancel.width + 10;
+	// set the coordinates to the btnFinish button position
+	x = editBorder.right - buttonsWidth;
 	y += editBorder.height + 10;
-	finish.setPosition(x, y);
-	// move the coordinates to the cancel button position
-	x += finish.width + 10;
-	cancel.setPosition(x, y);
+	// button positions
+	btnRemove.setPosition(editBorder.left+1, y);
+	btnFinish.setPosition(x, y);
+	x += btnFinish.width + 10;
+	btnCancel.setPosition(x, y);
 };
 
 void ProfileEdit::render() {
 	if (!active) return;
 	// create the caption
 	std::string caption =  "Name of new profile";
-	if (renaming)
-		caption = "Rename: "+profiles->getName(profileBeingEdited);
+	if (editing)
+		caption = "Edit: " + profiles->getName(profileBeingEdited);
 	// draw the caption
 	glColor(150, 150, 150);
 	fontLarge->textOut(canvas.width/2, editBorder.top - fontLarge->getSize() - 10, caption, faCenter);
@@ -70,15 +75,18 @@ void ProfileEdit::render() {
 	drawBox(&editBorder, clGray40);
 	// draw edit box text
 	glColor(200, 200, 200);
-	fontMain->textOut(editBorder.left + 10, editBorder.top + 5, editText);
+	fontMain->textOut(editBorder.left + 10, editBorder.top + 5, editText + "_");
 	// render buttons
-	finish.draw();
-	cancel.draw();
+	btnFinish.onRender();
+	btnCancel.onRender();
+	if (editing)
+		btnRemove.onRender();
 };
 
 void ProfileEdit::mouseDown(mouseButton button) {
-	finish.onMouseDown(button);
-	cancel.onMouseDown(button);
+	btnFinish.onMouseDown(button);
+	btnCancel.onMouseDown(button);
+	btnRemove.onMouseDown(button);
 };
 
 void ProfileEdit::keyDown(char key) {
@@ -106,7 +114,7 @@ void ProfileEdit::keyDown(char key) {
 };
 
 void ProfileEdit::onConfirm(void) {
-	if (renaming)
+	if (editing)
 		profiles->rename(profileBeingEdited, editText);
 	else
 		profiles->add(editText);
@@ -115,4 +123,11 @@ void ProfileEdit::onConfirm(void) {
 
 void ProfileEdit::onCancel(void) {
 	active = false;
+};
+
+void ProfileEdit::onRemove(void) {
+	if (editing) {
+		profiles->remove(profileBeingEdited);
+		active = false;
+	}
 };

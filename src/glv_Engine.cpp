@@ -16,8 +16,8 @@ Engine::Engine() {
 	configModeCtrl = new ConfigModeControl(fieldManager);
 	
 	menuBar = new MenuBar(profiles, profileEditCtrl);
-	menuBar->funcRoomChange = std::bind(&Engine::onRoomChange, this);
-	menuBar->funcProfileChange = std::bind(&Engine::onProfileChange, this);
+	menuBar->callRoomChange = std::bind(&Engine::onRoomChange, this);
+	menuBar->callProfileChange = std::bind(&Engine::onProfileChange, this);
 
 	actualRoom = rmConfig;
 };
@@ -40,8 +40,7 @@ void Engine::init() {
 	viewModeCtrl->loadParams();
 	actualRoom = (fieldManager->isBlank()) ? rmConfig : rmVisual;
 
-	menuBar->init();
-	menuBar->update(actualRoom);
+	menuBar->init(actualRoom);
 };
 
 void Engine::render() {
@@ -58,11 +57,9 @@ void Engine::render() {
 	}
 	if (editedProfiles) {
 		editedProfiles = false;
-		menuBar->reloadProfileList();
 		viewModeCtrl->loadParams();
 		actualRoom = (fieldManager->isBlank()) ? rmConfig : rmVisual;
-		menuBar->update(actualRoom);
-
+		menuBar->onProfileEditClose(actualRoom);
 	}
 
 	if (actualRoom == rmConfig)
@@ -77,7 +74,7 @@ void Engine::render() {
 
 
 void Engine::onCanvasSizeChange(int width, int height) {
-	menuBar->update(actualRoom);
+	menuBar->onCanvasSizeChange(width, height);
 	if (profileEditCtrl != NULL)
 		profileEditCtrl->recalculatePositions();
 };
@@ -135,7 +132,7 @@ void Engine::onRoomChange(void) {
 		viewModeCtrl->saveParams();
 		actualRoom = rmConfig;
 	}
-	menuBar->update(actualRoom);
+	menuBar->onRoomChange(actualRoom);
 };
 
 void Engine::onProfileChange(void) {

@@ -11,38 +11,45 @@ typedef std::function<void(void)> EventCallback;
 
 class MenuBar {
 public:
-	EventCallback funcRoomChange;
-	EventCallback funcProfileChange;
-
+	// called when the user changes room
+	EventCallback callRoomChange;
+	// called when the user changes profile
+	EventCallback callProfileChange;
+	// constructor
 	MenuBar(ProfileSwitcher *pSwitcher, ProfileEdit *pEdit);
+	// initialize
+	void init(const RoomType &room);
+	// chceck if mouse is over some menu element
 	bool isUnderCursor();
-	void init();
-	void reloadProfileList();
-	void update(const RoomType &room);
+	// rendering of menu bar
 	void onRender();
+	// mouse action was done
 	void onMouseDown(mouseButton button);
+	// canvas changed it's size
+	void onCanvasSizeChange(int width, int height);
+	// profile edit screen was closed
+	void onProfileEditClose(const RoomType &room);
+	// room was changed
+	void onRoomChange(const RoomType &room);
 
 private:
-	int markedProfile;
-
 	ProfileSwitcher * profiles;
 	ProfileEdit		* profileEditor;
 
 	Interface::CheckButton btnHideMenu;
 	Interface::Button btnRoomSwitch;
-	Interface::Button btnProfileSelect;
-	Interface::Menu menuProfileEdit;
-	Interface::Menu menuProfileSelect;
-	//Interface::Select selectProfile;
+	Interface::Select selectProfile;
 
 	Box getBorder();
-	void update();
-
-	void onRoomButtonClick();
-	void onProfileButtonClick();
-	void onMenuProfilesClick(int itemID, std::string itemName);
-	void onMenuProfileEditClick(int itemID, std::string itemName);
 	
+	void updateAll(const RoomType &room);
+	void updateRoomBtn(const RoomType &room);
+	void updateProfileList();
+	void updateLayout();
+	
+	void onRoomButtonClick();
+	void onProfileMenuChange(int itemID, std::string itemName);
+	void onProfileMenuClick(mouseButton button);
 };
 
 

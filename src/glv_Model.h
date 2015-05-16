@@ -7,12 +7,6 @@
 
 namespace {
 
-	struct MOFactor {
-		GLfloat scale;
-		GLfloat translate[3];
-		bool isCalculated;
-	};
-
 	struct MOVertices {
 		GLuint bid;
 		unsigned count;
@@ -21,7 +15,7 @@ namespace {
 
 	struct MONormals {
 		GLuint bid;
-		bool show;
+		bool exist;
 	};
 
 	struct MOEdges {
@@ -29,14 +23,14 @@ namespace {
 		GLenum mode;
 		GLenum type;
 		unsigned count;
-		bool show;
+		bool exist;
 	};
 
 	struct MOTexture {
 		GLuint coords;
 		GLuint id;
 		GLenum type;
-		bool show;
+		bool exist;
 	};
 
 	struct MOData {
@@ -44,7 +38,7 @@ namespace {
 		int colormap;
 		float minValue, maxValue;
 		bool normalized;
-		bool show;
+		bool exist;
 
 		GLuint color_bid;
 		bool useBuffer;
@@ -52,7 +46,7 @@ namespace {
 
 	struct MOShader {
 		GLuint programId;
-		bool show;
+		bool exist;
 	};
 
 	struct MOAttrib {
@@ -65,42 +59,49 @@ namespace {
 }
 
 
+
 class ModelObject {
 public:
-	glm::mat4 getMatrix(void);
-	void setAttributes(Shaders *shader);
-	void render(Shaders *shader); 
-
-private:
-	GLfloat* valuesToColors(void);
-
-	void drawElements(Shaders *shader);
-	void drawVertices(Shaders *shader);
-
-
-public:
-
-	//ModelObject();
+	// constructor
 	ModelObject(std::string capt, unsigned vertCount, GLuint verts, GLenum dataType);
-	std::string	getCaption() { return caption; };
-	GLuint getVBO() { return vertice.bid; };
-	void setVertices(unsigned count, GLuint verts, GLenum dataType);
+	// render the model with used mode
+	enum RenderMode {rmVertices=0, rmEdges=1, rmSolid=2, rmTextured=3};
+	RenderMode getMaximalRenderMode();
+	void onRender(Shaders *shader, RenderMode mode);
+	void onRenderNormals(Shaders *shader);
+
+public: // Property SETters
+	// Vertices
+	void setVertices(unsigned count, GLuint verts, GLenum dataType, bool rewrite);
+	// Elements
+	void setIndices(const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
+	// Texture
+	void setTexture(const GLuint tex, const GLuint coords, GLenum type);
+	// Normals
+	void setNormals(const GLuint bufferid);
+	// Pervertex Data
 	void setData(float* P, float min, float max, int cl_map);
+	// Color 'n Color Buffer
 	void setColor(float* P, float min, float max, int cl_map);
 	void useColorBuffer(GLuint bid);
-	void setIndices(const GLenum mode, const unsigned count, const GLuint indices, GLenum type);
-	void setTexture(const GLuint tex, const GLuint coords, GLenum type);
-	void setNormals(const GLuint bufferid);
+	// Custom Shader
 	void setShader(const GLuint shaderProgramId);
-	void addVertexAttrib(GLuint location, GLint size, GLenum type, GLuint buffer);
+	// Custom Attributes
+	void setVertexAttrib(GLuint location, GLint size, GLenum type, GLuint buffer);
+
+public: // Property GETters
+	// caption of the model
+	std::string	getCaption() { return caption; };
+	// returns id of the shader
+	GLuint	getCustomProgram();
+	// normalization transformation matrix
+	glm::mat4 getMatrix(void) { return matrix; };
+	// colormap for data visualization
 	unsigned getColormap();
-	bool willDrawColored();
-	void render(bool forceVertices);
 
-
-public://private:
+private: // recorded properties
 	std::string	caption;
-	MOFactor factor;
+	glm::mat4 matrix;
 	MOVertices vertice;
 	MONormals normals;
 	MOEdges edges;
@@ -108,16 +109,11 @@ public://private:
 	MOData  data;
 	MOShader shader;
 	std::vector<MOAttrib> attrib;
+	
+	GLfloat* valuesToColors(void);
+	void calculateMatrix();
+	void drawElements();
 
-	GLuint defaultShaderProgram;
-	//float normalizeValue(float value);
-	void calculateTransformation();
-	//void renderPoints();
-	//void renderColoredPoints();
-	//void renderNormals();
-	//void renderTextured();
-	//void renderEdges();
-	//void renderShader();
 };
 
 #endif

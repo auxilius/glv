@@ -13,6 +13,7 @@ public:
 	void init();
 
 	void bind(ShaderProgram programName);
+	void bindCustom(GLuint custom_program);
 	void unbind();
 	
 	bool setUniform1i(std::string name, GLint value);
@@ -20,8 +21,11 @@ public:
 	bool setUniform4f(std::string name, GLfloat* values);
 	bool setUniformMatrix4f(std::string name, GLfloat* values);
 
+
+	
 	bool setAttribute(std::string name, GLuint buffer, GLint size, GLenum type = GL_FLOAT);
 	bool setAttribute(std::string name, GLfloat *arr, GLint size);
+	bool setAttribute(GLuint location, GLuint buffer, GLint size, GLenum type = GL_FLOAT);
 private:
 	GLuint program[2];
 	GLuint actualProgram;
@@ -30,6 +34,7 @@ private:
 
 	GLuint loadShader(GLenum shaderType, GLchar * shaderSource);
 	GLuint loadProgram(GLchar * vertexShaderSource, GLchar * fragmentShaderSource);
+	
 };
 
 

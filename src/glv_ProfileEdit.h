@@ -13,7 +13,7 @@ public:
 	ProfileEdit(ProfileSwitcher *pSwitch);
 
 	bool isActive();
-	void startRenaming(int profileId);
+	void startEditing(int profileId);
 	void startAddingNew();
 
 	void recalculatePositions();
@@ -25,15 +25,16 @@ private:
 	ProfileSwitcher * profiles;
 	
 	bool active;
-	bool renaming;
+	bool editing;
 	int profileBeingEdited;
 	
 	std::string editText;
 	Box editBorder;
-	Interface::Button finish, cancel;
+	Interface::Button btnFinish, btnCancel, btnRemove;
 
 	void onConfirm(void);
 	void onCancel(void);
+	void onRemove(void);
 	
 };
 

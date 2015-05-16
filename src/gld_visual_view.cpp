@@ -7,6 +7,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#define RENDER_MODE_VERT	"Points"
+#define RENDER_MODE_EDGE	"Wireframe"
+#define RENDER_MODE_SOLID	"Solid"
+#define RENDER_MODE_TEX		"Textured"
+
 
 ///		V I E W		///
 
@@ -31,7 +36,7 @@ void View::drawBorder(Color color) {
 
 ///		T E X T U R E   V I E W		///
 
-#pragma region View::Texture
+#pragma region Texture Object
 
 TextureObject::TextureObject(std::string C, GLuint ID) {
 	caption = C;
@@ -46,7 +51,7 @@ void TextureObject::set(GLuint ID) {
 	ratio = (float)width / height;
 };
 
-void TextureObject::render(Box frame) {
+void TextureObject::onRender(Box frame, float origX, float origY) {
 	if (bufferID == 0)
 		return;
 	float frameRatio = (float)frame.width / frame.height;
@@ -64,46 +69,130 @@ void TextureObject::render(Box frame) {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, bufferID);
 	glColor3f(1.0f, 1.0f, 1.0f);
+	
 	glBegin(GL_QUADS);
-	glTexCoord2f(0.0f, 1.0f); glVertex2f((GLfloat)texbox.left - 1.0f, (GLfloat)texbox.top - 1.0f);
-	glTexCoord2f(1.0f, 1.0f); glVertex2f((GLfloat)texbox.right, (GLfloat)texbox.top - 1.0f);
-	glTexCoord2f(1.0f, 0.0f); glVertex2f((GLfloat)texbox.right, (GLfloat)texbox.bottom);
-	glTexCoord2f(0.0f, 0.0f); glVertex2f((GLfloat)texbox.left - 1.0f, (GLfloat)texbox.bottom);
+	glTexCoord2f(origX, origY); glVertex2f((GLfloat)texbox.left - 1.0f, (GLfloat)texbox.bottom);
+	glTexCoord2f(origX, 1.0f-origY); glVertex2f((GLfloat)texbox.left - 1.0f, (GLfloat)texbox.top - 1.0f);
+	glTexCoord2f(1.0f-origX, 1.0f-origY); glVertex2f((GLfloat)texbox.right, (GLfloat)texbox.top - 1.0f);
+	glTexCoord2f(1.0f-origX, origY); glVertex2f((GLfloat)texbox.right, (GLfloat)texbox.bottom);
+
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-
-	glColor4fv(clGray80);
-	fontSmall->textOut(frame.left+5, frame.bottom-15, this->caption + " (" + std::to_string(this->bufferID) + ")");
 };
 
 TextureObject * TextureView::getTexture() {
-	if (index != -1 && list != NULL && index < (int)list->size())
-		return &(list->operator[](index));
+	if (actualTexture != -1 && textureList != NULL && actualTexture < (int)textureList->size())
+		return &(textureList->operator[](actualTexture));
 	return NULL;
+};
+
+#pragma endregion Texture Object
+
+
+#pragma region View::Texture
+
+
+void TextureView::initUI() {
+	int y = border.top + 5, x = border.left + 5; 
+	btnFlipX.caption = "Flip X";
+	btnFlipX.checked = true;
+	btnFlipX.setPosition(x, y);
+	x += btnFlipX.width + 5;
+
+	btnFlipY.caption = "Flip Y";
+	btnFlipY.checked = false;
+	btnFlipY.setPosition(x, y);
+	x += btnFlipY.width + 5;
+};
+
+
+TextureView::TextureView(Box cBorder, std::vector<TextureObject> * tex_list) { 
+	actualTexture = -1;
+	textureList = tex_list;
+	border = cBorder;	
+	initUI();
+};
+
+void TextureView::onRender() {
+	drawBackground(clGray10);
+	drawBorder(clGray30);
+	//glViewport( border.left, canvas.height-border.top-border.height, border.width, border.height );
+
+	TextureObject * texture = getTexture();
+	float sX = (btnFlipX.checked) ? 1.0f : 0.0f;
+	float sY = (btnFlipY.checked) ? 1.0f : 0.0f;
+	if (texture != NULL)
+		texture->onRender(border, sX, sY);
+
+	reloadProjection();
+
+	glColor4fv(clGray80);
+	fontSmall->textOut(border.left+5, border.bottom-15, getTextureCaption() + " (" + std::to_string(getTextureID()) + ")");
+
+	if ( border.contains(input.mouse) ) {
+		btnFlipX.onRender();
+		btnFlipY.onRender();
+	}
+};
+
+FieldParams TextureView::getParams() {
+	FieldParams res;
+	res.strParam = getTextureCaption();
+	res.cParam.push_back(btnFlipX.checked ? 't':'f');
+	res.cParam.push_back(btnFlipY.checked ? 't':'f');
+	return res;
+};
+
+void TextureView::setParams(FieldParams param) {
+	// string 
+	if (param.strParam != "") {
+		bool found = false;
+		for (unsigned i = 0; i < textureList->size(); i++) {
+			if (textureList->at(i).getCaption() == param.strParam) {
+				onTextureSelect(i);
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			waitingForTextureCaption = param.strParam;
+	}
+	// chars
+	if (param.cParam.size() >= 2) {
+		btnFlipX.checked = (param.cParam[0] == 't');
+		btnFlipY.checked = (param.cParam[1] == 't');
+	}
+};
+
+void TextureView::onTextureSelect(int textureID) {
+	actualTexture = textureID;
+	waitingForTextureCaption = "";
 };
 
 std::string TextureView::getTextureCaption() {
 	TextureObject * texture = getTexture();
 	if (texture != NULL)
 		return texture->getCaption();
-	return "";
+	return waitingForTextureCaption;
 };
 
-void TextureView::showTexture(int id) {
-	index = id;
-	waitingForTextureCaption = "";
-};
-
-void TextureView::setTextureList(std::vector<TextureObject> * pointer) {
-	list = pointer;
-};
-
-void TextureView::render() {
-	drawBackground(clGray10);
-	drawBorder(clGray30);
+int TextureView::getTextureID() {
 	TextureObject * texture = getTexture();
 	if (texture != NULL)
-		return texture->render(border);
+		return (int)texture->getID();
+	return -1;
+};
+
+void TextureView::onTextureAdd(std::string caption, int textureObjectID) {
+	if (waitingForTextureCaption == caption) {
+		actualTexture = textureObjectID;
+		waitingForTextureCaption = "";
+	}
+};
+
+void TextureView::onMouseDown(mouseButton button) {
+	btnFlipX.onMouseDown(button);
+	btnFlipY.onMouseDown(button);
 };
 
 #pragma endregion Texture View
@@ -113,37 +202,30 @@ void TextureView::render() {
 
 #pragma region View::Model
 
-void ModelView::init() {
-	wasSelected = false;
-	modelList = NULL; 
-	modelListIndex = -1; 
-	resetCamera();
-
-	int y = border.top + 8, x = border.left + 5; 
+void ModelView::initUI() {
+	int y = border.top + 5, x = border.left + 5; 
 	btnAxes.caption = "Axes";
 	btnAxes.checked = true;
 	btnAxes.setPosition(x, y);
 	x += btnAxes.width + 5;
-	/*btnVerticesOver.caption = "Vertices";
-	btnVerticesOver.setPosition(x, y);
-	x += btnVerticesOver.width + 5;
-	*/
+	
 	btnColormap.caption = "Colormap";
-	btnAxes.checked = false;
+	btnColormap.checked = false;
 	btnColormap.setPosition(x, y);
 	x += btnColormap.width + 5;
+
+	selectRenderMode.setPosition(x, y);
+	loadRenderModes();
 };
 
-ModelView::ModelView() { 
-	init();
-};
-
-ModelView::ModelView(Box cBorder) { 
+ModelView::ModelView(Box cBorder, std::vector<ModelObject> * list) {
+	resetCamera();
+	isBeingManipulated = false;
+	actualModel = -1;
 	border = cBorder; 
-	init();
+	modelList = list;
+	initUI();
 };
-
-
 
 void ModelView::resetCamera(){
 	hang = + 0.85*PI;
@@ -151,27 +233,8 @@ void ModelView::resetCamera(){
 	dist = 5.0;
 };
 
-ModelObject * ModelView::getModel() {
-	if (modelListIndex != -1 && modelList != NULL && modelListIndex < (int)modelList->size())
-		return &(modelList->operator[](modelListIndex));
-	return NULL;
-};
-
-void ModelView::showModel(int index) {
-	modelListIndex = index;
-	waitingForModelCaption = "";
-	wasSelected = false;
-}
-
-std::string ModelView::getModelCaption() {
-	ModelObject * model = getModel();
-	if (model != NULL)
-		return model->getCaption();
-	return "";
-};
-
 void ModelView::onMouseMove(int x, int y) {
-	if (wasSelected) {
+	if (isBeingManipulated) {
 		hang -= (double)(lastMousePos.x - x) / 100.0;
 		vang += (double)(lastMousePos.y - y) / 100.0;
 		lastMousePos.set(x,y);
@@ -182,16 +245,17 @@ void ModelView::onMouseMove(int x, int y) {
 
 void ModelView::onMouseDown(mouseButton button) {
 	if (button==mbLeft && border.contains(input.mouse)) {
-		wasSelected = true;
+		isBeingManipulated = true;
 		lastMousePos = input.mouse;
 		btnAxes.onMouseDown(button);
 		btnColormap.onMouseDown(button);
+		selectRenderMode.onMouseDown(button);
 	}
 };
 
 void ModelView::onMouseUp(mouseButton button) {
 	if (button == mbLeft)
-		wasSelected = false;
+		isBeingManipulated = false;
 };
 
 void ModelView::onMouseWheel(signed short direction) {
@@ -203,62 +267,43 @@ void ModelView::onMouseWheel(signed short direction) {
 	}
 };
 
-void ModelView::draw() {
+void ModelView::onRender() {
 	drawBackground(clGray10);
 	drawBorder(clGray30);
 	
 	glViewport( border.left, canvas.height-border.top-border.height, border.width, border.height );
 
-	shader->bind(progRenderModel);
+	ModelObject *model = getModel();
+
+	if (model != NULL && model->getCustomProgram())
+		shader->bindCustom(model->getCustomProgram());
+	else
+		shader->bind(progRenderModel);
 	
-	glm::mat4 projection = glm::perspective(45.0f, (float)border.width / border.height, 0.01f, 100.0f );
+	glm::mat4 projection = glm::perspective((float)PI/4.0f, (float)border.width / border.height, 0.01f, 100.0f );
 	shader->setUniformMatrix4f("glvProjectionMatrix", glm::value_ptr(projection));
 
 	GLfloat x = (GLfloat)(dist * sin(vang) * sin(hang));
 	GLfloat y = (GLfloat)(dist * cos(vang));
 	GLfloat z = (GLfloat)(-dist * sin(vang) * cos(hang));
-	
 	glm::mat4 view = glm::lookAt( glm::vec3(x,y,z), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f) );
 	shader->setUniformMatrix4f("glvViewMatrix", glm::value_ptr(view));
 
-	ModelObject * model = getModel();
-
+	
 	if (model != NULL) {
-		glEnable(GL_DEPTH_TEST);
 		glm::mat4 modelMat = model->getMatrix();
 		shader->setUniformMatrix4f("glvModelMatrix", glm::value_ptr(modelMat));
-		model->setAttributes(shader);
-		model->render(shader);	
-		glDisable(GL_DEPTH_TEST);
+		model->onRender(shader, (ModelObject::RenderMode)selectRenderMode.getSelected());	
 	}
 	
 	// render axes if user enabled them
 	if (btnAxes.checked) {
-
-		const GLfloat axeLength = 0.2f;
+		shader->bind(progRenderModel);
 		glm::mat4 matIdentity = glm::mat4(1.0f);
+		shader->setUniformMatrix4f("glvProjectionMatrix", glm::value_ptr(projection));
+		shader->setUniformMatrix4f("glvViewMatrix", glm::value_ptr(view));
 		shader->setUniformMatrix4f("glvModelMatrix", glm::value_ptr(matIdentity));
-		glLineWidth(1.5f);
-		shader->setUniform1i("enableValues", 0);
-		shader->setUniform1i("enableTexture", 0);
-		
-		GLfloat verts[] = { 0.0f, 0.0f, 0.0f, axeLength, 0.0f, 0.0f,
-							0.0f, 0.0f, 0.0f, 0.0f, axeLength, 0.0f,
-							0.0f, 0.0f, 0.0f, 0.0f, 0.0f, axeLength };
-		GLuint axes;
-		glGenBuffers(1, &axes);
-		glBindBuffer(GL_ARRAY_BUFFER, axes);
-		glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(GLfloat), verts, GL_STATIC_DRAW);
-		shader->setAttribute("inVertex", axes, 3);
-		
-		shader->setUniform4f("color", clRed);
-		glDrawArrays(GL_LINES, 0, 2);
-		shader->setUniform4f("color", clGreen);
-		glDrawArrays(GL_LINES, 2, 2);
-		shader->setUniform4f("color", clBlue);
-		glDrawArrays(GL_LINES, 4, 2);
-
-		glDeleteBuffers(1, &axes);
+		renderAxes();
 	}
 
 	shader->unbind();
@@ -267,11 +312,12 @@ void ModelView::draw() {
 
 void ModelView::renderUI() {
 	reloadProjection();
+	ModelObject *myModel = getModel();
 
+	// Render Colormap
 	if (btnColormap.checked) {
-		ModelObject * model = getModel();
-		if (model != NULL) {
-			int colormap = model->getColormap();
+		if (myModel != NULL) {
+			int colormap = myModel->getColormap();
 			glBegin(GL_QUADS);
 			int x = border.left;
 			int inc = border.width/10;
@@ -291,21 +337,158 @@ void ModelView::renderUI() {
 		}
 	}
 
+	// Render Inteface Elements
 	if ( border.contains(input.mouse) ) {
-		btnAxes.draw();
-		btnColormap.draw();
+		btnAxes.onRender();
+		btnColormap.onRender();
+		selectRenderMode.onRender();
 	}
 
-	ModelObject * model = getModel();
+	// Print Model Caption
 	std::string modelCaption = "";
-	if (model != NULL)
-		modelCaption = model->getCaption();
+	if (myModel != NULL)
+		modelCaption = myModel->getCaption();
 	else if (waitingForModelCaption != "" && waitingForModelCaption != "-")
 		modelCaption = waitingForModelCaption;
-
 	glColor4fv(clGray80);
 	fontSmall->textOut(border.left+5, border.bottom-15, modelCaption);
 	
 };
+
+void ModelView::renderAxes() {
+	const GLfloat axeLength = 0.2f;
+	glLineWidth(1.5f);
+	shader->setUniform1i("glvEnableValues", 0);
+	shader->setUniform1i("glvEnableTexture", 0);
+	shader->setUniform1i("glvEnableLightning", 0);
+	GLfloat verts[] = { 0.0f, 0.0f, 0.0f, axeLength, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, axeLength, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, axeLength };
+	GLuint axes;
+	glGenBuffers(1, &axes);
+	glBindBuffer(GL_ARRAY_BUFFER, axes);
+	glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(GLfloat), verts, GL_STATIC_DRAW);
+	shader->setAttribute("glvVertex", axes, 3);
+
+	shader->setUniform4f("glvColor", clRed);
+	glDrawArrays(GL_LINES, 0, 2);
+	shader->setUniform4f("glvColor", clGreen);
+	glDrawArrays(GL_LINES, 2, 2);
+	shader->setUniform4f("glvColor", clBlue);
+	glDrawArrays(GL_LINES, 4, 2);
+
+	glDeleteBuffers(1, &axes);
+};
+
+FieldParams ModelView::getParams() {
+	FieldParams res;
+	res.dParam.push_back(hang);
+	res.dParam.push_back(vang);
+	res.dParam.push_back(dist);
+	res.cParam.push_back(btnAxes.checked ? 't':'f');
+	res.cParam.push_back(btnColormap.checked ? 't':'f');
+	res.cParam.push_back('0' + (char)selectRenderMode.getSelected());
+	res.strParam = getModelCaption();
+	return res;
+};
+
+void ModelView::setParams(FieldParams param) {
+	// string parameter
+	if (param.strParam != "") {
+		bool found = false;
+		for (unsigned m = 0; m < modelList->size(); m++) {
+			if (modelList->at(m).getCaption() == param.strParam) {
+				onModelSelect(m);
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			waitingForModelCaption = param.strParam;
+	}
+	// double parameters
+	if ( param.dParam.size() >= 3 ) {
+		hang = param.dParam[0];
+		vang = param.dParam[1];
+		dist = param.dParam[2];
+	}
+	// char parameters
+	if (param.cParam.size() >= 3) {
+		btnAxes.checked = (param.cParam[0] == 't');
+		btnColormap.checked = (param.cParam[1] == 't');
+		waitingForRenderMode = (short)(param.cParam[2] - '0');
+	} 
+
+	loadRenderModes();
+};
+
+void ModelView::onModelAdd(std::string caption, int modelID) {
+	if (waitingForModelCaption == caption) {
+		actualModel = modelID;
+		waitingForModelCaption = "";
+		loadRenderModes();
+	}
+};
+
+void ModelView::onModelSelect(int modelID) {
+	actualModel = modelID;
+	waitingForModelCaption = "";
+	loadRenderModes();
+};
+
+void ModelView::onModelPropertyAdd(std::string caption) {
+	if (getModelCaption() == caption)
+		loadRenderModes();
+};
+
+ModelObject* ModelView::getModel() {
+	if (actualModel != -1 && modelList != NULL && actualModel < (int)modelList->size())
+		return &(modelList->at(actualModel));
+	return NULL;
+};
+
+std::string ModelView::getModelCaption() {
+	ModelObject *model = getModel();
+	if (model != NULL)
+		return model->getCaption();
+	return waitingForModelCaption;
+};
+
+void ModelView::loadRenderModes() {
+
+	if (waitingForRenderMode == -1)
+		waitingForRenderMode = selectRenderMode.getSelected();
+
+	selectRenderMode.clearAllItems();
+
+	ModelObject *model = getModel();
+	if (model != NULL) {
+
+		ModelObject::RenderMode maxMode = model->getMaximalRenderMode();
+		selectRenderMode.visible = ModelObject::rmVertices < maxMode;
+		selectRenderMode.addItem(RENDER_MODE_VERT);
+		
+		if (ModelObject::rmEdges <= maxMode) {
+			selectRenderMode.addItem(RENDER_MODE_EDGE);
+			selectRenderMode.addItem(RENDER_MODE_SOLID);
+		}
+
+		if (ModelObject::rmTextured <= maxMode) {
+			selectRenderMode.addItem(RENDER_MODE_TEX);
+		}
+
+		if (waitingForRenderMode > -1 && maxMode >= waitingForRenderMode) {
+			selectRenderMode.selectItem(waitingForRenderMode);
+			waitingForRenderMode = -1;
+		}
+
+	} 
+	else {
+		selectRenderMode.visible = false;
+	}
+	 
+};
+
+
 
 #pragma endregion Model View

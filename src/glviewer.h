@@ -26,7 +26,7 @@ namespace glv {
 	bool setLine(std::string caption, std::string format, void * data[]);
 
 	/* Add a vertex cloud rendering form for a model */
-	bool setModel(std::string caption, unsigned count, GLuint vertices, GLenum type = GL_FLOAT);
+	bool setModel(std::string caption, unsigned count, GLuint vertices, bool rewrite = false, GLenum type = GL_FLOAT);
 
 	/* Specifyes a conetivity between vertices */
 	bool modelEdges(std::string caption, GLenum mode, unsigned count, GLuint indices, GLenum type = GL_UNSIGNED_INT);

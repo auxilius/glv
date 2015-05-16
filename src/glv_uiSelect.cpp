@@ -6,53 +6,70 @@ using namespace Interface;
 
 Select::Select() {
 	actualSelected = -1;
-	textOnButton = "";
-	OnClick = std::bind(&Select::onClickButton, this);
-	using namespace std::placeholders;
-	menuList.OnItemClick = std::bind(&Select::onItemClick, this, _1, _2);
+	caption = Interface::NULL_ITEM;
 };
 
 int Select::addItem(std::string caption) {
 	int newItem = menuList.addItem(caption);
-	select(caption);
-	border.width = menuList.getWidth();
+	if (actualSelected==-1)
+		setSelected(newItem);
 	return newItem;
 };
 
 void Select::clearAllItems() {
 	menuList.clearAllItems();
 	actualSelected = -1;
-	textOnButton = "";
+	caption = NULL_ITEM;
 };
 
-void Select::select(std::string item) {
-	textOnButton = item;
+void Select::selectItem(std::string item) {
+	int id = menuList.getItemID(item);
+	if (id != -1)
+		setSelected(id);
+};
+
+void Select::selectItem(const int itemID) {
+	if (itemID >= 0 && itemID < (int)menuList.getItemCount())
+		setSelected(itemID);
+};
+
+void Select::setSelected(int id) {
+	if (id != actualSelected) {
+		caption = menuList.getItemCaption(id);
+		actualSelected = id;
+		border.width = menuList.getWidth();
+	}
 };
 
 void Select::onMouseDown(mouseButton button) {
-	if (menuList.isActive())
-		menuList.onMouseDown(button);
-	else
-		Button::onMouseDown(button);
+	if (!visible)
+		return;
+	if (isOpened()) {
+		int id = menuList.onMouseDownGetID(button);
+		if (id!=-1) {
+			menuList.hide();
+			setSelected(id);	
+			if (callOnChange)
+				callOnChange(id, caption);
+		}
+	}
+	else {
+		if (isHovered()) {
+			menuList.show(border.left, border.top);
+			if (callOnClick)
+				callOnClick(button);
+		}
+	}
+
 };
 
-void Select::draw() {
-	Button::draw(true);
-	if (menuList.isActive())
-		menuList.draw(true);
+void Select::onRender() {
+	if (!visible)
+		return;
+	Button::onRender(true);
+	menuList.onRender(true);
 };
 
-void Select::onClickButton() {
-	menuList.show(border.left, border.top);
-};
-
-void Select::onItemClick(int id, std::string caption) {
-	select(caption);	
-	menuList.hide();
-	if (OnChange)
-		OnChange(id, caption);
-};
-
-bool Select::isActive() {
-	return menuList.isActive();
+bool Select::isOpened() {
+	return menuList.visible;
 };

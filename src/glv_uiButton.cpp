@@ -12,76 +12,55 @@ using namespace Interface;
 
 Button::Button() {
 	loadDefaultColors();
-	setPosition(0, 0);
-	font = fontMain;
+	myFont = fontMain;
 	setCaption(DEFAULT_CAPTION);
-	borderWidth = 1;
 };
 
-void Button::recalcSize() {
-	border.setWidth(font->getWidth(textOnButton) + 2*TEXT_PADDING);
-	if (font == NULL)
+void Button::fitSizeToText() {
+	border.setWidth(myFont->getWidth(textOnButton) + 2*TEXT_PADDING);
+	if (myFont == NULL)
 		border.setHeight(2*TEXT_PADDING);	
 	else
-		border.setHeight(font->getHeight() + 2*TEXT_PADDING);
+		border.setHeight(myFont->getHeight() + 2*TEXT_PADDING);
 };
 
-void Button::setCaption(std::string newCaption) { 
-	textOnButton = newCaption;
-	recalcSize();
-};
-
-void Button::setFont(Font *f) {
-	font = f;
-	recalcSize();
-};
-
-void Button::draw(bool alsoHoverColors) {
-	if ( alsoHoverColors && isHovered() )
-		drawBox(&border, *color.hoverBack);
-	else
-		drawBox(&border, *color.back);
-
-	if (borderWidth >= 1)
-		drawBorder(alsoHoverColors);
-
+void Button::onRender(bool alsoHoverColors) {
+	Rect::onRender(alsoHoverColors);
 	if (caption != "")
 		drawText(alsoHoverColors);
 };
 
-void Button::drawBorder(bool alsoHoverAndClick) {
-	glLineWidth(borderWidth);
-	if ( alsoHoverAndClick && isHovered() )
-		drawBox(&border, *color.hoverBorder, false);
-	else
-		drawBox(&border, *color.border, false);
-};
-
 void Button::drawText(bool alsoHoverAndClick) {
 	if ( alsoHoverAndClick && isHovered() )
-		glColor4fv(*color.hoverText);
+		glColor4fv(*colorTextHover);
 	else
-		glColor4fv(*color.text);
-	font->textOut(border.left + TEXT_PADDING, border.top + ( border.height - (int)(font->getHeight()*0.7) ) / 2, textOnButton);
+		glColor4fv(*colorText);
+	myFont->textOut(border.left + TEXT_PADDING, border.top + ( border.height - (int)(myFont->getHeight()*0.7) ) / 2, textOnButton);
 };
 
-bool Button::isHovered() {
-	return border.contains(input.mouse);
-};
 
 void Button::loadDefaultColors() {
-	color.back = &clBtnBack;
-	color.hoverBack = &clBtnBackHover;
-	color.border = &clBtnBorder;
-	color.hoverBorder = &clBtnBorderHover;
-	color.text = &clBtnText;
-	color.hoverText = &clBtnTextHover;
+	Rect::loadDefaultColors();
+	colorText = &clBtnText;
+	colorTextHover = &clBtnTextHover;
 };
 
-void Button::onMouseDown(mouseButton button) {
-	if (isHovered() && OnClick) {
-		OnClick();
-	}
+// FONT
+Font* Button::getFont() { 
+	return myFont; 
+};
+void Button::setFont(Font *newFont) {
+	myFont = newFont;
+	fitSizeToText();
+};
+
+// CAPTION
+std::string Button::getCaption() { 
+	return textOnButton; 
+};
+void Button::setCaption(std::string newCaption) { 
+	textOnButton = newCaption;
+	fitSizeToText();
 };
 
 
@@ -91,23 +70,26 @@ CheckButton::CheckButton() {
 	checked = false;
 };
 
+bool CheckButton::getChecked() { 
+	return checkState; 
+};
 void CheckButton::setChecked(bool state) {
 	checkState = state;
-	if (checked) {
-		color.back = &clBtnBackChecked;
-		color.hoverBack = &clBtnBackChecked;
+	if (checkState) {
+		colorBack = &clBtnBackChecked;
+		colorBackHover = &clBtnBackChecked;
 	}
 	else {
-		color.back = &clBtnBack;
-		color.hoverBack = &clBtnBackHover;
+		Button::loadDefaultColors();
 	}
 };
 
 void CheckButton::onMouseDown(mouseButton button) {
+	Button::onMouseDown(button);
 	if (isHovered()) {
 		setChecked(!checkState);
-		if (OnChange)
-			OnChange(checkState);
+		if (callOnChange)
+			callOnChange(checkState);
 	}
 };
 

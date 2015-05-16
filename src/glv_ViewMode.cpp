@@ -12,9 +12,9 @@ ViewModeControl::ViewModeControl(FieldManager *fManager) {
 
 void ViewModeControl::init() {
 	using namespace std::placeholders;
-	popupModelSelect.OnItemClick = std::bind(&ViewModeControl::onModelMenuSelect, this, _1, _2);
-	popupTextureSelect.OnItemClick = std::bind(&ViewModeControl::onTextureMenuSelect, this, _1, _2);
-	popupVariableSelect.OnItemChange = std::bind(&ViewModeControl::onVariableMenuClick, this, _1, _2, _3);
+	popupModelSelect.callOnItemClick = std::bind(&ViewModeControl::onModelMenuSelect, this, _1, _2);
+	popupTextureSelect.callOnItemClick = std::bind(&ViewModeControl::onTextureMenuSelect, this, _1, _2);
+	popupVariableSelect.callOnItemChange = std::bind(&ViewModeControl::onVariableMenuClick, this, _1, _2, _3);
 };
 
 
@@ -90,17 +90,17 @@ void ViewModeControl::render() {
 	glLoadIdentity();
 	// MODELS
 	for (unsigned i = 0; i < modelField.size(); i++)
-		modelField[i].draw();
+		modelField[i].onRender();
 	// TEXTURES
 	for (unsigned i = 0; i < textureField.size(); i++)
-		textureField[i].render();
+		textureField[i].onRender();
 	// VARIABLES
 	for (unsigned i = 0; i < variableField.size(); i++)
 		variableField[i].draw();
 	// menus
-	popupTextureSelect.draw();
-	popupModelSelect.draw();
-	popupVariableSelect.draw();
+	popupTextureSelect.onRender();
+	popupModelSelect.onRender();
+	popupVariableSelect.onRender();
 };
 
 
@@ -110,12 +110,15 @@ void ViewModeControl::mouseDown(mouseButton button) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
 		modelField[i].onMouseDown(button);
 	}
+	for (unsigned i = 0; i < textureField.size(); i++) {
+		textureField[i].onMouseDown(button);
+	}
 
-	if (!popupTextureSelect.isActive())
+	if (!popupTextureSelect.visible)
 		selectedTextureField = -1;
-	if (!popupModelSelect.isActive())
+	if (!popupModelSelect.visible)
 		selectedModelField = -1;
-	if (!popupVariableSelect.isActive())
+	if (!popupVariableSelect.visible)
 		selectedVariableField = -1;
 
 	if (button == mbRight) {
@@ -132,11 +135,11 @@ void ViewModeControl::mouseDown(mouseButton button) {
 		}
 	}
 	if (button == mbLeft) {
-		if (popupTextureSelect.isActive())
+		if (popupTextureSelect.visible)
 			popupTextureSelect.onMouseDown(button);
-		if (popupModelSelect.isActive())
+		if (popupModelSelect.visible)
 			popupModelSelect.onMouseDown(button);
-		if (popupVariableSelect.isActive())
+		if (popupVariableSelect.visible)
 			popupVariableSelect.onMouseDown(button);
 	}
 	requestRender();
@@ -144,14 +147,14 @@ void ViewModeControl::mouseDown(mouseButton button) {
 
 
 void ViewModeControl::onModelMenuSelect(int itemID, std::string itemCaption) {
-	modelField[selectedModelField].showModel(itemID);
+	modelField[selectedModelField].onModelSelect(itemID);
 	saveParams();
 	selectedModelField = -1;
 	popupModelSelect.hide();
 };
 
 void ViewModeControl::onTextureMenuSelect(int itemID, std::string itemCaption) {
-	textureField[selectedTextureField].showTexture(itemID);
+	textureField[selectedTextureField].onTextureSelect(itemID);
 	saveParams();
 	selectedTextureField = -1;
 	popupTextureSelect.hide();
@@ -201,18 +204,11 @@ void ViewModeControl::clearFields() {
 
 bool ViewModeControl::saveParams() {
 	for (unsigned i = 0; i < modelField.size(); i++) {
-		FieldParams set;
-		set.dParam.push_back(modelField[i].hang);
-		set.dParam.push_back(modelField[i].vang);
-		set.dParam.push_back(modelField[i].dist);
-		set.cParam.push_back(modelField[i].btnAxes.checked ? 't':'f');
-		set.cParam.push_back(modelField[i].btnColormap.checked ? 't':'f');
-		set.strParam = modelField[i].getModelCaption();
+		FieldParams set = modelField[i].getParams();
 		fieldManager->fieldSetParams(modelField[i].layer, set);
 	}
 	for (unsigned i = 0; i < textureField.size(); i++) {
-		FieldParams set;
-		set.strParam = textureField[i].getTextureCaption();
+		FieldParams set = textureField[i].getParams();
 		fieldManager->fieldSetParams(textureField[i].layer, set);
 	}
 	for (unsigned i = 0; i < variableField.size(); i++) {
@@ -234,51 +230,19 @@ bool ViewModeControl::loadParams() {
 		const Box border = fieldManager->fieldGetBorder(i);
 		
 		if (type == FIELD_TYPE_MODEL) {
-			ModelView MV(border);
-			MV.setModelList(&modelList);
+			ModelView MV(border, &modelList);
 			MV.layer = i;
-			if (get.strParam != "") {
-				bool found = false;
-				for (unsigned m = 0; m < modelList.size(); m++) {
-					if (modelList[m].getCaption() == get.strParam) {
-						MV.showModel(m);
-						found = true;
-						break;
-					}
-				}
-				if (!found)
-					MV.waitingForModelCaption = get.strParam;
-			}
-			if ( get.dParam.size() >= 3 ) {
-				MV.hang = get.dParam[0];
-				MV.vang = get.dParam[1];
-				MV.dist = get.dParam[2];
-			}
-			if (get.cParam.size() >= 2) {
-				MV.btnAxes.checked = (get.cParam[0] == 't');
-				MV.btnColormap.checked = (get.cParam[1] == 't');
-			}
+			MV.setParams(get);
 			modelField.push_back(MV);
-		} else
-
+		} 
+		else
 		if (type == FIELD_TYPE_TEXTURE) {
-			TextureView TV;
-			TV.setBorder(border);
-			TV.setTextureList(&textureList);
+			TextureView TV(border, &textureList);
 			TV.layer = i;
-			bool found = false;
-			for (unsigned tl = 0; tl < textureList.size(); tl++) {
-				if (textureList[tl].getCaption() == get.strParam) {
-					TV.showTexture(tl);
-					found = true;
-					break;
-				}
-			}
-			if (!found)
-				TV.waitingForTextureCaption = get.strParam;
+			TV.setParams(get);
 			textureField.push_back(TV);
-		} else
-
+		} 
+		else
 		if (type == FIELD_TYPE_VALUE) {
 			VariableView VV;
 			VV.setBorder(border);
@@ -306,11 +270,8 @@ bool ViewModeControl::addTexture(const char * caption, GLuint textureID) {
 	TextureObject TE(caption, textureID);
 	textureList.push_back(TE);
 	popupTextureSelect.addItem(caption);
-	for (unsigned i = 0; i < textureField.size(); i++) {
-		textureField[i].setTextureList(&textureList);
-		if (textureField[i].waitingForTextureCaption == caption)
-			textureField[i].showTexture(textureList.size()-1);
-	}
+	for (unsigned i = 0; i < textureField.size(); i++)
+		textureField[i].onTextureAdd(caption, textureList.size()-1);
 	return true;
 };
 
@@ -350,21 +311,20 @@ bool ViewModeControl::addValArray(const char* caption, void * data[], const char
 	return true;
 };
 
-bool ViewModeControl::addModel(const char * caption, const unsigned count, const GLuint vboid, GLenum type) {
+bool ViewModeControl::addModel(const char * caption, const unsigned count, const GLuint vboid, bool rewrite, GLenum type) {
+	// if the model exist, change it's vertices
 	for (unsigned i = 0; i < modelList.size(); i++) {
 		if (modelList[i].getCaption() == caption) {
-			modelList[i].setVertices(count, vboid, type);
+			modelList[i].setVertices(count, vboid, type, rewrite);
 			return false;
 		}
 	}
+	// if it does not exist, create one
 	ModelObject MO(caption, count, vboid, type);
 	modelList.push_back(MO);
 	popupModelSelect.addItem(caption);
-	for (unsigned i = 0; i < modelField.size(); i++) {
-		modelField[i].setModelList(&modelList);
-		if (modelField[i].waitingForModelCaption == caption)
-			modelField[i].showModel(modelList.size() - 1);
-	}
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelAdd(caption, modelList.size()-1);
 	return true;
 };
 
@@ -372,46 +332,62 @@ void ViewModeControl::addModelEdges(const char * caption, const GLenum mode, con
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setIndices(mode, count, indices, type);
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
 };
 
 void ViewModeControl::addModelNormals(const char * caption, const GLuint bufferid) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setNormals(bufferid);
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
 };
 
 void ViewModeControl::addModelTexture(const char * caption, const GLuint texture, const GLuint coordinates, GLenum type) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setTexture(texture, coordinates, type);
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
 };
 
 void ViewModeControl::addModelData(const char * caption, float* data, float minValue, float maxValue, int colorMap ) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setData(data, minValue, maxValue, colorMap);
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
 };
 
 void ViewModeControl::addModelColor(const char * caption, float* data, float minValue, float maxValue, int colorMap) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setColor(data, minValue, maxValue, colorMap);
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
 }
 
 void ViewModeControl::addModelColorBuffer(const char * caption, GLuint bid) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->useColorBuffer(bid);
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
 }
 
 void ViewModeControl::addModelShader(const char * caption, const GLuint shaderProgram) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setShader(shaderProgram);
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
 };
 
 void ViewModeControl::addModelVertexAttrib(const char * caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer) {
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
-		model->addVertexAttrib(atributeID, size, type, buffer);	
+		model->setVertexAttrib(atributeID, size, type, buffer);	
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
 };

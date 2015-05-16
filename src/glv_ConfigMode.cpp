@@ -45,18 +45,18 @@ bool ConfigModeControl::trySelectFieldHandleUnderMouse() {
 void ConfigModeControl::init() {
 	// menu - when clicked on field
 	using namespace std::placeholders;
-	popupOnField.OnItemClick = std::bind(&ConfigModeControl::onMenuClick, this, _1, _2);
+	popupOnField.callOnItemClick = std::bind(&ConfigModeControl::onMenuClick, this, _1, _2);
 	popupOnField.addItem(MENUITEM_FIELD_SET_MODEL);
 	popupOnField.addItem(MENUITEM_FIELD_SET_TEXTURE);
 	popupOnField.addItem(MENUITEM_FIELD_SET_VALUE);
-	popupOnField.addItem(NULL_ITEM);
+	popupOnField.addItem(Interface::NULL_ITEM);
 	popupOnField.addItem(MENUITEM_FIELD_DELETE);
-	popupOnField.addItem(NULL_ITEM);
+	popupOnField.addItem(Interface::NULL_ITEM);
 	popupOnField.addItem(MENUITEM_FIELD_ADD_MODEL);
 	popupOnField.addItem(MENUITEM_FIELD_ADD_TEXTURE);
 	popupOnField.addItem(MENUITEM_FIELD_ADD_VALUE);
 	// menu - when clicked on empty space
-	popupDefault.OnItemClick = std::bind(&ConfigModeControl::onMenuClick, this, _1, _2);
+	popupDefault.callOnItemClick = std::bind(&ConfigModeControl::onMenuClick, this, _1, _2);
 	popupDefault.addItem(MENUITEM_FIELD_ADD_MODEL);
 	popupDefault.addItem(MENUITEM_FIELD_ADD_TEXTURE);
 	popupDefault.addItem(MENUITEM_FIELD_ADD_VALUE);
@@ -64,11 +64,11 @@ void ConfigModeControl::init() {
 
 void ConfigModeControl::mouseDown(mouseButton button) 
 {
-	if (popupDefault.isActive()) {
+	if (popupDefault.visible) {
 		popupDefault.onMouseDown(button);
 		return;
 	}
-	if (popupOnField.isActive()) {
+	if (popupOnField.visible) {
 		popupOnField.onMouseDown(button);
 		return;
 	}
@@ -199,7 +199,7 @@ void ConfigModeControl::render() {
 		fieldManager->fieldMoveHandleTo(selectedField, pos.x, pos.y);
 		mouseClickPosition = input.mouse;
 	}
-	if (!popupOnField.isActive() && !popupDefault.isActive() && !movingField && !resizingField) {
+	if (!popupOnField.visible && !popupDefault.visible && !movingField && !resizingField) {
 		selectedField = -1;
 	}
 
@@ -228,8 +228,8 @@ void ConfigModeControl::render() {
 			glEnd();
 		}
 	}
-	popupOnField.draw();
-	popupDefault.draw();
+	popupOnField.onRender();
+	popupDefault.onRender();
 };
 
 void ConfigModeControl::renderField(const int i, bool selected) {
@@ -296,14 +296,13 @@ void ConfigModeControl::onMenuClick(int itemID, std::string itemCaption) {
 };
 
 Color * ConfigModeControl::fieldTypeColor(const int &type) {
-	if (type == FIELD_TYPE_NONE)
-		return &clGray70;
 	if (type == FIELD_TYPE_MODEL)
 		return &clConfBoxMes;
 	if (type == FIELD_TYPE_TEXTURE)
 		return &clConfBoxTex;
 	if (type == FIELD_TYPE_VALUE)
 		return &clConfBoxVal;
+	return &clGray70;
 };
 
 char * ConfigModeControl::fieldTypeName(const int &type, const bool abriviation) {

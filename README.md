@@ -9,7 +9,7 @@ OpenGL applications.
 Library is using OpenGL Mathematics which can be found at http://glm.g-truc.net/0.9.6/index.html
 
 ## Code Example
-to use a library, interface is provided in file gldebugger.h
+to use a library, interface is provided in file glviewer.h
 
 ```
 void main(void) {
@@ -19,19 +19,27 @@ void main(void) {
 
   myStartOpenGL(&myGLRC, &myDC); // your procedure for context cration
   
-  glv::init("./glv_files/", myGLRC, myHDC); // initialize the viewing window and set path where files will be stored
+  // initialize the viewing window and set path where files will be stored
+  glv::init("./glv_files/", myGLRC, myHDC); 
   glv::show(); // show the viewer window
   
-  GLuint vertBuf = myCubeVertexBuffer(); // create some buffer with 8 cube vertices
-  glv::setModel("Test Cube Model", 8, vertBuff); // add a model and assign it with caption
+  // create some buffer with 8 vertices => cube
+  GLuint vertBuf = myCubeVertexBuffer(); 
+  // add a model and assign it with caption
+  glv::setModel("Test Cube Model", 8, vertBuff); 
   
-  GLuint indexBuf = myCubeIndexBuffer(); // get the buffer with cube indexes - 16 triangles
-  glv::modelElement("Test Cube Model", GL_TRIANGLES, 16, indexBuff); // specify how elements will be rendered in the viewer
+  // get the buffer with cube indexes => 16 triangles for cube
+  GLuint indexBuf = myCubeIndexBuffer(); 
+  // specify how elements will be rendered in the viewer
+  glv::modelElement("Test Cube Model", GL_TRIANGLES, 16, indexBuff); 
   
-  Gluint texID = myLoadNiceTexture(); // load some your texture
-  glv::setTexture("Some Nice Texture", texID); // enable to display a texture defining it's ID
+  // load your texture
+  Gluint texID = myLoadNiceTexture(); 
+  // enable to display a texture defining it's ID
+  glv::setTexture("Some Nice Texture", texID); 
   
-  glv::setLine("Texture ID", "texture id is %u", &texID); // set a value tracker to watch the variable 'texID'
+  // set a value tracker to watch the variable 'texID'
+  glv::setLine("Texture ID", "texture id is %u", &texID);
   
   while(true)
     ; // loop this thread forever and view resources
@@ -61,16 +69,30 @@ Set a new wariable watch line. First parameter defines the form of the line. The
 #### Models
 `std::string myModel = "My Test Triangle Model";`
 
-`glv::setModel(myModel, 3, *verts);`
+Firstly, create a name for a model. This name will be then used for identification of the model when other properties will be added.
 
-###### Default Rendering
+`glv::setModel(myModel, 3, verts);`
+
+Create model in the viewer. Pass number of vertices and a buffer ID where the positions are stored.
+
 `glv::modelElement(myModel, GL_TRIANGLES, 1, indices);`
+
+Specify conectivity of the elements. Pass rendering mode, number of elements and ID of buffer where indices are stored.
 
 `glv::modelTexture(myModel, textureID, coords);`
 
-`glv::modelNormals(myModel, normals);`
+Assign texture to the model. Pass ID of a texture and buffer ID where coordinates are stored.
 
-###### Shader Rendering
+`bool modelData(std::string caption, float * data, float min, float max, int colorMap);`
+
+When there is a need to display per vertex values mapped to the color-scale, pass pointer to the data, minimal value (default 0.0), maximal value (default 1.0) and color scale parameter. For now there are available these color-scales:
+```
+glv::CLMAP_RAINBOW; // all colors of a rainbow mapped to the scale
+glv::CLMAP_BLUERED; // lowest numbers mapped to blue, highest to the red
+```
+
+#### Using Custom Shaders for Models
+
 `glv::modelAttribs(myModel, location, numPerVert, buffer);`
 
 By this function the unlimited amount of attribute buffers can be sent. These attributes can be identified by their 'location' later in the shader.
@@ -79,3 +101,28 @@ By this function the unlimited amount of attribute buffers can be sent. These at
 
 Specify the shader program for the model. All rendering of the model will be done with usage of this shader.
 
+For synchronization with library, multiple constants can be used such as:
+`uniform mat4 glvModelMatrix, glvViewMatrix, glvProjectionMatrix;`
+using these uniforms in custom shader program, MVP matrix can be build.
+
+###### Example of Shader Program
+
+```
+#version 430
+
+uniform mat4 glvModelMatrix, glvViewMatrix, glvProjectionMatrix;
+layout (location = 0) in vec3 inVertex;
+
+void main(void) {
+  gl_Position = MVP * inVertex;
+};
+```
+
+this shader was used beside following glv interface setup:
+```
+std::string caption = "Model With Shader";
+glv::setModel(caption, model->vertexCount, 0);
+glv::modelEdges(caption, GL_TRIANGLES, model->elementCount, model->indices);
+glv::modelVertexAttrib(caption, 0, 3, GL_FLOAT, model->vertexPositions);
+glv::modelShaderProgram(caption, shaderProg);
+```

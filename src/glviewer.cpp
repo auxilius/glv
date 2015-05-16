@@ -108,12 +108,8 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		ShowWindow(controller.mainWindowHandle, SW_HIDE);
 		return 0;
 	}
-
-	case WM_DESTROY:
-		return 0;
-
-	case  WM_QUIT:
-		return 0;
+	case WM_DESTROY: return 0;
+	case WM_QUIT: return 0;
 
 	case WM_MOVE: 
 	{
@@ -156,21 +152,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		}
 		return 0;
 	}
-	/*
-	case WM_MOUSELEAVE: 
-	{
-		input.setMouseButtonUp(mbLeft);
-		input.setMouseButtonUp(mbMiddle);
-		input.setMouseButtonUp(mbRight);
-		input.setMousePosition(-1, -1);
-		if (controller.engine != NULL) {
-			controller.engine->onMouseUp(mbLeft);
-			controller.engine->onMouseUp(mbMiddle);
-			controller.engine->onMouseUp(mbRight);
-			controller.engine->onMouseMove(-1, -1);
-		}
-	}
-	*/
+
 	case WM_MOUSEWHEEL:
 	{
 		if (controller.engine == NULL) 
@@ -222,7 +204,6 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
 	case WM_KEYDOWN:
 	{
-		
 		char key = wParam;
 		if (!input.shift && key >= 'A' && key <= 'Z')
 			key = key - 'A' + 'a';
@@ -243,9 +224,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	}
 
 	default:
-	{
 		return DefWindowProc(hWnd, message, wParam, lParam);
-	}
 	}
 };
 
@@ -352,6 +331,7 @@ int glv::init(std::string workingDir, HGLRC glrcToShare, HDC dcToShare) {
 	if (controller.initialized())
 		return 1;
 	setDirectory(workingDir);
+	glewInit();
 	controller.init(glrcToShare, dcToShare);
 	return 0;
 };
@@ -408,9 +388,9 @@ void setArray(std::string caption, T * data, std::string format, int length, int
 		cout << "float";
 };
 
-bool glv::setModel(std::string caption, unsigned count, GLuint vertices, GLenum type) {
+bool glv::setModel(std::string caption, unsigned count, GLuint vertices, bool rewrite, GLenum type) {
 	if (controller.engine != NULL) {
-		controller.engine->viewModeCtrl->addModel(caption.c_str(), count, vertices, type);
+		controller.engine->viewModeCtrl->addModel(caption.c_str(), count, vertices, rewrite, type);
 		return true;
 	}
 	return false;
