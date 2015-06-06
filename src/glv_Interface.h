@@ -166,6 +166,8 @@ namespace Interface {
 		EventOnClick callOnClick;
 		// constructor
 		Select();
+		// hides menu if is shown
+		void hide();
 		// add item to the list
 		int addItem(std::string caption);
 		// select specified item

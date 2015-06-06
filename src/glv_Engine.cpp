@@ -90,9 +90,10 @@ void glv_Engine::onMouseDown(mouseButton button) {
 		profileEditCtrl->mouseDown(button);
 		return;
 	}
+
 	if (menuBar->isUnderCursor())
 		menuBar->onMouseDown(button);
-	
+	else	
 	if (actualRoom == rmConfig)
 		configModeCtrl->mouseDown(button);
 	else 

@@ -95,28 +95,40 @@ void MenuBar::onRoomButtonClick() {
 };
 
 void MenuBar::onProfileMenuClick(mouseButton button) {
-	if (profiles->count() <= 1 && button == mbLeft)
+	if (profiles->count() <= 1 && button == mbLeft) {
+		selectProfile.hide();
 		profileEditor->startAddingNew();
+	}
 };
 
 void MenuBar::onProfileMenuChange(int itemID, std::string itemName) {
-	if (itemID < 2) 
-		return;
-	if (input.mousePressed(mbLeft) || itemID <= 2) {
-		if (itemName == GLV_PROFILE_CAPTION_ADDNEW) {
-			profileEditor->startAddingNew();
-		}
-		else {
-			if (2 <= itemID) {
-				profiles->select(itemID-2);
-				updateProfileList();
-				if (callProfileChange)
-					callProfileChange();
-			}
-		}
-	} 
-	else if (input.mousePressed(mbRight) && 2 < itemID)
-		profileEditor->startEditing(itemID-2);
+
+	// first -> add new profile
+	if (itemName == GLV_PROFILE_CAPTION_ADDNEW)
+		profileEditor->startAddingNew();
+
+	// second -> separator, third -> default profile
+	else if (itemID == 2) {
+		profiles->select(0);
+		updateProfileList();
+		if (callProfileChange)
+			callProfileChange();
+	}
+
+	// others -> custom prifiles
+	else if (2 < itemID) {
+		// selecting profile
+		if (input.mousePressed(mbLeft)) {
+			profiles->select(itemID-2);
+			updateProfileList();
+			if (callProfileChange)
+				callProfileChange();
+		} 
+		// editing profile
+		else if (input.mousePressed(mbRight))
+			profileEditor->startEditing(itemID-2);
+	}
+	
 };
 
 void MenuBar::onRender() {

@@ -73,3 +73,7 @@ void Select::onRender() {
 bool Select::isOpened() {
 	return menuList.visible;
 };
+
+void Select::hide() {
+	menuList.hide();
+};
