@@ -56,30 +56,38 @@ Used for initialization of the library. glvWorkingDir is directory where all sup
 
 The functions for window open/close manipulation.
 
+
+
 #### Textures
-`glv::setTexture("My Test Texture", textureID);`
+`glv::setTexture("My Test Texture", textureID [, channels]);`
 
 Adds new texture to the list. If there already is one with the same caption, overwrites it wit this new textureID.
+
+For each texture can be selected channels for rendering, by changing third parameter. Possible parameters are: CH_RGBA (default), CH_RGB, CH_RG, CH_BA, CH_R, CH_G, CH_B, CH_A.
+
+
 
 #### Variable Watches
 `glv::setLine("%f.0 FPS", &fps)`
 
 Set a new wariable watch line. First parameter defines the form of the line. The control sign '%d', '%f', '%b' specify the output format (decimal, float, boolean). Second parameter is the value array, where all individual pointers are stored. The size of the array must be the same as the number of '%' signes in the control string.
 
+
+
 #### Models
-`std::string myModel = "My Test Triangle Model";`
+`std::string myCaption = "My Test Triangle Model";`
 
 Firstly, create a name for a model. This name will be then used for identification of the model when other properties will be added.
 
-`glv::setModel(myModel, 3, verts);`
+`glv::setModel(myCaption, 3, verts);`
 
 Create model in the viewer. Pass number of vertices and a buffer ID where the positions are stored.
 
-`glv::modelElement(myModel, GL_TRIANGLES, 1, indices);`
+`glv::modelElement(myCaption, GL_TRIANGLES, 1, indices);`
 
 Specify conectivity of the elements. Pass rendering mode, number of elements and ID of buffer where indices are stored.
 
-`glv::modelTexture(myModel, textureID, coords);`
+`glv::modelTexture(myCaption, textureID, coords);`
 
 Assign texture to the model. Pass ID of a texture and buffer ID where coordinates are stored.
 
@@ -90,6 +98,16 @@ When there is a need to display per vertex values mapped to the color-scale, pas
 glv::CLMAP_RAINBOW; // all colors of a rainbow mapped to the scale
 glv::CLMAP_BLUERED; // lowest numbers mapped to blue, highest to the red
 ```
+
+`bool modelPolylines(myCaption, pointBID, conectivityBID, count [, type] );`
+
+This function will specify a polyline for the model. This polyline can be rendered beside the model in the viewer window. 
+*pointBID* - buffer with the vertices
+*conectivityBID* - buffer with the indices
+*count* - number of indices
+optional parameter *type* can be one of following: GL_LINES, GL_LINE_STRIP (default), GL_LINE_LOOP.
+
+
 
 #### Using Custom Shaders for Models
 
