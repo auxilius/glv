@@ -92,4 +92,3 @@ void CheckButton::onMouseDown(mouseButton button) {
 			callOnChange(checkState);
 	}
 };
-

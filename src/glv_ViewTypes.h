@@ -1,13 +1,14 @@
-#ifndef H_GLD_VISUALIZER_VIEW
-#define H_GLD_VISUALIZER_VIEW
+#pragma once
+#ifndef GLV_H_VIEW_TYPES
+#define GLV_H_VIEW_TYPES
 
 #include "gld_types.h"
 #include "glv_Field.h"
 #include "glv_Model.h"
 #include "glv_Interface.h"
 #include "glv_Shaders.h"
-#include "gld_visual_view.h"
 
+namespace glv {
 
 class View {
 public:
@@ -20,18 +21,23 @@ public:
 };
 
 
+
+
+
 class TextureObject {
 private:
 	std::string caption;
 	GLuint bufferID;
 	GLint width, height;
 	float ratio;
+	int channels;
 public:
-	TextureObject() : caption(""), bufferID(0) {};
-	TextureObject(std::string C, GLuint ID);
+	TextureObject() : caption(""), bufferID(0), channels(0) {};
+	TextureObject(std::string C, GLuint ID, int visible_channels);
 
-	void set(GLuint ID);
+	void set(GLuint ID, int visible_channels);
 	std::string getCaption() { return caption; };
+	std::string getChannelStr();
 	GLuint getID() { return bufferID; };
 	void onRender(Box frame, float origX = false, float origY = false);
 };
@@ -59,8 +65,12 @@ private:
 	void initUI();
 	TextureObject * getTexture();
 	std::string getTextureCaption();
+	std::string getLabel();
 	int getTextureID();
 };
+
+
+
 
 
 
@@ -92,6 +102,7 @@ private:
 	Point lastMousePos;
 
 	int actualModel;
+
 	std::vector<ModelObject> * modelList;
 	short waitingForRenderMode;
 	std::string waitingForModelCaption;
@@ -106,5 +117,55 @@ private:
 };
 
 
+
+
+
+
+struct vwFormat {
+	char type;
+	short param;
+};
+struct vwSingleData {
+private:
+	bool error;
+public:
+	vwSingleData();
+	void * data;
+	vwFormat format;
+	std::string getString();
+};
+
+class vwLine {
+private:
+	std::vector<std::string> text;
+	std::vector<vwSingleData> value;
+	vwFormat readFormat(const char * formatString);
+	char * getArray();
+public:
+	char * getText();
+	void setText(std::string format);
+	void create(std::string format, void* data[]);
+	void printArray(void * data[], int startPosition, int length, const char * singleFormat);
+};
+
+class vwItem {
+private:
+	std::vector<vwLine> line;
+public:
+	void addLine(vwLine newLine);
+	int render(int x, int y);
+};
+
+class VariableView : public View {
+private:
+	std::vector<vwItem> *itemList;
+public:
+	std::vector<unsigned> itemNumber;
+	void draw();
+	void setItem(unsigned num, bool state);
+	void setItemList(std::vector<vwItem> * list);
+};
+
+}; // namespace glv
 
 #endif

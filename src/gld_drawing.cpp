@@ -1,5 +1,5 @@
 #include "gld_drawing.h"
-#include "gld_constants.h"
+#include "glv_Constants.h"
 
 #include <iostream>
 #include <gl/glew.h>
@@ -22,6 +22,9 @@ Color clBlack	= {0.00f, 0.00f, 0.00f, 1.0f};
 Color clRed		= {1.0f, 0.0f, 0.0f, 1.0f};
 Color clGreen	= {0.0f, 1.0f, 0.0f, 1.0f};
 Color clBlue	= {0.0f, 0.0f, 1.0f, 1.0f};
+Color clCyan	= {0.0f, 1.0f, 1.0f, 1.0f};
+Color clMagenta	= {1.0f, 0.0f, 1.0f, 1.0f};
+Color clYellow	= {1.0f, 1.0f, 0.0f, 1.0f};
 
 Color clConfBack	= {0.050f, 0.100f, 0.020f, 1.0f};
 Color clConfGrid	= {0.075f, 0.100f, 0.020f, 1.0f};
@@ -41,9 +44,9 @@ Color clBtnTextHover	= {0.20f, 0.20f, 0.20f, 1.0f};
 double actualFontSize = 12;
 
 void reloadProjection() {
+	glViewport(0, 0, canvas.width, canvas.height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glViewport(0, 0, canvas.width, canvas.height);
 	glOrtho(-1, canvas.width - 1, canvas.height, 0, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 };
@@ -102,9 +105,9 @@ void glColor(unsigned char r, unsigned char g, unsigned char b) {
 
 
 GLcolor valToColor(float value, unsigned colormap) {
-	if (colormap == COLOR_MAP_BLUERED)
+	if (colormap == GLV_COLOR_MAP_BLUERED)
 		return valToColor_BlueRed(value);
-	else if (colormap == COLOR_MAP_RAINBOW)
+	else if (colormap == GLV_COLOR_MAP_RAINBOW)
 		return valToColor_Rainbow(value);
 	else {
 		return GLcolor(1.0f, 0.0f, 1.0f);

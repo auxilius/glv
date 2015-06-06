@@ -15,21 +15,21 @@ bool FieldManager::isEmpty() {
 
 bool FieldManager::isBlank() {
 	for (unsigned i = 0; i < field.size(); i++)
-		if (field[i]->getType() != FIELD_TYPE_NONE)
+		if (field[i]->getType() != GLV_FIELD_TYPE_NONE)
 			return false;
 	return true;
 };
 
 bool FieldManager::addField(Box border, const unsigned &type) {
 	// if any dimension is under treshold, dont add it
-	if (border.width < FIELD_MIN_SIZE_TO_SHOW || border.height < FIELD_MIN_SIZE_TO_SHOW)
+	if (border.width < GLV_FIELD_MIN_SIZE_TO_SHOW || border.height < GLV_FIELD_MIN_SIZE_TO_SHOW)
 		return false;
 	// if width is too small, change it
-	if (border.width < FIELD_MIN_SIZE)
-		border.right = border.left + FIELD_MIN_SIZE;
+	if (border.width < GLV_FIELD_MIN_SIZE)
+		border.right = border.left + GLV_FIELD_MIN_SIZE;
 	// if height is too small, change it
-	if (border.height < FIELD_MIN_SIZE)
-		border.bottom = border.top + FIELD_MIN_SIZE;
+	if (border.height < GLV_FIELD_MIN_SIZE)
+		border.bottom = border.top + GLV_FIELD_MIN_SIZE;
 	field.push_back( new Field(border, type) );
 	return true;
 };
@@ -41,7 +41,7 @@ bool FieldManager::addField(int x1, int y1, int x2, int y2, const unsigned &type
 
 void FieldManager::addFieldAtMousePos(const unsigned &type) {
 	Point mouse = input.mouse;
-	Box border( mouse.x-FIELD_MIN_SIZE, mouse.y-FIELD_MIN_SIZE, mouse.x+FIELD_MIN_SIZE, mouse.y+FIELD_MIN_SIZE );
+	Box border( mouse.x-GLV_FIELD_MIN_SIZE, mouse.y-GLV_FIELD_MIN_SIZE, mouse.x+GLV_FIELD_MIN_SIZE, mouse.y+GLV_FIELD_MIN_SIZE );
 	field.push_back( new Field(border,type) );
 };
 
@@ -123,7 +123,7 @@ int FieldManager::getFieldWithHandleUnderMouse(void) {
 	for (int i = field.size()-1; i>=0; i--) {
 		border = &field[i]->getBorder();
 		double dist = distance((float)border->right, (float)border->bottom, (float)mouse.x, (float)mouse.y);
-		if (dist <= FIELD_SCALEHANDLE_SIZE)
+		if (dist <= GLV_FIELD_SCALEHANDLE_SIZE)
 			return i;
 	}
 	return -1;

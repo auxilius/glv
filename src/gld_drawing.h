@@ -11,7 +11,7 @@
 typedef GLfloat Color [4];
 extern Color clWhite, clGray10, clGray20, clGray30, clGray40;
 extern Color clGray50, clGray60, clGray70, clGray80, clGray90, clBlack;
-extern Color clRed, clGreen, clBlue;
+extern Color clRed, clGreen, clBlue, clCyan, clMagenta, clYellow;
 
 extern Color clConfBack, clConfGrid, clConfBoxMes, clConfBoxVal, clConfBoxTex;
 

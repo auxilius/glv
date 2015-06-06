@@ -32,6 +32,46 @@ GLchar * fragBoxRender[] =  {
 };
 
 
+////	TEXTURE RENDERING
+
+GLchar * vertTextureRender[] = {
+	"#version 130 \n"
+	"uniform vec4 corners; \n"
+	"uniform vec4 coords; \n"
+	"uniform int width, height; \n"
+	"out vec2 texcoord; \n"
+	"void main(void) { \n"
+	"	vec2 vertex = corners.xy; \n"
+	"	texcoord = coords.xy; \n"
+	"	if (gl_VertexID==1) { vertex.x = corners.z;  texcoord.x = coords.z; } \n"
+	"	if (gl_VertexID==2) { vertex   = corners.zw; texcoord   = coords.zw; } \n"
+	"	if (gl_VertexID==3) { vertex.y = corners.w;  texcoord.y = coords.w; } \n"
+	"	vertex = 2.0 * vertex / vec2(width, height) - 1.0; \n"
+	"	gl_Position = vec4(vertex.x, -vertex.y, 0.0, 1.0); \n"
+	"} \n"
+};
+
+GLchar * fragTextureRender[] =  { 
+	"#version 130 \n"
+	"in vec2 texcoord; \n"
+	"uniform sampler2D texture_map; \n"
+	"uniform int channels; \n"
+	"void main(void) { \n"
+	"	vec4 texc = texture(texture_map, texcoord); \n"
+	"	vec4 color = texc; \n"
+	"	if (channels == 1) color = vec4(texc.rgb, 1.0); \n"
+	"	if (channels == 2) color = vec4(texc.r, texc.r, texc.r, 1.0); \n"
+	"	if (channels == 3) color = vec4(texc.g, texc.g, texc.g, 1.0); \n"
+	"	if (channels == 4) color = vec4(texc.b, texc.b, texc.b, 1.0); \n"
+	"	if (channels == 5) color = vec4(texc.a, texc.a, texc.a, 1.0); \n"
+	"	if (channels == 6) color = vec4(texc.rg, 0.0, 1.0); \n"
+	"	if (channels == 7) color = vec4(texc.ba, 0.0, 1.0); \n"
+	"	gl_FragColor = color; \n"
+	"} \n"
+};
+
+
+
 ////	MODEL RENDERING
 
 GLchar * vertModelRender[] = {
@@ -79,6 +119,7 @@ Shaders::Shaders() {
 void Shaders::init() {
 	program[progRenderBox] = loadProgram(vertBoxRender[0], fragBoxRender[0]);
 	program[progRenderModel] = loadProgram(vertModelRender[0], fragModelRender[0]);
+	program[progRenderTexture] = loadProgram(vertTextureRender[0], fragTextureRender[0]);
 };
 
 void Shaders::bind(ShaderProgram programName) {
@@ -136,7 +177,7 @@ bool Shaders::setAttribute(std::string name, GLuint buffer, GLint size, GLenum t
 
 bool Shaders::setAttribute(GLuint location, GLuint buffer, GLint size, GLenum type) {
 	if (location != -1) {
-		glEnableVertexAttribArray(location);
+		enableAttribute(location);
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);
 		glVertexAttribPointer(location, size, type, GL_FALSE, 0, NULL);
 		return true;
@@ -148,12 +189,24 @@ bool Shaders::setAttribute(std::string name, GLfloat *arr, GLint size) {
 
 	GLint location = getLocationAttrib(name.c_str());
 	if (location != -1) {
-		glEnableVertexAttribArray(location);
+		enableAttribute(location);
 		glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, 0, arr);
 		return true;
 	}
 	return false;
 };
+
+void Shaders::enableAttribute(GLuint location) {
+	glEnableVertexAttribArray(location);
+	activeAttributes.push_back(location);
+};
+
+void Shaders::disableAttributes() {
+	for (unsigned i=0; i<activeAttributes.size(); i++)
+		glDisableVertexAttribArray(activeAttributes[i]);
+	activeAttributes.clear();
+};
+
 
 GLint Shaders::getLocationUniform(std::string name) {
 	if (actualProgram <= 0)
@@ -228,3 +281,4 @@ GLuint Shaders::loadProgram(GLchar * vertexShaderSource, GLchar * fragmentShader
 	glDeleteShader(vertexShader);
 	return programObj;
 }
+

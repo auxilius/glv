@@ -18,8 +18,8 @@ class Field {
 public:
 	Field();
 	Field(std::ifstream & stream, std::string version);
-	Field(const Box &cBorder, const short &fType = FIELD_TYPE_NONE);
-	Field(int x1, int y1, int x2, int y2, const short &fType = FIELD_TYPE_NONE);
+	Field(const Box &cBorder, const short &fType = GLV_FIELD_TYPE_NONE);
+	Field(int x1, int y1, int x2, int y2, const short &fType = GLV_FIELD_TYPE_NONE);
 
 	void moveScaleHandle(Point point);
 	void moveScaleHandle(int x, int y);

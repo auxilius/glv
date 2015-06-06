@@ -14,14 +14,14 @@
 #include "glv_MenuBar.h"
 #include "glv_ProfileEdit.h"
 
+namespace glv {
 
-
-class Engine {
+class glv_Engine {
 public:	
 	ViewModeControl *viewModeCtrl;
 	FieldManager *fieldManager;
 
-	Engine();
+	glv_Engine();
 
 	void init();
 	void render();
@@ -47,6 +47,8 @@ private:
 
 	void onRoomChange(void);
 	void onProfileChange(void);
+};
+
 };
 
 #endif

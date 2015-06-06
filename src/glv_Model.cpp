@@ -17,6 +17,7 @@ ModelObject::ModelObject(std::string capt, unsigned vertCount, GLuint verts, GLe
 	edges.exist = false;
 	texture.exist = false;
 	shader.exist = false;
+	polyline.exist = false;
 	setVertices(vertCount, verts, dataType, true);
 	calculateMatrix(); // may crash here when VID is non existing
 };
@@ -75,9 +76,9 @@ void ModelObject::onRender(Shaders *shader, RenderMode mode) {
 	for (unsigned i=0; i<attrib.size(); i++)
 		shader->setAttribute(attrib[i].location, attrib[i].buffer, attrib[i].size, attrib[i].type);
 	// inVertices
-	shader->setAttribute("glvVertex", vertice.bid, 3);
+	shader->setAttribute("glvVertex", vertice.bid, 3, vertice.type);
 	// lightning
-	shader->setUniform1i("glvEnableLightning", mode==rmVertices || mode==rmEdges || mode==rmSolid);
+	shader->setUniform1i("glvEnableLightning", 0/*mode==rmVertices || mode==rmEdges || mode==rmSolid*/);
 	// texturing
 	shader->setUniform1i("glvEnableTexture", mode==rmTextured && texture.exist);
 	if (texture.exist)
@@ -90,10 +91,17 @@ void ModelObject::onRender(Shaders *shader, RenderMode mode) {
 	shader->setUniform4f("glvColor", clWhite);
 
 	// rendering cases
-	if (mode == rmVertices) {
-		glPointSize(5.0f);
-		glEnable( GL_POINT_SMOOTH );
-		glDrawArrays( GL_POINTS, 0, vertice.count);
+	
+	if (mode == rmTextured && edges.exist && texture.exist) {
+		shader->setUniform1i("glvEnableValues", 0);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, texture.id);
+		drawElements();
+		glDisable(GL_TEXTURE_2D);
+	}
+	else
+	if (mode == rmSolid && edges.exist) {
+		drawElements();
 	}
 	else
 	if (mode == rmEdges && edges.exist) {
@@ -102,20 +110,18 @@ void ModelObject::onRender(Shaders *shader, RenderMode mode) {
 		drawElements();
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-	else
-	if (mode == rmSolid && edges.exist) {
-		drawElements();
-	}
-	else
-	if (mode == rmTextured && edges.exist && texture.exist) {
-		shader->setUniform1i("glvEnableValues", 0);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, texture.id);
-		drawElements();
-		glDisable(GL_TEXTURE_2D);
+	else {
+	//if (mode == rmVertices) {
+		glPointSize(5.0f);
+		glEnable( GL_POINT_SMOOTH );
+		glDrawArrays( GL_POINTS, 0, vertice.count);
 	}
 
+	if (polyline.exist)
+		drawPolyline(shader);
+
 	glDisable(GL_DEPTH_TEST);
+	shader->disableAttributes();
 };
 
 void ModelObject::drawElements() {
@@ -127,11 +133,30 @@ void ModelObject::drawElements() {
 	}
 };
 
+void ModelObject::drawPolyline(Shaders *shader) {
+	glLineWidth(1.5f);
+	shader->setUniform1i("glvEnableValues", 0);
+	shader->setUniform1i("glvEnableTexture", 0);
+	shader->setUniform1i("glvEnableLightning", 0);
+	shader->setAttribute("glvVertex", polyline.vertices, 3);
+	shader->setUniform4f("glvColor", clCyan);
+
+	glEnableClientState( GL_ELEMENT_ARRAY_BUFFER );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, polyline.edges );
+	glDrawElements( polyline.type, polyline.count, GL_UNSIGNED_INT, NULL);
+
+	glDisableClientState(GL_ELEMENT_ARRAY_BUFFER);
+	shader->disableAttributes();
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+};
+
 void ModelObject::onRenderNormals(Shaders *shader) {
+	/*
 	shader->setAttribute("glvVertex", vertice.bid, 3);
 	shader->setAttribute("glvNormal", normals.bid, 3);
 	glLineWidth(1.0f);
 	glDrawArrays( GL_POINTS, 0, vertice.count);
+	*/
 };
 
 
@@ -175,7 +200,7 @@ void ModelObject::setColor(float* P, float min, float max, int cl_map) {
 	for (unsigned i = 0; i < vertice.count; i++) {
 		float nval = normalize(P[i], data.minValue, data.maxValue);
 		GLcolor col;
-		if (cl_map == COLOR_MAP_BLUERED) 
+		if (cl_map == GLV_COLOR_MAP_BLUERED) 
 			col = valToColor_BlueRed(nval);
 		else
 			col = valToColor_Rainbow(nval);
@@ -246,3 +271,10 @@ GLuint ModelObject::getCustomProgram() {
 	return 0;
 };
 
+void ModelObject::setPolyline(GLuint verts, const GLuint indices, unsigned count, GLenum type) {
+	polyline.vertices = verts;
+	polyline.edges = indices;
+	polyline.count = count;
+	polyline.type = type;
+	polyline.exist = verts && indices && count;
+};

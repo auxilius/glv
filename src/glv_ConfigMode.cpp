@@ -204,22 +204,22 @@ void ConfigModeControl::render() {
 	}
 
 	for (unsigned i = 0; i < fieldManager->fieldCount(); i++)
-		renderField(i, i==selectedField);
+		renderField(i, (int)i==selectedField);
 		
 	if (addingField) {
 		int dx = abs(mouseClickPosition.x - input.mouse.x);
 		int dy = abs(mouseClickPosition.y - input.mouse.y);
-		if (dx > FIELD_MIN_SIZE_TO_SHOW && dy > FIELD_MIN_SIZE_TO_SHOW)
+		if (dx > GLV_FIELD_MIN_SIZE_TO_SHOW && dy > GLV_FIELD_MIN_SIZE_TO_SHOW)
 		{
 			glLineWidth(1.0f);
 			glColor3f(0.0f, 1.0f, 0.0f);
 			
 			int x = snappedToGrid(input.mouse.x);
 			int y = snappedToGrid(input.mouse.y);
-			if (dx < FIELD_MIN_SIZE) 
-				x = mouseClickPosition.x + FIELD_MIN_SIZE;
-			if (dy < FIELD_MIN_SIZE) 
-				y = mouseClickPosition.y + FIELD_MIN_SIZE;
+			if (dx < GLV_FIELD_MIN_SIZE) 
+				x = mouseClickPosition.x + GLV_FIELD_MIN_SIZE;
+			if (dy < GLV_FIELD_MIN_SIZE) 
+				y = mouseClickPosition.y + GLV_FIELD_MIN_SIZE;
 			glBegin(GL_LINE_LOOP);
 			glVerticeSquare(
 				mouseClickPosition.x, mouseClickPosition.y,
@@ -260,34 +260,34 @@ void ConfigModeControl::renderField(const int i, bool selected) {
 		fontHuge->textOut(border.center.x, border.center.y - fontHuge->getHeight() / 2, fieldTypeName(type), faCenter);
 	
 	// render scaling handle
-	if (pointDistance(input.mouse, point(border.right, border.bottom)) < FIELD_SCALEHANDLE_SIZE) {
+	if (pointDistance(input.mouse, point(border.right, border.bottom)) < GLV_FIELD_SCALEHANDLE_SIZE) {
 		Point position(border.right, border.bottom);
-		drawPoint(&position, clWhite, FIELD_SCALEHANDLE_SIZE * 2);
+		drawPoint(&position, clWhite, GLV_FIELD_SCALEHANDLE_SIZE * 2);
 	}
 };
 
 void ConfigModeControl::onMenuClick(int itemID, std::string itemCaption) {
 
 	if (itemCaption == MENUITEM_FIELD_SET_TEXTURE)
-		fieldManager->fieldSetType(selectedField, FIELD_TYPE_TEXTURE);
+		fieldManager->fieldSetType(selectedField, GLV_FIELD_TYPE_TEXTURE);
 
 	else if (itemCaption == MENUITEM_FIELD_SET_MODEL)
-		fieldManager->fieldSetType(selectedField, FIELD_TYPE_MODEL);
+		fieldManager->fieldSetType(selectedField, GLV_FIELD_TYPE_MODEL);
 
 	else if (itemCaption == MENUITEM_FIELD_SET_VALUE)
-		fieldManager->fieldSetType(selectedField, FIELD_TYPE_VALUE);
+		fieldManager->fieldSetType(selectedField, GLV_FIELD_TYPE_VALUE);
 
 	else if (itemCaption == MENUITEM_FIELD_DELETE)
 		fieldManager->fieldDelete(selectedField);
 
 	else if (itemCaption == MENUITEM_FIELD_ADD_MODEL)
-		fieldManager->addFieldAtMousePos(FIELD_TYPE_MODEL);
+		fieldManager->addFieldAtMousePos(GLV_FIELD_TYPE_MODEL);
 
 	else if (itemCaption == MENUITEM_FIELD_ADD_TEXTURE)
-		fieldManager->addFieldAtMousePos(FIELD_TYPE_TEXTURE);
+		fieldManager->addFieldAtMousePos(GLV_FIELD_TYPE_TEXTURE);
 
 	else if (itemCaption == MENUITEM_FIELD_ADD_VALUE)
-		fieldManager->addFieldAtMousePos(FIELD_TYPE_VALUE);
+		fieldManager->addFieldAtMousePos(GLV_FIELD_TYPE_VALUE);
 
 	fieldManager->save();
 
@@ -296,38 +296,38 @@ void ConfigModeControl::onMenuClick(int itemID, std::string itemCaption) {
 };
 
 Color * ConfigModeControl::fieldTypeColor(const int &type) {
-	if (type == FIELD_TYPE_MODEL)
+	if (type == GLV_FIELD_TYPE_MODEL)
 		return &clConfBoxMes;
-	if (type == FIELD_TYPE_TEXTURE)
+	if (type == GLV_FIELD_TYPE_TEXTURE)
 		return &clConfBoxTex;
-	if (type == FIELD_TYPE_VALUE)
+	if (type == GLV_FIELD_TYPE_VALUE)
 		return &clConfBoxVal;
 	return &clGray70;
 };
 
 char * ConfigModeControl::fieldTypeName(const int &type, const bool abriviation) {
 
-	if (type == FIELD_TYPE_NONE) {
+	if (type == GLV_FIELD_TYPE_NONE) {
 		if (abriviation)
 			return FIELD_NAME_ABR_NONE;
 		else
 			return FIELD_NAME_NONE;
 	}
-	if (type == FIELD_TYPE_TEXTURE) {
+	if (type == GLV_FIELD_TYPE_TEXTURE) {
 		if (abriviation)
 			return FIELD_NAME_ABR_TEXTURE;
 		else
 			return FIELD_NAME_TEXTURE;
 	}
 
-	if (type == FIELD_TYPE_MODEL) {
+	if (type == GLV_FIELD_TYPE_MODEL) {
 		if (abriviation)
 			return FIELD_NAME_ABR_MODEL;
 		else
 			return FIELD_NAME_MODEL;
 	}
 
-	if (type == FIELD_TYPE_VALUE) {
+	if (type == GLV_FIELD_TYPE_VALUE) {
 		if (abriviation)
 			return FIELD_NAME_ABR_VALUE;
 		else

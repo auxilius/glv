@@ -8,7 +8,7 @@
 #include <gl/glew.h>
 #include <functional>
 
-#include "gld_constants.h"
+#include "glv_Constants.h"
 #include "gld_types.h"
 #include "gld_drawing.h"
 
@@ -146,6 +146,11 @@ namespace Interface {
 		// event notifiers
 		virtual void onMouseDown(mouseButton button);
 	protected:
+		// wether individual item is checked
+		std::vector<bool> itemChecked;
+		// sets the state for the item
+		void flipItemState(int id);
+		void setItemState(int id, bool state);
 		// creates an item which cam be added to the list of items
 		virtual Button createItem(std::string name);
 	};

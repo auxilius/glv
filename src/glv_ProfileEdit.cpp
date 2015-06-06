@@ -91,23 +91,23 @@ void ProfileEdit::mouseDown(mouseButton button) {
 
 void ProfileEdit::keyDown(char key) {
 	// BACKSPACE pressed
-	if (key == KEY_BACKSPACE) {
+	if (key == GLV_KEY_BACKSPACE) {
 		if (editText.length() > 0)
 			editText.erase(editText.end()-1);
 	}
 	else 
 	// ENTER key pressed
-	if (key == KEY_ENTER) {
+	if (key == GLV_KEY_ENTER) {
 		onConfirm();
 	}
 	else 
 	// ESCAPE key
-	if (key == KEY_ESCAPE) { 
+	if (key == GLV_KEY_ESCAPE) { 
 		onCancel();
 	}
 	else 
 	// text edit key input	
-	if ( ('a'<=key && key<='z') || ('A'<=key && key<='Z') || ('0'<=key && key<='9') || key==KEY_SPACE ) {
+	if ( ('a'<=key && key<='z') || ('A'<=key && key<='Z') || ('0'<=key && key<='9') || key==GLV_KEY_SPACE ) {
 		if (editText.length() < 23)
 			editText += key;
 	}

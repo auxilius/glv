@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <gl\GLU.h>
 
+using namespace glv;
+
 
 ViewModeControl::ViewModeControl(FieldManager *fManager) {
 	fieldManager = fManager;
@@ -56,16 +58,16 @@ bool ViewModeControl::selectVariableFieldUnderMouse() {
 };
 
 unsigned ViewModeControl::selectFieldUnderMouse() {
-	unsigned result = FIELD_TYPE_NONE;
+	unsigned result = GLV_FIELD_TYPE_NONE;
 	unsigned layer = 0;
 	if (selectModelFieldUnderMouse()) {
-		result = FIELD_TYPE_MODEL;
+		result = GLV_FIELD_TYPE_MODEL;
 		layer = modelField[selectedModelField].layer;
 	}
 	if (selectTextureFieldUnderMouse()) {
 		if (textureField[selectedTextureField].layer >= layer) {
 			layer = textureField[selectedTextureField].layer;
-			result = FIELD_TYPE_TEXTURE;
+			result = GLV_FIELD_TYPE_TEXTURE;
 			selectedModelField = -1;
 		} else
 			selectedTextureField = -1;
@@ -73,7 +75,7 @@ unsigned ViewModeControl::selectFieldUnderMouse() {
 	if (selectVariableFieldUnderMouse()) {
 		if (variableField[selectedVariableField].layer >= layer) {
 			layer = variableField[selectedVariableField].layer;
-			result = FIELD_TYPE_VALUE;
+			result = GLV_FIELD_TYPE_VALUE;
 			selectedModelField = -1;
 			selectedTextureField = -1;
 		}
@@ -106,47 +108,8 @@ void ViewModeControl::render() {
 
 ///     C O N T R O L S     ///
 
-void ViewModeControl::mouseDown(mouseButton button) {
-	for (unsigned i = 0; i < modelField.size(); i++) {
-		modelField[i].onMouseDown(button);
-	}
-	for (unsigned i = 0; i < textureField.size(); i++) {
-		textureField[i].onMouseDown(button);
-	}
-
-	if (!popupTextureSelect.visible)
-		selectedTextureField = -1;
-	if (!popupModelSelect.visible)
-		selectedModelField = -1;
-	if (!popupVariableSelect.visible)
-		selectedVariableField = -1;
-
-	if (button == mbRight) {
-		unsigned selected = selectFieldUnderMouse();
-		if (selected == FIELD_TYPE_MODEL) {
-			popupModelSelect.showAtMousePosition();
-		} else
-		if (selected == FIELD_TYPE_TEXTURE) {
-			popupTextureSelect.showAtMousePosition();
-		} else
-		if (selected == FIELD_TYPE_VALUE) {
-			popupVariableSelect.setCheckedOptions(&variableField[selectedVariableField].itemNumber);
-			popupVariableSelect.showAtMousePosition();
-		}
-	}
-	if (button == mbLeft) {
-		if (popupTextureSelect.visible)
-			popupTextureSelect.onMouseDown(button);
-		if (popupModelSelect.visible)
-			popupModelSelect.onMouseDown(button);
-		if (popupVariableSelect.visible)
-			popupVariableSelect.onMouseDown(button);
-	}
-	requestRender();
-};
-
-
 void ViewModeControl::onModelMenuSelect(int itemID, std::string itemCaption) {
+	
 	modelField[selectedModelField].onModelSelect(itemID);
 	saveParams();
 	selectedModelField = -1;
@@ -165,6 +128,51 @@ void ViewModeControl::onVariableMenuClick(int itemID, std::string itemCaption, b
 	saveParams();
 };
 
+
+void ViewModeControl::mouseDown(mouseButton button) {
+	for (unsigned i = 0; i < modelField.size(); i++) {
+		modelField[i].onMouseDown(button);
+	}
+	for (unsigned i = 0; i < textureField.size(); i++) {
+		textureField[i].onMouseDown(button);
+	}
+
+	if (!popupTextureSelect.visible)
+		selectedTextureField = -1;
+	if (!popupModelSelect.visible)
+		selectedModelField = -1;
+	if (!popupVariableSelect.visible)
+		selectedVariableField = -1;
+
+	if (button == mbRight) {
+		unsigned selected = selectFieldUnderMouse();
+		if (selected == GLV_FIELD_TYPE_MODEL) {
+			popupModelSelect.showAtMousePosition();
+			popupTextureSelect.hide();
+			popupVariableSelect.hide();
+		} else
+			if (selected == GLV_FIELD_TYPE_TEXTURE) {
+				popupModelSelect.hide();
+				popupTextureSelect.showAtMousePosition();
+				popupVariableSelect.hide();
+			} else
+				if (selected == GLV_FIELD_TYPE_VALUE) {
+					popupModelSelect.hide();
+					popupTextureSelect.hide();
+					popupVariableSelect.setCheckedOptions(&variableField[selectedVariableField].itemNumber);
+					popupVariableSelect.showAtMousePosition();
+				}
+	}
+	if (button == mbLeft) {
+		if (popupTextureSelect.visible)
+			popupTextureSelect.onMouseDown(button);
+		if (popupModelSelect.visible)
+			popupModelSelect.onMouseDown(button);
+		if (popupVariableSelect.visible)
+			popupVariableSelect.onMouseDown(button);
+	}
+	requestRender();
+};
 
 void ViewModeControl::mouseUp(mouseButton button) {
 	for (unsigned i = 0; i < modelField.size(); i++) {
@@ -229,21 +237,21 @@ bool ViewModeControl::loadParams() {
 		const short type = fieldManager->fieldGetType(i);
 		const Box border = fieldManager->fieldGetBorder(i);
 		
-		if (type == FIELD_TYPE_MODEL) {
+		if (type == GLV_FIELD_TYPE_MODEL) {
 			ModelView MV(border, &modelList);
 			MV.layer = i;
 			MV.setParams(get);
 			modelField.push_back(MV);
 		} 
 		else
-		if (type == FIELD_TYPE_TEXTURE) {
+		if (type == GLV_FIELD_TYPE_TEXTURE) {
 			TextureView TV(border, &textureList);
 			TV.layer = i;
 			TV.setParams(get);
 			textureField.push_back(TV);
 		} 
 		else
-		if (type == FIELD_TYPE_VALUE) {
+		if (type == GLV_FIELD_TYPE_VALUE) {
 			VariableView VV;
 			VV.setBorder(border);
 			VV.setItemList(&variableItemList);
@@ -260,14 +268,14 @@ bool ViewModeControl::loadParams() {
 
 ///     I N T E R F A C E     ///
 
-bool ViewModeControl::addTexture(const char * caption, GLuint textureID) {
+bool ViewModeControl::addTexture(const char * caption, GLuint textureID, int channels) {
 	for (unsigned i = 0; i < textureList.size(); i++) {
 		if (textureList[i].getCaption() == caption) {
-			textureList[i].set(textureID);
+			textureList[i].set(textureID, channels);
 			return false;
 		}
 	}
-	TextureObject TE(caption, textureID);
+	TextureObject TE(caption, textureID, channels);
 	textureList.push_back(TE);
 	popupTextureSelect.addItem(caption);
 	for (unsigned i = 0; i < textureField.size(); i++)
@@ -388,6 +396,14 @@ void ViewModeControl::addModelVertexAttrib(const char * caption, GLuint atribute
 	ModelObject * model = findModel(caption);
 	if (model != NULL)
 		model->setVertexAttrib(atributeID, size, type, buffer);	
+	for (unsigned i = 0; i < modelField.size(); i++)
+		modelField[i].onModelPropertyAdd(caption);
+};
+
+void ViewModeControl::addModelPolyline(const char * caption, GLuint verts, const GLuint indices, unsigned count, GLenum type) {
+	ModelObject * model = findModel(caption);
+	if (model != NULL)
+		model->setPolyline(verts, indices, count, type);	
 	for (unsigned i = 0; i < modelField.size(); i++)
 		modelField[i].onModelPropertyAdd(caption);
 };

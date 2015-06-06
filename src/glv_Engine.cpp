@@ -4,7 +4,9 @@
 #include <gl/GLU.h>
 #include "glv_Shaders.h"
 
-Engine::Engine() {
+using namespace glv;
+
+glv_Engine::glv_Engine() {
 	shader = new Shaders();
 	
 	fieldManager = new FieldManager();
@@ -16,13 +18,13 @@ Engine::Engine() {
 	configModeCtrl = new ConfigModeControl(fieldManager);
 	
 	menuBar = new MenuBar(profiles, profileEditCtrl);
-	menuBar->callRoomChange = std::bind(&Engine::onRoomChange, this);
-	menuBar->callProfileChange = std::bind(&Engine::onProfileChange, this);
+	menuBar->callRoomChange = std::bind(&glv_Engine::onRoomChange, this);
+	menuBar->callProfileChange = std::bind(&glv_Engine::onProfileChange, this);
 
 	actualRoom = rmConfig;
 };
 
-void Engine::init() {
+void glv_Engine::init() {
 	shader->init();
 
 	// OpenGL init
@@ -43,7 +45,9 @@ void Engine::init() {
 	menuBar->init(actualRoom);
 };
 
-void Engine::render() {
+void glv_Engine::render() {
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	glActiveTexture(GL_TEXTURE0);
 	reloadProjection();
 	glClearColor(0.02f, 0.02f, 0.02f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -73,13 +77,13 @@ void Engine::render() {
 
 
 
-void Engine::onCanvasSizeChange(int width, int height) {
+void glv_Engine::onCanvasSizeChange(int width, int height) {
 	menuBar->onCanvasSizeChange(width, height);
 	if (profileEditCtrl != NULL)
 		profileEditCtrl->recalculatePositions();
 };
 
-void Engine::onMouseDown(mouseButton button) {
+void glv_Engine::onMouseDown(mouseButton button) {
 	input.setMouseButtonDown(button);
 
 	if (profileEditCtrl->isActive()) {
@@ -88,7 +92,7 @@ void Engine::onMouseDown(mouseButton button) {
 	}
 	if (menuBar->isUnderCursor())
 		menuBar->onMouseDown(button);
-	else
+	
 	if (actualRoom == rmConfig)
 		configModeCtrl->mouseDown(button);
 	else 
@@ -96,7 +100,7 @@ void Engine::onMouseDown(mouseButton button) {
 		viewModeCtrl->mouseDown(button);
 };
 
-void Engine::onMouseUp(mouseButton button) {
+void glv_Engine::onMouseUp(mouseButton button) {
 	input.setMouseButtonUp(button);
 	if (actualRoom == rmConfig)
 		configModeCtrl->mouseUp(button);
@@ -105,28 +109,28 @@ void Engine::onMouseUp(mouseButton button) {
 		viewModeCtrl->mouseUp(button);
 };
 
-void Engine::onMouseMove(int x, int y) {
+void glv_Engine::onMouseMove(int x, int y) {
 	if (actualRoom == rmVisual)
 		viewModeCtrl->mouseMove(x, y);
 };
 
-void Engine::onMouseWheel(signed short direction) {
+void glv_Engine::onMouseWheel(signed short direction) {
 	if (actualRoom == rmVisual)
 		viewModeCtrl->mouseWheel(direction);
 };
 
-void Engine::onKeyDown(char key) {
+void glv_Engine::onKeyDown(char key) {
 	if (profileEditCtrl->isActive())
 		profileEditCtrl->keyDown(key);
 };
 
-void Engine::onRoomChange(void) {
+void glv_Engine::onRoomChange(void) {
 	if (actualRoom == rmConfig)  {
 		if (!fieldManager->isBlank()) {
 			actualRoom = rmVisual;
 			viewModeCtrl->loadParams();
 		} else 
-			MessageBox(0, ERRORTEXT_CANNOT_SWITCH_MODE, ERRORTEXT_HEADER, MB_OK | MB_ICONINFORMATION);
+			MessageBox(0, "Create at least one field and select its type to proceed to visualization mode.", GLV_ERRORTEXT_HEADER, MB_OK | MB_ICONINFORMATION);
 	}
 	else if (actualRoom == rmVisual) {
 		viewModeCtrl->saveParams();
@@ -135,7 +139,7 @@ void Engine::onRoomChange(void) {
 	menuBar->onRoomChange(actualRoom);
 };
 
-void Engine::onProfileChange(void) {
+void glv_Engine::onProfileChange(void) {
 	viewModeCtrl->loadParams();
 	if (actualRoom == rmVisual && fieldManager->isBlank())
 		actualRoom = rmConfig;

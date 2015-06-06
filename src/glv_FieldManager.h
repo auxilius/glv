@@ -13,9 +13,9 @@ public:
 	bool isEmpty();
 	bool isBlank();
 public: // field constructors
-	bool addField(Box border, const unsigned &type = FIELD_TYPE_NONE );
-	bool addField(int x1, int y1, int x2, int y2, const unsigned &type = FIELD_TYPE_NONE );
-	void addFieldAtMousePos( const unsigned &type = FIELD_TYPE_NONE );
+	bool addField(Box border, const unsigned &type = GLV_FIELD_TYPE_NONE );
+	bool addField(int x1, int y1, int x2, int y2, const unsigned &type = GLV_FIELD_TYPE_NONE );
+	void addFieldAtMousePos( const unsigned &type = GLV_FIELD_TYPE_NONE );
 public: //  field destructors
 	void fieldDelete(const int &id);
 	void allFieldsDelete(void);

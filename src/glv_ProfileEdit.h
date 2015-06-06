@@ -3,7 +3,7 @@
 #define GLV_H_PROFILE_EDIT
 
 #include <string>
-#include "gld_constants.h"
+#include "glv_Constants.h"
 #include "glv_ProfileSwitcher.h"
 #include "glv_Interface.h"
 

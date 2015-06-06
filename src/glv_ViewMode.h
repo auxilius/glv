@@ -7,9 +7,10 @@
 #include <sstream>
 #include "gld_types.h"
 #include "glv_Interface.h"
-#include "gld_visual_view.h"
-#include "gld_visual_view_variable.h"
+#include "glv_ViewTypes.h"
 #include "glv_FieldManager.h"
+
+namespace glv {
 
 class ViewModeControl {
 private:
@@ -57,7 +58,7 @@ public:
 	void mouseMove(int x, int y);
 	void mouseWheel(signed short direction);
 	
-	bool addTexture(const char * caption, GLuint textureID);
+	bool addTexture(const char * caption, GLuint textureID, int channels);
 	
 	bool addValues(const char * caption, const char * formatString, void * data[]);
 	bool addValArray(const char* caption, void* data[], const char* format, int length, int lineLength);
@@ -71,11 +72,14 @@ public:
 	void addModelColorBuffer(const char * caption, GLuint bid);
 	void addModelShader(const char * caption, const GLuint shaderProgram);
 	void addModelVertexAttrib(const char * caption, GLuint atributeID, GLint size, GLenum type, GLuint buffer);
+	void addModelPolyline(const char * caption, GLuint verts, const GLuint indices, unsigned count, GLenum type);
 
 private:
 	void onModelMenuSelect(int itemID, std::string itemCaption);
 	void onTextureMenuSelect(int itemID, std::string itemCaption);
 	void onVariableMenuClick(int itemID, std::string itemCaption, bool itemState);
+};
+
 };
 
 

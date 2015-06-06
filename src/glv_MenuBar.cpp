@@ -1,18 +1,12 @@
 #include "glv_MenuBar.h"
 #include "gld_types.h"
 
-#define MENU_PROFILE_RENAME "Rename"
-#define MENU_PROFILE_REMOVE "Delete"
+#define GLV_PROFILE_CAPTION_ADDNEW "Create User Profile"
 
+#define GLV_MODE_CUSTOMIZE "Customization"
+#define GLV_MODE_VIEWING   "Viewing Mode"
 
-#define PROFILE_CREATE "Create User Profile"
-#define PROFILE_CREATE "Create User Profile"
-
-#define MODE_CUSTOMIZE "Customization"
-#define MODE_VIEWING   "Viewing Mode"
-
-#define MENU_HEIGHT 30
-#define BTN_HIDE_WIDTH 25
+#define GLV_BTN_HIDE_WIDTH 25
 
 
 MenuBar::MenuBar(ProfileSwitcher *pSwitcher, ProfileEdit *pEdit) {
@@ -30,11 +24,11 @@ bool MenuBar::isUnderCursor() {
 
 void MenuBar::init(const RoomType &room) {
 	btnHideMenu.caption = "";
-	btnHideMenu.height = MENU_HEIGHT;
-	btnHideMenu.width = BTN_HIDE_WIDTH;
+	btnHideMenu.height = GLV_MENU_HEIGHT;
+	btnHideMenu.width = GLV_BTN_HIDE_WIDTH;
 	btnHideMenu.checked = true;
 
-	btnRoomSwitch.caption = MODE_CUSTOMIZE;
+	btnRoomSwitch.caption = GLV_MODE_CUSTOMIZE;
 	btnRoomSwitch.colorBorder = &clGray80;
 	btnRoomSwitch.colorBorderHover = &clGray90;
 	selectProfile.colorBorder = &clGray80;
@@ -49,7 +43,7 @@ void MenuBar::init(const RoomType &room) {
 };
 
 Box MenuBar::getBorder() {
-	return Box(-1, canvas.bottom-MENU_HEIGHT, canvas.right+1, canvas.bottom+1);
+	return Box(-1, canvas.bottom-GLV_MENU_HEIGHT, canvas.right+1, canvas.bottom+1);
 };
 
 
@@ -62,7 +56,7 @@ void MenuBar::updateAll(const RoomType &room) {
 };
 
 void MenuBar::updateLayout() {
-	int y_menu = canvas.bottom - MENU_HEIGHT;
+	int y_menu = canvas.bottom - GLV_MENU_HEIGHT;
 	btnHideMenu.setPosition(0, y_menu);
 	int x = btnHideMenu.width + 5;
 	btnRoomSwitch.setPosition(x, y_menu + 3);
@@ -73,19 +67,21 @@ void MenuBar::updateLayout() {
 void MenuBar::updateRoomBtn(const RoomType &room) {
 	int oldWidth = btnRoomSwitch.width;
 	if (room == rmVisual)
-		btnRoomSwitch.caption = MODE_VIEWING;
+		btnRoomSwitch.caption = GLV_MODE_VIEWING;
 	else if (room == rmConfig)
-		btnRoomSwitch.caption = MODE_CUSTOMIZE;
+		btnRoomSwitch.caption = GLV_MODE_CUSTOMIZE;
 	btnRoomSwitch.width = max(oldWidth, btnRoomSwitch.width);
 };
 
 void MenuBar::updateProfileList() {
 	selectProfile.clearAllItems();
-	selectProfile.addItem( PROFILE_CAPTION_ADDNEW );
+	selectProfile.addItem( GLV_PROFILE_CAPTION_ADDNEW );
 	selectProfile.addItem( Interface::NULL_ITEM );
 	for (unsigned i = 0; i < profiles->count(); i++)
 		selectProfile.addItem( profiles->getName(i).c_str() );
 	selectProfile.selectItem(profiles->getNameOfSelected());
+	if (profiles->count() <= 1)
+		selectProfile.selectItem(0);
 };
 
 
@@ -104,8 +100,10 @@ void MenuBar::onProfileMenuClick(mouseButton button) {
 };
 
 void MenuBar::onProfileMenuChange(int itemID, std::string itemName) {
+	if (itemID < 2) 
+		return;
 	if (input.mousePressed(mbLeft) || itemID <= 2) {
-		if (itemName == PROFILE_CAPTION_ADDNEW) {
+		if (itemName == GLV_PROFILE_CAPTION_ADDNEW) {
 			profileEditor->startAddingNew();
 		}
 		else {

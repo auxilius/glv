@@ -6,7 +6,7 @@
 #include <string>
 #include <gl/glew.h>
 
-#include "gld_constants.h"
+#include "glv_Constants.h"
 #include "gld_types.h"
 #include "gld_drawing.h"
 #include "glv_Interface.h"

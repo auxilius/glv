@@ -9,7 +9,7 @@
 #include <fstream>
 #include <math.h>
 #include <string>
-#include "gld_constants.h"
+#include "glv_Constants.h"
 
 enum RoomType { rmVisual, rmConfig };
 

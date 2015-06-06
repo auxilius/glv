@@ -73,10 +73,10 @@ Field::Field(const Box &cBorder, const short &fType) {
 };
 
 Field::Field(int x1, int y1, int x2, int y2, const short &fType) {
-	if (abs(x2 - x1) < FIELD_MIN_SIZE)
-		x2 = x1 + FIELD_MIN_SIZE;
-	if (abs(y2 - y1) < FIELD_MIN_SIZE)
-		y2 = y1 + FIELD_MIN_SIZE;
+	if (abs(x2 - x1) < GLV_FIELD_MIN_SIZE)
+		x2 = x1 + GLV_FIELD_MIN_SIZE;
+	if (abs(y2 - y1) < GLV_FIELD_MIN_SIZE)
+		y2 = y1 + GLV_FIELD_MIN_SIZE;
 	border.set(x1, y1, x2, y2);
 	type = fType;
 };
@@ -124,11 +124,11 @@ Box Field::getBorder() {
 };
 
 void Field::moveScaleHandle(int x, int y) {
-	if (x < border.left + FIELD_MIN_SIZE)
-		x = border.left + FIELD_MIN_SIZE;
+	if (x < border.left + GLV_FIELD_MIN_SIZE)
+		x = border.left + GLV_FIELD_MIN_SIZE;
 	border.right = x;
-	if (y < border.top + FIELD_MIN_SIZE)
-		y = border.top + FIELD_MIN_SIZE;
+	if (y < border.top + GLV_FIELD_MIN_SIZE)
+		y = border.top + GLV_FIELD_MIN_SIZE;
 	border.bottom = y;
 };
 

@@ -7,18 +7,19 @@
 #include "gld_types.h"
 #include "gld_drawing.h"
 
-
+using namespace glv;
 
 
 
 CRITICAL_SECTION gCS;
 
-class gldController {
+class glv_WindowControll {
 private:
 	void createWindow();
 	void shareContext(HGLRC shareGLRC, HDC shareDC);
 	bool isInit;
 public:
+	bool managedUpdating;
 	bool windowConfigChanged;
 	int mainFont;
 	HWND mainWindowHandle;
@@ -34,15 +35,15 @@ public:
 		wglMakeCurrent(mainDC, mainGLRC);
 	};
 
-	Engine * engine;
-	gldController() { isInit = false; };
-	~gldController();
+	glv_Engine * engine;
+	glv_WindowControll() { isInit = false; };
+	~glv_WindowControll();
 	void init(HGLRC shareGLRC, HDC shareDC);
 	void step();
 	bool initialized();
 };
 
-gldController controller;
+glv_WindowControll controller;
 
 /////////// SYSTEM PROCEDURES ///////////
 DWORD WINAPI threadLoop(LPVOID lpParam) {
@@ -210,7 +211,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		if (controller.engine != NULL)
 			controller.engine->onKeyDown(key);
 
-		if (key == KEY_SHIFT)
+		if (key == GLV_KEY_SHIFT)
 			input.shift = true;
 		return 0;
 	}
@@ -218,7 +219,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_KEYUP:
 	{
 		char key = wParam;
-		if (key == KEY_SHIFT)
+		if (key == GLV_KEY_SHIFT)
 			input.shift = false;
 		return 0;
 	}
@@ -229,7 +230,7 @@ LRESULT CALLBACK gldWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 };
 
 
-void gldController::init(HGLRC shareGLRC, HDC shareDC) {
+void glv_WindowControll::init(HGLRC shareGLRC, HDC shareDC) {
 	InitializeCriticalSection(&gCS);
 	
 	createWindow();
@@ -239,17 +240,17 @@ void gldController::init(HGLRC shareGLRC, HDC shareDC) {
 	
 	setContextDebugger();
 	initFonts();
-	engine = new Engine();
+	engine = new glv_Engine();
 	engine->init();
 	setContextOriginal();
 	isInit = true;
 };
 
-bool gldController::initialized() {
+bool glv_WindowControll::initialized() {
 	return isInit;
 };
 
-void gldController::shareContext(HGLRC shareGLRC, HDC shareDC) {
+void glv_WindowControll::shareContext(HGLRC shareGLRC, HDC shareDC) {
 	origDC = shareDC;
 	if (origDC == NULL)
 		origDC = wglGetCurrentDC();
@@ -262,7 +263,7 @@ void gldController::shareContext(HGLRC shareGLRC, HDC shareDC) {
 	setContextOriginal();
 };
 
-void gldController::createWindow() {
+void glv_WindowControll::createWindow() {
 
 	WNDCLASS wc;
 
@@ -289,7 +290,7 @@ void gldController::createWindow() {
 	deviceContext = GetDC(mainWindowHandle);
 };
 
-void gldController::step() {
+void glv_WindowControll::step() {
 	POINT mousePosition;
 	if (GetCursorPos(&mousePosition)) {
 		if (ScreenToClient(mainWindowHandle, &mousePosition)) {
@@ -310,7 +311,7 @@ void gldController::step() {
 	Sleep(25);
 };
 
-gldController::~gldController() {
+glv_WindowControll::~glv_WindowControll() {
 	disableOpenGL();
 	DestroyWindow(controller.mainWindowHandle);
 };
@@ -319,7 +320,7 @@ gldController::~gldController() {
 
 bool setDirectory(std::string path) {
 	if (!dirExists(path)) {
-		MessageBox(0, ERRORTEXT_WORKDIR_DONT_EXIST, ERRORTEXT_HEADER, MB_OK | MB_ICONERROR);
+		MessageBox(0, "Working directory set by gldInit() function does not exist. Already existing directory needs to be set.", GLV_ERRORTEXT_HEADER, MB_OK | MB_ICONERROR);
 		std::cout << "GLV ERROR: setting working path to '" << path << "' failed. Path does not exist. Please create the folder structure manualy." << std::endl;
 	}
 	else
@@ -327,29 +328,33 @@ bool setDirectory(std::string path) {
 	return true;
 };
 
-int glv::init(std::string workingDir, HGLRC glrcToShare, HDC dcToShare) {
+int glv::init(std::string workingDir, HGLRC glrcToShare, HDC dcToShare, bool manageUpdate) {
 	if (controller.initialized())
 		return 1;
 	setDirectory(workingDir);
 	glewInit();
 	controller.init(glrcToShare, dcToShare);
+	controller.managedUpdating = manageUpdate;
 	return 0;
 };
 
 void glv::show(){
 	ShowWindow(controller.mainWindowHandle, SW_SHOW);
-	LPDWORD dwThreadID = 0;
-	HANDLE hThread = CreateThread(NULL, 0, threadLoop, NULL, 0, dwThreadID);
-	CloseHandle(hThread);
+	// if auto-update then create rendering thread
+	if (!controller.managedUpdating) {
+		LPDWORD dwThreadID = 0;
+		HANDLE hThread = CreateThread(NULL, 0, threadLoop, NULL, 0, dwThreadID);
+		CloseHandle(hThread);
+	}
 };
 
 void glv::hide() {
 	ShowWindow(controller.mainWindowHandle, SW_HIDE);
 };
 
-bool glv::setTexture(std::string caption, const GLuint texture) {
+bool glv::setTexture(std::string caption, const GLuint texture, int channels) {
 	if (controller.engine != NULL) {
-		controller.engine->viewModeCtrl->addTexture(caption.c_str(), texture);
+		controller.engine->viewModeCtrl->addTexture(caption.c_str(), texture, channels);
 		return true;
 	}
 	return false;
@@ -455,6 +460,18 @@ bool glv::modelVertexAttrib(std::string caption, GLuint atributeID, GLint size, 
 bool glv::modelNomals(std::string caption, GLuint normalBuffer) {
 	if (controller.engine != NULL) {
 		controller.engine->viewModeCtrl->addModelNormals(caption.c_str(), normalBuffer);
+		return true;
+	}
+	return false;
+};
+
+void glv::update() {
+	controller.step();
+};
+
+bool glv::modelPolylines(std::string caption, GLuint points, GLuint conectivity, int count, GLenum type) {
+	if (controller.engine != NULL) {
+		controller.engine->viewModeCtrl->addModelPolyline(caption.c_str(), points, conectivity, count, type);
 		return true;
 	}
 	return false;

@@ -1,7 +1,8 @@
 #include "glv_ProfileSwitcher.h"
-#include "gld_constants.h"
+#include "glv_Constants.h"
 #include "gld_types.h"
 
+#define GLV_PROFILE_CAPTION_DEFAULT	"<default>"
 
 ProfileSwitcher::ProfileSwitcher(FieldManager * fManage) {
 	actualProfile = -1;
@@ -10,7 +11,7 @@ ProfileSwitcher::ProfileSwitcher(FieldManager * fManage) {
 
 void ProfileSwitcher::init() {
 	profileNames.clear();
-	profileNames.push_back( PROFILE_CAPTION_DEFAULT );
+	profileNames.push_back( GLV_PROFILE_CAPTION_DEFAULT );
 	actualProfile = 0;
 	fieldManager->load( getConfigFileName(0) );
 	loadProfiles();	
@@ -87,11 +88,11 @@ void ProfileSwitcher::remove(int id) {
 
 void ProfileSwitcher::saveProfiles() {
 	std::ofstream oStream;
-	oStream.open( pathToFile(FILE_PROFILES) );
+	oStream.open( pathToFile(GLV_FILE_PROFILES) );
 	if (oStream.fail())
 		MessageBox(0, "Cannot save profiles into file.", "GLD - save error", MB_OK | MB_ICONWARNING);
 	for (unsigned i=1; i<count(); ++i) {
-		if (actualProfile == i)
+		if (actualProfile == (int)i)
 			oStream << '>';
 		oStream << profileNames[i] << std::endl;
 	}
@@ -99,7 +100,7 @@ void ProfileSwitcher::saveProfiles() {
 };
 
 bool ProfileSwitcher::loadProfiles() {
-	std::string fName = pathToFile(FILE_PROFILES);
+	std::string fName = pathToFile(GLV_FILE_PROFILES);
 	if (!fileExists(fName.c_str()))
 		return false;
 	std::ifstream inStream;
@@ -126,8 +127,8 @@ bool ProfileSwitcher::loadProfiles() {
 };
 
 std::string ProfileSwitcher::getConfigFileName(int id) {
-	std::string fname = FILE_PROFILE_DEFAULT;
+	std::string fname = GLV_FILE_PROFILE_DEFAULT;
 	if (id != 0)
-		fname = getName(id) + FILE_EXT_CONFIG;
+		fname = getName(id) + GLV_FILE_EXT_CONFIG;
 	return pathToFile(fname.c_str());
 };

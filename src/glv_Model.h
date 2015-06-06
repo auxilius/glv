@@ -1,5 +1,6 @@
-#ifndef H_GLD_VISUALIZER_MODEL_OBJECT
-#define H_GLD_VISUALIZER_MODEL_OBJECT
+#pragma once
+#ifndef GLV_H_MODEL
+#define GLV_H_MODEL
 
 #include "gld_types.h"
 #include "glv_Shaders.h"
@@ -42,6 +43,14 @@ namespace {
 
 		GLuint color_bid;
 		bool useBuffer;
+	};
+
+	struct MOPolyline {
+		GLuint vertices;
+		GLuint edges;
+		unsigned count;
+		GLenum type;
+		bool exist;
 	};
 
 	struct MOShader {
@@ -88,6 +97,8 @@ public: // Property SETters
 	void setShader(const GLuint shaderProgramId);
 	// Custom Attributes
 	void setVertexAttrib(GLuint location, GLint size, GLenum type, GLuint buffer);
+	// Polyline structure
+	void setPolyline(GLuint verts, const GLuint indices, unsigned count, GLenum type);
 
 public: // Property GETters
 	// caption of the model
@@ -107,12 +118,14 @@ private: // recorded properties
 	MOEdges edges;
 	MOTexture texture;
 	MOData  data;
+	MOPolyline polyline;
 	MOShader shader;
 	std::vector<MOAttrib> attrib;
 	
 	GLfloat* valuesToColors(void);
 	void calculateMatrix();
 	void drawElements();
+	void drawPolyline(Shaders *shader);
 
 };
 

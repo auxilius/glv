@@ -105,7 +105,7 @@ void Menu::show(int x, int y) {
 	int xMax = canvas.width - border.width;
 	if (x > xMax)
 		x = xMax;
-	int yMax = canvas.height - border.height;
+	int yMax = canvas.height - border.height - GLV_MENU_HEIGHT;
 	if (y > yMax)
 		y = yMax;
 	// move border to the showing position
@@ -140,7 +140,6 @@ int Menu::onMouseDownGetID(mouseButton button) {
 		if (item[i].caption == NULL_ITEM)
 			continue;
 		// call event and callback
-		//item[i].onMouseDown(button);
 		if (item[i].isHovered()) {
 			if (callOnItemClick)
 				callOnItemClick(i, item[i].caption);
@@ -154,18 +153,16 @@ int Menu::onMouseDownGetID(mouseButton button) {
 /**** CHECKABLE POP-MENU CLASS ****/
 
 Button CheckMenu::createItem(std::string name) {
-	CheckButton item;
-	item.setCaption(name);
-	item.outlineWidth = 0;
-	item.setFont(fontMain);
-	item.checked = false;
-	return item;
+	itemChecked.push_back(false);
+	return Menu::createItem(name);
 };
 
 void CheckMenu::setCheckedOptions(std::vector<unsigned> * checkedOptions) {
-	for (unsigned i = 0; i < item.size(); i++) {
-		CheckButton* btn = static_cast<CheckButton*>(&item[i]);
-		btn->checked = std::find(checkedOptions->begin(), checkedOptions->end(), i) != checkedOptions->end();
+	// go trought all items
+	for (unsigned i = 0; i < itemChecked.size(); i++) {
+		// set state to the value if item id was found in list
+		bool state = std::find(checkedOptions->begin(), checkedOptions->end(), i) != checkedOptions->end();
+		setItemState(i, state);
 	}
 };
 
@@ -173,14 +170,26 @@ void CheckMenu::onMouseDown(mouseButton button) {
 	if (!visible)
 		return;
 	for (unsigned i = 0; i < item.size(); i++) {
-		CheckButton* btn = static_cast<CheckButton*>(&item[i]);
-		btn->onMouseDown(button);
-		if (btn->isHovered() && callOnItemChange) {
-			callOnItemChange(i, btn->caption, btn->checked);
+		// skip, if item is just separator
+		if (item[i].caption == NULL_ITEM)
+			continue;
+		// call event and callback
+		if (item[i].isHovered()) {
+			flipItemState(i);
+			if (callOnItemChange)
+				callOnItemChange(i, item[i].caption, itemChecked[i]);
 			return;
 		}
 	}
 	visible = false;
 };
 
+void CheckMenu::flipItemState(int id) {
+	setItemState(id, !itemChecked[id]);
+};
 
+void CheckMenu::setItemState(int id, bool state) {
+	itemChecked[id] = state;
+	item[id].colorBack = (state)? &clBtnBackChecked : &clBtnBack;
+	item[id].colorBackHover = (state)? &clBtnBackChecked : &clBtnBackHover;
+};

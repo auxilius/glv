@@ -3,9 +3,10 @@
 #define GLV_H_SHADERS
 
 #include <string>
+#include <vector>
 #include "gl/glew.h"
 
-enum ShaderProgram { progRenderBox, progRenderModel };
+enum ShaderProgram { progRenderBox, progRenderModel, progRenderTexture };
 
 class Shaders {
 public:
@@ -21,19 +22,21 @@ public:
 	bool setUniform4f(std::string name, GLfloat* values);
 	bool setUniformMatrix4f(std::string name, GLfloat* values);
 
-
-	
 	bool setAttribute(std::string name, GLuint buffer, GLint size, GLenum type = GL_FLOAT);
 	bool setAttribute(std::string name, GLfloat *arr, GLint size);
 	bool setAttribute(GLuint location, GLuint buffer, GLint size, GLenum type = GL_FLOAT);
+	void disableAttributes();
 private:
-	GLuint program[2];
+	std::vector<GLuint> activeAttributes;
+	GLuint program[3];
 	GLuint actualProgram;
 	GLint getLocationUniform(std::string name);
 	GLint getLocationAttrib(std::string name);
 
 	GLuint loadShader(GLenum shaderType, GLchar * shaderSource);
 	GLuint loadProgram(GLchar * vertexShaderSource, GLchar * fragmentShaderSource);
+
+	void enableAttribute(GLuint location);
 	
 };
 
